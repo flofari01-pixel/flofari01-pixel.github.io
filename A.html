@@ -14,6 +14,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body)
 .word{flex:1;min-width:0;background:var(--card);border:3px solid var(--line);border-radius:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:6px 8px;font-family:var(--font-display);font-weight:900;font-size:clamp(1.25rem,6.2vw,2.2rem);letter-spacing:.02em;flex-wrap:nowrap;}
 .back{align-self:flex-start;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:8px 14px;font-weight:700;text-decoration:none;}
 .back:focus-visible{outline:4px solid var(--c2);outline-offset:3px;}
+.nav{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+.nav .back{align-self:auto;}
 .word{white-space:nowrap;}
 .word span{-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;}
 .word span:nth-child(4n+1){color:var(--c1);} .word span:nth-child(4n+2){color:var(--c2);} .word span:nth-child(4n+3){color:var(--c3);} .word span:nth-child(4n+4){color:var(--c4);}
@@ -36,7 +38,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body)
 </style></head>
 <body>
 <main class="app">
-  <a class="back" href="index-3.html">← Tutte le lettere</a>
+  <nav class="nav" aria-label="Navigazione lettere"><a class="back" href="index-3.html">← Tutte le lettere</a><a class="back" href="B.html" aria-label="Lettera successiva B">B ›</a></nav>
   <div class="top">
     <div class="letter" id="letter" role="button" tabindex="0" aria-label="Lettera A. Tocca per ascoltare"><span>A</span><span>a</span></div>
     <div class="word" id="word" role="button" tabindex="0" aria-label="Allosauro. Tocca per ascoltare"><span>A</span><span>L</span><span>L</span><span>O</span><span>S</span><span>A</span><span>U</span><span>R</span><span>O</span></div>
