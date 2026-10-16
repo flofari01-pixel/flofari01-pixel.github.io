@@ -53,6 +53,10 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:#cfe8c0 url(
 .parents summary::-webkit-details-marker{display:none;}
 .parents[open]{position:fixed;left:12px;right:12px;bottom:12px;max-width:496px;margin:0 auto;z-index:20;background:var(--card);border:3px solid var(--edge);border-radius:22px;padding:12px 14px;box-sizing:border-box;}
 .parents[open] summary{background:transparent;}
+.parents .x{display:none;width:44px;height:44px;border-radius:50%;background:#ff2e4d;color:#fff;font-size:1.5rem;font-weight:900;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,.25);line-height:1;}
+.parents[open] .lbl{display:none;}
+.parents[open] .x{display:flex;}
+.parents[open] summary{justify-content:flex-end;padding:0;min-height:44px;}
 .parents p{margin:8px 0 0;color:#3a4a6b;line-height:1.4;}
 .ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .ctrl label{font-weight:700;}
@@ -85,7 +89,7 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:#cfe8c0 url(
     <p class="hard" id="card-hard"></p>
     <button class="close" id="close" type="button">Chiudi</button>
   </section>
-  <details class="parents"><summary>👆 Per i genitori</summary><div class="ctrl"><label for="vol">Volume</label><input id="vol" type="range" min="0" max="1" step="0.05" value="0.5"><button class="mute" id="mute" type="button" aria-pressed="false">Silenzia</button></div><p>Lettera P di «Impara l'alfabeto con... Lo straordinario mondo dei Dinosauri e dei rettili preistorici». Nessun cookie, nessuna registrazione, nessun dato raccolto. Consigliato con la presenza di un adulto.</p></details>
+  <details class="parents"><summary><span class="lbl">👆 Per i genitori</span><span class="x" aria-hidden="true">✕</span></summary><div class="ctrl"><label for="vol">Volume</label><input id="vol" type="range" min="0" max="1" step="0.05" value="0.5"><button class="mute" id="mute" type="button" aria-pressed="false">Silenzia</button></div><p>Lettera P di «Impara l'alfabeto con... Lo straordinario mondo dei Dinosauri e dei rettili preistorici». Nessun cookie, nessuna registrazione, nessun dato raccolto. Consigliato con la presenza di un adulto.</p></details>
 </main>
 <script>
 /* Audio definitivo: scrivi qui i percorsi dei file registrati (accanto alla pagina).
