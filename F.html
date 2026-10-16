@@ -187,4 +187,21 @@ mv.addEventListener('camera-change',function(e){if(e.detail&&e.detail.source==='
 if(reduce)mv.removeAttribute('auto-rotate');
 })();
 </script>
+<script>
+(function(){
+  var PREV="E.html", NEXT="G.html";
+  var sx=0, sy=0, t0=0, skip=false;
+  document.addEventListener('touchstart', function(e){
+    skip = !!(e.target.closest && e.target.closest('#v3d, model-viewer, input, .card, .parents'));
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; t0=Date.now();
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(skip) return;
+    var dt=Date.now()-t0; var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(dt>700 || Math.abs(dx)<70 || Math.abs(dx)<2*Math.abs(dy)) return;
+    if(dx<0 && NEXT) location.href=NEXT;
+    if(dx>0 && PREV) location.href=PREV;
+  }, {passive:true});
+})();
+</script>
 </body></html>
