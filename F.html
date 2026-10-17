@@ -167,7 +167,7 @@ function setProgress(p){var pc=Math.max(0,Math.min(100,Math.round(p*100)));bar.v
 function show(on){
   is3d=on;wrap.classList.toggle('is3d',on);
   if(on){v.removeAttribute('aria-hidden');v.removeAttribute('inert');}else{v.setAttribute('aria-hidden','true');v.setAttribute('inert','');}
-  btn.textContent=on?'Torna al disegno':'Guarda il disegno in 3D';
+  btn.textContent=on?'Torna al disegno per scorrere tra le schede':'Guarda il disegno in 3D';
   btn.setAttribute('aria-label',on?'Torna al disegno 2D':'Guarda il disegno in 3D');
   if(on&&window.customElements&&customElements.get('model-viewer')){
     if(reduce){mv.removeAttribute('auto-rotate');}else{mv.setAttribute('auto-rotate','');}
