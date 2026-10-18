@@ -120,7 +120,7 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:linear-gradi
 <script>
 
 
-var AUDIO = {"voice": "assets/A-voice.mp3", "letter": "assets/A-letter.mp3", "word": "assets/A-word.mp3", "siren": "assets/A-sound.mp3", "soggetto": "assets/A-soggetto.mp3", "lettera": "assets/A-lettera.mp3"};
+var AUDIO = {"voice": "assets/A-voice.mp3", "letter": "assets/A-letter.mp3", "word": "assets/A-word.mp3", "siren": "assets/A-sound.mp3", "soggetto": "assets/A-soggetto.mp3", "lettera": "assets/A-lettera.mp3", "sound": "assets/A-sound.mp3"};
 
 var stage = document.getElementById('stage');
 var caption = document.getElementById('caption');
@@ -217,7 +217,7 @@ async function playAmbulance() {
   stage.classList.remove('hop');
   await sleep(200);
   stage.classList.add('rolling');
-  say('Uiii-uoo! Uiii-uoo!');
+  say('Niii-noo-niii-noo!');
   await (AUDIO.siren ? playFile(AUDIO.siren) : siren(3.3));
   stage.classList.remove('rolling');
   say("Tocca di nuovo l'ambulanza!");
