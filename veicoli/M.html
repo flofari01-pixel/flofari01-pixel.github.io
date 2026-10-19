@@ -121,6 +121,15 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:linear-gradi
 </main>
 
 <script>
+var runId = 0;
+function interrupt() {
+  runId++;
+  current.forEach(function (a) { try { a.pause(); } catch (e) {} });
+  current = [];
+  if ('speechSynthesis' in window) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+  stage.classList.remove('hop', 'rolling');
+  busy = false;
+}
 
 
 var AUDIO = {"voice": "assets/M-voice.mp3", "letter": "assets/M-letter.mp3", "word": "assets/M-word.mp3", "siren": "assets/M-sound.mp3", "soggetto": "assets/M-soggetto.mp3", "lettera": "assets/M-lettera.mp3", "sound": "assets/M-sound.mp3"};
@@ -234,29 +243,29 @@ function engineSound() {
 }
 
 async function playSound() {
-  if (busy) return;
-  busy = true;
+  interrupt();
+  var my = runId;
   stage.classList.add('rolling');
-  say('Ciuf ciuf, che raccolto!');
-  await (AUDIO.sound ? playFile(AUDIO.sound) : engineSound());
-  stage.classList.remove('rolling');
-  say("Tocca di nuovo la mietitrebbia!");
-  busy = false;
+  say("Ciuf ciuf, che raccolto!");
+  await (AUDIO.sound ? playFile(AUDIO.sound) : sleep(3000));
+  if (my === runId) {
+    stage.classList.remove('rolling');
+    say("Tocca di nuovo!");
+  }
 }
 
 async function playVoice() {
-  if (busy) return;
-  busy = true;
+  interrupt();
+  var my = runId;
   stage.classList.add('hop');
   say("M come Mietitrebbia");
   await (AUDIO.voice ? playFile(AUDIO.voice) : speak("M come Mietitrebbia", 1600));
-  stage.classList.remove('hop');
-  busy = false;
+  if (my === runId) stage.classList.remove('hop');
 }
 
 
 async function playPart(el, text, file) {
-  if (busy) return;
+  interrupt();
   busy = true;
   el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
   say(text);

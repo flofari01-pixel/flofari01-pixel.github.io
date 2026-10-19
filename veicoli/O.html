@@ -118,6 +118,15 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:linear-gradi
 </main>
 
 <script>
+var runId = 0;
+function interrupt() {
+  runId++;
+  current.forEach(function (a) { try { a.pause(); } catch (e) {} });
+  current = [];
+  if ('speechSynthesis' in window) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+  stage.classList.remove('hop', 'rolling');
+  busy = false;
+}
 
 
 var AUDIO = {"voice": "assets/O-voice.mp3", "letter": "assets/O-letter.mp3", "word": "assets/O-word.mp3", "siren": "assets/O-sound.mp3", "soggetto": "assets/O-soggetto.mp3", "lettera": "assets/O-lettera.mp3", "sound": "assets/O-sound.mp3"};
@@ -230,29 +239,29 @@ function engineSound() {
 }
 
 async function playSound() {
-  if (busy) return;
-  busy = true;
+  interrupt();
+  var my = runId;
   stage.classList.add('rolling');
-  say('Beep beep! Si parte!');
-  await (AUDIO.sound ? playFile(AUDIO.sound) : engineSound());
-  stage.classList.remove('rolling');
-  say("Tocca di nuovo l'omnibus!");
-  busy = false;
+  say("Beep beep! Si parte!");
+  await (AUDIO.sound ? playFile(AUDIO.sound) : sleep(3000));
+  if (my === runId) {
+    stage.classList.remove('rolling');
+    say("Tocca di nuovo!");
+  }
 }
 
 async function playVoice() {
-  if (busy) return;
-  busy = true;
+  interrupt();
+  var my = runId;
   stage.classList.add('hop');
   say("O come Omnibus");
   await (AUDIO.voice ? playFile(AUDIO.voice) : speak("O come Omnibus", 1600));
-  stage.classList.remove('hop');
-  busy = false;
+  if (my === runId) stage.classList.remove('hop');
 }
 
 
 async function playPart(el, text, file) {
-  if (busy) return;
+  interrupt();
   busy = true;
   el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
   say(text);
