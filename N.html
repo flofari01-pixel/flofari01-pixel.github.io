@@ -121,13 +121,12 @@ function roar(seconds){return new Promise(function(resolve){if(level()===0){setT
   catch(e){setTimeout(resolve,seconds*1000);}});}
 var runId=0;
 function interrupt(){runId++;current.forEach(function(a){try{a.pause();}catch(e){}});current=[];if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}}stage.classList.remove('hop','rolling');busy=false;}
-async function playAnimal(){interrupt();var my=runId;busy=true;stage.classList.add('hop');say(CAP);
+async function playVoice(){interrupt();var my=runId;busy=true;stage.classList.add('hop');say(CAP);
   await(AUDIO.voice?playFile(AUDIO.voice):speak(CAP,1600));
-  if(my!==runId)return;
-  stage.classList.remove('hop');await sleep(200);if(my!==runId)return;stage.classList.add('rolling');say('Rrrr! Rrrr!');
+  if(my===runId){stage.classList.remove('hop');busy=false;}}
+async function playSound(){interrupt();var my=runId;busy=true;stage.classList.add('rolling');say('Rrrr! Rrrr!');
   await(AUDIO.sound?playFile(AUDIO.sound):roar(1.6));
-  if(my!==runId)return;
-  stage.classList.remove('rolling');say("Tocca di nuovo " + "il " + NAME + "!");busy=false;}
+  if(my===runId){stage.classList.remove('rolling');say("Tocca di nuovo " + "il " + NAME + "!");busy=false;}}
 async function playPart(el,text,file){interrupt();var my=runId;busy=true;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');say(text);await(file?playFile(file):speak(text,1000));if(my===runId)busy=false;}
 
 var SCHEDE = {
@@ -151,8 +150,8 @@ btnL.addEventListener('click',function(){openCard('lettera');});
 document.getElementById('close').addEventListener('click',closeCard);
 function fitWord(){var w=document.getElementById('word');w.style.fontSize='';var sz=parseFloat(getComputedStyle(w).fontSize);while(w.scrollWidth>w.clientWidth&&sz>12){sz-=1;w.style.fontSize=sz+'px';}}
 fitWord(); window.addEventListener('resize',fitWord);
-stage.addEventListener('click',playAnimal);
-document.getElementById('go').addEventListener('click',playAnimal);
+stage.addEventListener('click',playSound);
+document.getElementById('go').addEventListener('click',playVoice);
 var letterEl=document.getElementById('letter'),wordEl=document.getElementById('word');
 function onKey(fn){return function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fn();}};}
 var tapLetter=function(){playPart(letterEl,"N",AUDIO.letter);};
