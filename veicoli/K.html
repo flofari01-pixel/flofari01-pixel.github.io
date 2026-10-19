@@ -91,7 +91,7 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:linear-gradi
       <g transform="translate(580 -50)"><polygon class="spark s3" points="0,-30 10,-10 30,0 10,10 0,30 -10,10 -30,0 -10,-10"/></g>
     </svg>
   </button></div>
-  <div class="caption" id="caption" aria-live="polite">Tocca il kart!</div>
+  <div class="caption" id="caption" aria-live="polite">K come Kart</div>
   <div class="actions">
     <button class="act act-go" id="go" type="button" aria-label="Ascolta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><span>Ascolta</span></button>
     <button class="act act-s" id="btn-soggetto" type="button" aria-label="Scopri Kart" aria-controls="card" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7v.5"/><circle cx="12" cy="18" r=".6"/></svg><span>Scopri</span></button>
@@ -214,14 +214,9 @@ function engineSound() {
   });
 }
 
-async function playKart() {
+async function playSound() {
   if (busy) return;
   busy = true;
-  stage.classList.add('hop');
-  say('K come Kart');
-  await (AUDIO.voice ? playFile(AUDIO.voice) : speak('K come Kart', 1800));
-  stage.classList.remove('hop');
-  await sleep(200);
   stage.classList.add('rolling');
   say('Vrooom!');
   await (AUDIO.sound ? playFile(AUDIO.sound) : engineSound());
@@ -229,6 +224,17 @@ async function playKart() {
   say("Tocca di nuovo il kart!");
   busy = false;
 }
+
+async function playVoice() {
+  if (busy) return;
+  busy = true;
+  stage.classList.add('hop');
+  say("K come Kart");
+  await (AUDIO.voice ? playFile(AUDIO.voice) : speak("K come Kart", 1600));
+  stage.classList.remove('hop');
+  busy = false;
+}
+
 
 async function playPart(el, text, file) {
   if (busy) return;
@@ -239,8 +245,8 @@ async function playPart(el, text, file) {
   busy = false;
 }
 
-stage.addEventListener('click', playKart);
-document.getElementById('go').addEventListener('click', playKart);
+stage.addEventListener('click', playSound);
+document.getElementById('go').addEventListener('click', playVoice);
 
 var letterEl = document.getElementById('letter'), wordEl = document.getElementById('word');
 function onKey(fn) { return function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } }; }
