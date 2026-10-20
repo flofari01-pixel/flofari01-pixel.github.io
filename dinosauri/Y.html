@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="it"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>G come Giganotosauro</title>
-<style>
-:root{--ink:#1d2b4a;--card:#fff9e6;--edge:#d9b98f;--green:#16b33a;--green-d:#0b7a24;--blue:#0a7cff;--red:#ff2e4d;--font-display:"Arial Rounded MT Bold","Nunito",ui-rounded,"Trebuchet MS",system-ui,sans-serif;--font-body:ui-rounded,"Nunito","Segoe UI",system-ui,sans-serif;}
+<title>Y come Yi-qi</title>
+<style>@font-face{font-family:"Chewy";src:url("assets/Chewy-Regular.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:swap;}
+:root{--ink:#1d2b4a;--card:#fff9e6;--edge:#d9b98f;--green:#16b33a;--green-d:#0b7a24;--blue:#0a7cff;--red:#ff2e4d;--font-display:"Chewy",ui-rounded,"Nunito",system-ui,sans-serif;--font-body:ui-rounded,"Nunito","Segoe UI",system-ui,sans-serif;}
 body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:#cfe8c0 url("assets/jungle.jpg") center/cover no-repeat;font-family:var(--font-body);color:var(--ink);}
 .app{box-sizing:border-box;height:100%;max-width:520px;margin:0 auto;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;min-height:0;}
 .nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;flex:none;}
@@ -64,24 +64,24 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:#cfe8c0 url(
 .mute{background:#fff;color:var(--ink);border:2px solid var(--edge);border-radius:12px;padding:6px 12px;font:inherit;font-weight:700;cursor:pointer;min-height:40px;}
 .mute[aria-pressed="true"]{border-color:var(--red);}
 @media (prefers-reduced-motion: reduce){.hop .subj,.rolling .subj,.pop,.card.open{animation:none;}.stage,.v3d{transition:none !important;}}
-</style><link rel="prefetch" href="F.html"><link rel="prefetch" href="H.html"></head>
+</style><link rel="prefetch" href="X.html"><link rel="prefetch" href="Z.html"></head>
 <body>
 <main class="app">
-  <nav class="nav" aria-label="Navigazione lettere"><a class="btn-nav side" href="F.html" aria-label="Lettera precedente F">← Lettera F</a><a class="btn-nav mid" href="index-3.html" aria-label="Tutte le lettere">Tutte le lettere</a><a class="btn-nav side" href="H.html" aria-label="Lettera successiva H">Lettera H →</a></nav>
-  <div class="top"><div class="letter" id="letter" role="button" tabindex="0" aria-label="Lettera G. Tocca per ascoltare"><span>G</span><span>g</span></div><div class="word" id="word" role="button" tabindex="0" aria-label="Giganotosauro. Tocca per ascoltare"><span>G</span><span>I</span><span>G</span><span>A</span><span>N</span><span>O</span><span>T</span><span>O</span><span>S</span><span>A</span><span>U</span><span>R</span><span>O</span></div></div>
-  <div class="stagewrap" id="stagewrap"><button class="stage" id="stage" type="button" aria-label="Tocca il Giganotosauro per ascoltarlo">
-    <img class="subj" alt="Giganotosauro" src="assets/G-dino.webp">
-  </button><div class="v3d" id="v3d" role="group" aria-label="Modello 3D di Giganotosauro" aria-hidden="true" inert>
-    <model-viewer id="mv" src="assets/G-dino.glb" alt="Modello 3D di Giganotosauro" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="0" rotation-per-second="15deg" shadow-intensity="1" loading="eager" reveal="auto" camera-orbit="35deg 75deg auto" min-camera-orbit="auto 25deg 40%" max-camera-orbit="auto 88deg 150%" interaction-prompt="none" environment-image="neutral" exposure="1.05"><div slot="progress-bar"></div></model-viewer>
+  <nav class="nav" aria-label="Navigazione lettere"><a class="btn-nav side" href="X.html" aria-label="Lettera precedente X">← Lettera X</a><a class="btn-nav mid" href="index.html" aria-label="Tutte le lettere">Tutte le lettere</a><a class="btn-nav side" href="Z.html" aria-label="Lettera successiva Z">Lettera Z →</a></nav>
+  <div class="top"><div class="letter" id="letter" role="button" tabindex="0" aria-label="Lettera Y. Tocca per ascoltare"><span>Y</span><span>y</span></div><div class="word" id="word" role="button" tabindex="0" aria-label="Yi-qi. Tocca per ascoltare"><span>Y</span><span>I</span><span>-</span><span>Q</span><span>I</span></div></div>
+  <div class="stagewrap" id="stagewrap"><button class="stage" id="stage" type="button" aria-label="Tocca lo Yi-qi per ascoltarlo">
+    <img class="subj" alt="Yi-qi" src="assets/Y-dino.webp">
+  </button><div class="v3d" id="v3d" role="group" aria-label="Modello 3D di Yi-qi" aria-hidden="true" inert>
+    <model-viewer id="mv" src="assets/Y-dino.glb" alt="Modello 3D di Yi-qi" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="0" rotation-per-second="15deg" shadow-intensity="1" loading="eager" reveal="auto" camera-orbit="35deg 75deg auto" min-camera-orbit="auto 25deg 40%" max-camera-orbit="auto 88deg 150%" interaction-prompt="none" environment-image="neutral" exposure="1.05"><div slot="progress-bar"></div></model-viewer>
     <div class="v3hint">Ruota con il dito, pizzica per zoomare</div>
     <div class="v3load" id="v3load" role="status" aria-live="polite"><progress id="v3bar" max="100" value="0"></progress><span id="v3lbl">Caricamento 3D… 0%</span></div>
   </div></div>
   <button class="go3d" id="btn3d" type="button" aria-controls="v3d" aria-label="Guarda il disegno in 3D">VEDI IN 3D</button>
-  <div class="caption" id="caption" aria-live="polite">Tocca il Giganotosauro!</div>
+  <div class="caption" id="caption" aria-live="polite">Tocca lo Yi-qi!</div>
   <div class="actions">
     <button class="act act-go" id="go" type="button" aria-label="Ascolta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><span>Ascolta</span></button>
-    <button class="act act-s" id="btn-soggetto" type="button" aria-label="Scopri giganotosauro" aria-controls="card" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7v.5"/><circle cx="12" cy="18" r=".6"/></svg><span>Scopri</span></button>
-    <button class="act act-l" id="btn-lettera" type="button" aria-label="Ascolta la lettera G" aria-controls="card" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 12 4l8 16M7.5 14h9"/></svg><span>La lettera</span></button>
+    <button class="act act-s" id="btn-soggetto" type="button" aria-label="Scopri yi-qi" aria-controls="card" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7v.5"/><circle cx="12" cy="18" r=".6"/></svg><span>Scopri</span></button>
+    <button class="act act-l" id="btn-lettera" type="button" aria-label="Ascolta la lettera Y" aria-controls="card" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 12 4l8 16M7.5 14h9"/></svg><span>La lettera</span></button>
   </div>
   <section class="card" id="card" aria-live="polite">
     <h2 id="card-title"></h2>
@@ -89,15 +89,15 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:#cfe8c0 url(
     <p class="hard" id="card-hard"></p>
     <button class="close" id="close" type="button">Chiudi</button>
   </section>
-  <details class="parents"><summary><span class="lbl">👆 Per i genitori</span><span class="x" aria-hidden="true">✕</span></summary><div class="ctrl"><label for="vol">Volume</label><input id="vol" type="range" min="0" max="1" step="0.05" value="0.5"><button class="mute" id="mute" type="button" aria-pressed="false">Silenzia</button></div><p>Lettera G di «Impara l'alfabeto con... Lo straordinario mondo dei Dinosauri e dei rettili preistorici». Nessun cookie, nessuna registrazione, nessun dato raccolto. Consigliato con la presenza di un adulto.</p></details>
+  <details class="parents"><summary><span class="lbl">👆 Per i genitori</span><span class="x" aria-hidden="true">✕</span></summary><div class="ctrl"><label for="vol">Volume</label><input id="vol" type="range" min="0" max="1" step="0.05" value="0.5"><button class="mute" id="mute" type="button" aria-pressed="false">Silenzia</button></div><p>Lettera Y di «Impara l'alfabeto con... Lo straordinario mondo dei Dinosauri e dei rettili preistorici». Nessun cookie, nessuna registrazione, nessun dato raccolto. Consigliato con la presenza di un adulto.</p></details>
 </main>
 <script>
 /* Audio definitivo: scrivi qui i percorsi dei file registrati (accanto alla pagina).
    Esempio: voice: "audio/a-come-allosauro.mp3". Finché sono null, la pagina usa la voce del browser e un effetto sintetico. */
-var AUDIO = {"voice": "assets/G-voice.mp3", "letter": "assets/G-letter.mp3", "word": "assets/G-word.mp3", "soggetto": "assets/G-soggetto.mp3", "lettera": "assets/G-lettera.mp3", "sound": "assets/G-sound.m4a"};
-var WORD = "GIGANOTOSAURO";
-var NAME = "Giganotosauro";
-var CAP = "G come Giganotosauro";
+var AUDIO = {"voice": "assets/Y-voice.mp3", "letter": "assets/Y-letter.mp3", "word": "assets/Y-word.mp3", "soggetto": "assets/Y-soggetto.mp3", "lettera": "assets/Y-lettera.mp3", "sound": "assets/Y-sound.m4a"};
+var WORD = "YI-QI";
+var NAME = "Yi-qi";
+var CAP = "Y come Yi-qi";
 var stage=document.getElementById('stage'), caption=document.getElementById('caption'), volEl=document.getElementById('vol'), muteBtn=document.getElementById('mute');
 var vol=0.5, muted=false, busy=false, ctx=null, current=[];
 volEl.addEventListener('input',function(){vol=parseFloat(volEl.value);applyVolume();});
@@ -126,12 +126,12 @@ async function playVoice(){interrupt();var my=runId;busy=true;stage.classList.ad
   if(my===runId){stage.classList.remove('hop');busy=false;}}
 async function playSound(){interrupt();var my=runId;busy=true;stage.classList.add('rolling');say('Rrrr! Rrrr!');
   await(AUDIO.sound?playFile(AUDIO.sound):roar(1.6));
-  if(my===runId){stage.classList.remove('rolling');say("Tocca di nuovo " + "il " + NAME + "!");busy=false;}}
+  if(my===runId){stage.classList.remove('rolling');say("Tocca di nuovo " + "lo " + NAME + "!");busy=false;}}
 async function playPart(el,text,file){interrupt();var my=runId;busy=true;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');say(text);await(file?playFile(file):speak(text,1000));if(my===runId)busy=false;}
 
 var SCHEDE = {
-  soggetto: { titolo: "Giganotosauro", testo: "Il giganotosauro era un dinosauro carnivoro, uno dei più grandi predatori di terra. Era lungo circa 13 metri e visse tra 98 e 96 milioni di anni fa, nel Cretaceo.", hard: "Parola difficile: «predatore» vuol dire che caccia e mangia altri animali." },
-  lettera: { titolo: "La lettera G", testo: "La G è una consonante. Davanti alla E e alla I si legge g, come in giganotosauro. Davanti ad A, O, U si legge g, come in gallina.", hard: "" }
+  soggetto: { titolo: "Yi-qi", testo: "Lo yi-qi era un piccolo dinosauro con ali fatte con una membrana di pelle sottile. Visse in Cina circa 160 milioni di anni fa.", hard: "Parola difficile: la «membrana» è una pelle sottile e tesa, come quella delle ali dei pipistrelli." },
+  lettera: { titolo: "La lettera Y", testo: "La Y è una lettera straniera e si legge come una i, come in yi-qi.", hard: "" }
 };
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
@@ -154,7 +154,7 @@ stage.addEventListener('click',playSound);
 document.getElementById('go').addEventListener('click',playVoice);
 var letterEl=document.getElementById('letter'),wordEl=document.getElementById('word');
 function onKey(fn){return function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fn();}};}
-var tapLetter=function(){playPart(letterEl,"G",AUDIO.letter);};
+var tapLetter=function(){playPart(letterEl,"Y",AUDIO.letter);};
 var tapWord=function(){playPart(wordEl,NAME,AUDIO.word);};
 letterEl.addEventListener('click',tapLetter);letterEl.addEventListener('keydown',onKey(tapLetter));
 wordEl.addEventListener('click',tapWord);wordEl.addEventListener('keydown',onKey(tapWord));
@@ -196,7 +196,7 @@ if(reduce)mv.removeAttribute('auto-rotate');
 </script>
 <script>
 (function(){
-  var PREV="F.html", NEXT="H.html";
+  var PREV="X.html", NEXT="Z.html";
   var app=document.querySelector('.app');
   var wrap=document.getElementById('stagewrap');
   var EDGE_SKIP='#v3d, model-viewer, input, .card, .parents, summary, .go3d, .act, .close, .mute';
