@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Q come Quokka</title>
+<style>@font-face{font-family:"Chewy";src:url("assets/Chewy-Regular.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:swap;}
+:root{--ink:#1d2b4a;--card:#ffffff;--edge:#d9b98f;--green:#16b33a;--green-d:#0b7a24;--blue:#0a7cff;--red:#ff2e4d;--font-display:"Chewy",ui-rounded,"Nunito",system-ui,sans-serif;--font-body:ui-rounded,"Nunito","Segoe UI",system-ui,sans-serif;}
+body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:linear-gradient(#bfe3ff 0%,#eaf6ff 64%,#9ed98a 64%) no-repeat;font-family:var(--font-body);color:var(--ink);}
+.app{box-sizing:border-box;height:100%;max-width:520px;margin:0 auto;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;min-height:0;}
+.nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;flex:none;}
+.nav .spacer{display:block;}
+.btn-nav.mid{white-space:normal;text-align:center;line-height:1.1;font-size:clamp(.7rem,3vw,.88rem);padding:0 8px;min-width:96px;}
+.btn-nav.side{font-size:clamp(.78rem,3.4vw,.95rem);padding:0 6px;}
+.btn-nav{flex:1;display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 10px;border-radius:999px;background:var(--blue);color:#fff;font-weight:800;font-size:clamp(.85rem,3.8vw,1rem);text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.18);white-space:nowrap;}
+.top{display:flex;gap:10px;align-items:stretch;flex:none;height:clamp(64px,11vh,88px);}
+.letter{flex:none;width:clamp(104px,30%,132px);display:flex;align-items:center;justify-content:center;gap:6px;background:var(--card);border:3px solid var(--edge);border-radius:22px;font-family:var(--font-display);font-weight:900;font-size:clamp(2.4rem,10vh,3.4rem);line-height:1;color:var(--red);cursor:pointer;padding:0 8px;}
+.letter span:last-child{color:var(--blue);}
+.word{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--card);border:3px solid var(--edge);border-radius:22px;padding:6px 8px;box-sizing:border-box;font-family:var(--font-display);font-weight:900;font-size:clamp(1.3rem,7vw,2.2rem);letter-spacing:.02em;white-space:nowrap;}
+.word span{-webkit-text-stroke:1.5px rgba(29,43,74,.55);paint-order:stroke fill;}
+.word span:nth-child(4n+1){color:#ff2e4d;} .word span:nth-child(4n+2){color:#0a7cff;} .word span:nth-child(4n+3){color:#ffb300;} .word span:nth-child(4n+4){color:#16b33a;}
+.stagewrap{position:relative;flex:1;min-height:0;display:flex;}
+.stage{position:relative;flex:1;width:100%;min-height:0;padding:0;border:3px solid var(--edge);border-radius:24px;background:var(--card);cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden;transition:opacity .25s ease,visibility 0s;}
+.pop{animation:pop .5s ease-out;} @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.12) rotate(-2deg)}100%{transform:scale(1)}}
+.v3hint{position:absolute;top:8px;left:0;right:0;margin:0 auto;width:max-content;max-width:calc(100% - 24px);box-sizing:border-box;background:var(--card);color:#3a4a6b;border:2px solid var(--edge);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.85rem;line-height:1.25;text-align:center;pointer-events:none;}
+.v3load{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--card);color:var(--ink);font-family:var(--font-display);font-weight:800;font-size:1.05rem;text-align:center;padding:16px;}
+.v3load[hidden]{display:none;}
+.v3load progress{width:min(70%,260px);height:14px;accent-color:var(--green);}
+.caption{flex:none;text-align:center;font-family:var(--font-display);font-weight:800;font-size:clamp(1.05rem,4.8vw,1.5rem);color:#7a3e00;line-height:1.15;text-wrap:balance;}
+.actions{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.act{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:78px;padding:6px 4px;border:3px solid #2ed657;border-radius:22px;background:#ffffff;cursor:pointer;font-family:var(--font-display);font-weight:900;font-size:clamp(.85rem,3.8vw,1rem);box-shadow:0 4px 0 rgba(0,0,0,.18);}
+.act:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.14);}
+.act svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
+.act-go{color:var(--red);} .act-s{color:var(--blue);} .act-l{color:var(--green);}
+.card{position:fixed;left:12px;right:12px;bottom:150px;max-width:496px;margin:0 auto;z-index:15;display:none;flex-direction:column;gap:8px;background:var(--card);border:3px solid var(--edge);border-radius:22px;padding:14px 16px;box-sizing:border-box;box-shadow:0 8px 20px rgba(0,0,0,.2);max-height:55vh;overflow:auto;}
+.card.open{display:flex;animation:pop .4s ease-out;}
+.card h2{margin:0;font-family:var(--font-display);font-size:1.2rem;color:var(--blue);}
+.card p{margin:0;font-size:1.05rem;line-height:1.45;}
+.card .hard{font-size:.92rem;color:#3a4a6b;border-top:2px dashed var(--edge);padding-top:8px;}
+.close{align-self:flex-end;min-height:44px;min-width:104px;border-radius:999px;border:2px solid var(--edge);background:#fff;color:var(--ink);font:inherit;font-weight:800;cursor:pointer;}
+.parents{flex:none;align-self:center;font-size:.9rem;}
+.parents summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:0 14px;border-radius:999px;background:rgba(255,255,255,.75);font-weight:800;color:var(--ink);}
+.parents summary::-webkit-details-marker{display:none;}
+.parents[open]{position:fixed;left:12px;right:12px;bottom:12px;max-width:496px;margin:0 auto;z-index:20;background:var(--card);border:3px solid var(--edge);border-radius:22px;padding:12px 14px;box-sizing:border-box;}
+.parents[open] summary{background:transparent;}
+.parents .x{display:none;width:34px;height:34px;border-radius:50%;background:#ff2e4d;color:#fff;font-size:1.1rem;font-weight:900;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,.25);line-height:1;}
+.parents[open] .lbl{display:none;}
+.parents[open] .x{display:flex;}
+.parents[open] summary{justify-content:flex-end;padding:0;min-height:34px;}
+.parents p{margin:8px 0 0;color:#3a4a6b;line-height:1.4;}
+.ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ctrl label{font-weight:700;}
+.ctrl input[type=range]{flex:1;min-width:110px;accent-color:var(--green);}
+.mute{background:#fff;color:var(--ink);border:2px solid var(--edge);border-radius:12px;padding:6px 12px;font:inherit;font-weight:700;cursor:pointer;min-height:40px;}
+.mute[aria-pressed="true"]{border-color:var(--red);}
+
+.pop { animation: pop .5s ease-out; }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.12) rotate(-2deg); } 100% { transform: scale(1); } }
+.stage svg{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);display:block;}
+
+#subj-body{transform-box:fill-box;transform-origin:50% 100%;}
+.spark{opacity:0;fill:#ffd23f;stroke:#e08a00;stroke-width:3;transform-box:fill-box;transform-origin:center;}
+.hop #subj{animation:hop .5s ease-out;}
+@keyframes hop{0%{transform:translateY(0)}40%{transform:translateY(-36px)}100%{transform:translateY(0)}}
+.rolling .spark{animation:twinkle 1s ease-in-out infinite;} .rolling .s2{animation-delay:.3s;} .rolling .s3{animation-delay:.6s;}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1)}}
+.rolling[data-anim="flap"] #subj-body{animation:a-flap .5s ease-in-out infinite alternate;}
+.rolling[data-anim="swim"] #subj-body{animation:a-swim .8s ease-in-out infinite alternate;}
+.rolling[data-anim="leap"] #subj-body{animation:a-leap .9s ease-in-out infinite;}
+.rolling[data-anim="jump"] #subj-body{animation:a-jump .65s ease-in-out infinite;}
+.rolling[data-anim="sway"] #subj-body{animation:a-sway .9s ease-in-out infinite alternate;}
+.rolling[data-anim="shake"] #subj-body{animation:a-shake .22s ease-in-out infinite alternate;}
+.rolling[data-anim="waddle"] #subj-body{animation:a-waddle .45s ease-in-out infinite alternate;}
+@keyframes a-flap{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-26px) rotate(3deg)}}
+@keyframes a-swim{from{transform:translate(-18px,0) rotate(-3deg)}to{transform:translate(18px,-10px) rotate(3deg)}}
+@keyframes a-leap{0%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(0,-60px) rotate(-8deg)}}
+@keyframes a-jump{0%,100%{transform:translateY(0) scale(1,1)}45%{transform:translateY(-46px) scale(.97,1.03)}70%{transform:translateY(0) scale(1.04,.96)}}
+@keyframes a-sway{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+@keyframes a-shake{from{transform:translateX(-6px) rotate(-2deg)}to{transform:translateX(6px) rotate(2deg)}}
+@keyframes a-waddle{from{transform:translateX(-10px) rotate(-4deg)}to{transform:translateX(10px) rotate(4deg)}}
+@media (prefers-reduced-motion: reduce){.hop #subj,.rolling #subj-body,.rolling .spark,.pop{animation:none;}.rolling .spark{opacity:.8;}}
+.stage svg{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);display:block;}
+</style></head>
+<body>
+<main class="app">
+  <nav class="nav" aria-label="Navigazione lettere"><a class="btn-nav side" href="P.html" aria-label="Lettera precedente P">← Lettera P</a><a class="btn-nav mid" href="index.html" aria-label="Tutte le lettere">Tutte le lettere</a><a class="btn-nav side" href="R.html" aria-label="Lettera successiva R">Lettera R →</a></nav>
+  <div class="top"><div class="letter" id="letter" role="button" tabindex="0" aria-label="Lettera Q. Tocca per ascoltare"><span>Q</span><span>q</span></div><div class="word" id="word" role="button" tabindex="0" aria-label="Quokka. Tocca per ascoltare"><span>Q</span><span>U</span><span>O</span><span>K</span><span>K</span><span>A</span></div></div>
+  <div class="stagewrap" id="stagewrap"><button class="stage" id="stage" data-anim="jump" type="button" aria-label="Tocca l’animale per ascoltarlo">
+    <svg viewBox="-50 -90 1100 931" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g id="subj"><g id="subj-body"><image href="assets/Q-animale.webp" x="0" y="0" width="1000" height="801"/></g></g><g transform="translate(20 10)"><polygon class="spark" points="0,-30 10,-10 30,0 10,10 0,30 -10,10 -30,0 -10,-10"/></g><g transform="translate(990 20)"><polygon class="spark s2" points="0,-30 10,-10 30,0 10,10 0,30 -10,10 -30,0 -10,-10"/></g><g transform="translate(500 -50)"><polygon class="spark s3" points="0,-30 10,-10 30,0 10,10 0,30 -10,10 -30,0 -10,-10"/></g></svg>
+  </button></div>
+  <div class="caption" id="caption" aria-live="polite">Q come Quokka</div>
+  <div class="actions">
+    <button class="act act-go" id="go" type="button" aria-label="Ascolta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><span>Ascolta</span></button>
+    <button class="act act-s" id="btn-soggetto" type="button" aria-label="Scopri Quokka" aria-controls="card" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7v.5"/><circle cx="12" cy="18" r=".6"/></svg><span>Scopri</span></button>
+    <button class="act act-l" id="btn-lettera" type="button" aria-label="Ascolta la lettera Q" aria-controls="card" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 12 4l8 16M7.5 14h9"/></svg><span>La lettera</span></button>
+  </div>
+  <section class="card" id="card" aria-live="polite">
+    <h2 id="card-title"></h2>
+    <p id="card-text"></p>
+    <p class="hard" id="card-hard"></p>
+    <button class="close" id="close" type="button">Chiudi</button>
+  </section>
+  <details class="parents"><summary><span class="lbl">👆 Per i genitori</span><span class="x" aria-hidden="true">✕</span></summary><div class="ctrl"><label for="vol">Volume</label><input id="vol" type="range" min="0" max="1" step="0.05" value="0.5"><button class="mute" id="mute" type="button" aria-pressed="false">Silenzia</button></div><p>Lettera Q di «Impara l'alfabeto con... Animali». La pagina non usa cookie, non chiede registrazione e non raccoglie dati. Il volume di partenza è moderato. Consigliato con la presenza di un adulto.</p></details>
+</main>
+
+<script>
+var runId = 0;
+function interrupt() {
+  runId++;
+  current.forEach(function (a) { try { a.pause(); } catch (e) {} });
+  current = [];
+  if ('speechSynthesis' in window) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+  stage.classList.remove('hop', 'rolling');
+  busy = false;
+}
+
+var AUDIO = {"voice": null, "letter": null, "word": null, "sound": null, "soggetto": null, "lettera": null};
+
+var stage = document.getElementById('stage');
+var caption = document.getElementById('caption');
+var volEl = document.getElementById('vol');
+var muteBtn = document.getElementById('mute');
+var vol = 0.5, muted = false, busy = false;
+
+volEl.addEventListener('input', function () { vol = parseFloat(volEl.value); applyVolume(); });
+// Su iPhone/iPad il volume della pagina non è regolabile: si usano i tasti del dispositivo.
+(function () {
+  try {
+    var t = new Audio(); t.volume = 0.5;
+    if (t.volume !== 0.5) {
+      volEl.disabled = true;
+      var lab = document.querySelector('label[for="vol"]');
+      if (lab) lab.textContent = 'Volume (usa i tasti del dispositivo)';
+    }
+  } catch (e) {}
+})();
+muteBtn.addEventListener('click', function () {
+  muted = !muted;
+  muteBtn.setAttribute('aria-pressed', String(muted));
+  muteBtn.textContent = muted ? 'Riattiva audio' : 'Silenzia';
+  applyVolume();
+});
+
+function level() { return muted ? 0 : vol; }
+function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+function say(t) { caption.textContent = t; }
+
+function speak(text, fallbackMs) {
+  return new Promise(function (resolve) {
+    var done = false;
+    function fin() { if (!done) { done = true; resolve(); } }
+    if (level() === 0 || !('speechSynthesis' in window)) { setTimeout(fin, fallbackMs || 1400); return; }
+    try {
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'it-IT'; u.rate = 0.8; u.pitch = 1.15; u.volume = level();
+      var voices = window.speechSynthesis.getVoices();
+      for (var i = 0; i < voices.length; i++) {
+        if (voices[i].lang && voices[i].lang.toLowerCase().indexOf('it') === 0) { u.voice = voices[i]; break; }
+      }
+      u.onend = fin; u.onerror = fin;
+      setTimeout(fin, 4500);
+      window.speechSynthesis.speak(u);
+    } catch (e) { setTimeout(fin, fallbackMs || 1400); }
+  });
+}
+
+var current = [];
+function applyVolume() {
+  current.forEach(function (a) { a.volume = vol; a.muted = muted; });
+}
+function playFile(src) {
+  return new Promise(function (resolve) {
+    var a = new Audio(src);
+    a.volume = vol; a.muted = muted;
+    current.push(a);
+    function fin() { var i = current.indexOf(a); if (i > -1) current.splice(i, 1); resolve(); }
+    a.onended = fin; a.onerror = fin;
+    var p = a.play();
+    if (p && p.catch) p.catch(fin);
+  });
+}
+
+// Tocco sull'animale: solo l'effetto (verso) con la sua animazione. Se il file manca: sintesi breve e didascalia.
+async function playSound() {
+  interrupt();
+  var my = runId;
+  stage.classList.add('rolling');
+  say("Squit-squit!");
+  await (AUDIO.sound ? playFile(AUDIO.sound) : speak("Squit-squit!", 2400));
+  if (my === runId) {
+    stage.classList.remove('rolling');
+    say("Tocca di nuovo!");
+  }
+}
+
+// «Ascolta»: solo la frase, con il saltello
+async function playVoice() {
+  interrupt();
+  var my = runId;
+  stage.classList.add('hop');
+  say("Q come Quokka");
+  await (AUDIO.voice ? playFile(AUDIO.voice) : speak("Q come Quokka", 1600));
+  if (my === runId) stage.classList.remove('hop');
+}
+
+async function playPart(el, text, file) {
+  interrupt();
+  busy = true;
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  say(text);
+  await (file ? playFile(file) : speak(text, 1000));
+  busy = false;
+}
+
+stage.addEventListener('click', playSound);
+document.getElementById('go').addEventListener('click', playVoice);
+
+var letterEl = document.getElementById('letter'), wordEl = document.getElementById('word');
+function onKey(fn) { return function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } }; }
+var tapLetter = function () { playPart(letterEl, "Q", AUDIO.letter); };
+var tapWord = function () { playPart(wordEl, "Quokka", AUDIO.word); };
+letterEl.addEventListener('click', tapLetter); letterEl.addEventListener('keydown', onKey(tapLetter));
+wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', onKey(tapWord));
+
+if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
+</script>
+<script>
+var SCHEDE = {"soggetto": {"titolo": "Quokka", "testo": "Il quokka è un piccolo marsupiale con il muso che sembra sorridere. Vive soprattutto nell’Australia occidentale, mangia erba e foglie e salta con le zampe di dietro.", "hard": "I «marsupiali» sono animali che portano i cuccioli in una tasca sul pancino."}, "lettera": {"titolo": "La lettera Q", "testo": "La Q è una consonante. Di solito si scrive sempre con la U. Si legge «cu», come in quokka.", "hard": ""}};
+var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
+var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
+function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }
+function cardNarrate(file,text,ms){ return file?playFile(file):speak(text,ms); }
+function setOpen(kind){ btnS.setAttribute('aria-expanded',String(kind==='soggetto')); btnL.setAttribute('aria-expanded',String(kind==='lettera')); }
+function openCard(kind){
+  interrupt(); cardStop(); clearTimeout(cardTimer); var my=++openId; var s=SCHEDE[kind];
+  cardTitle.textContent=s.titolo; cardText.textContent=s.testo; cardHard.textContent=s.hard||''; cardHard.style.display=s.hard?'':'none';
+  cardEl.classList.add('open'); setOpen(kind);
+  cardNarrate(AUDIO[kind], s.testo, 4000).then(function(){ if(my===openId) cardTimer=setTimeout(closeCard,10000); });
+}
+function closeCard(){ openId++; cardStop(); clearTimeout(cardTimer); cardEl.classList.remove('open'); setOpen(null); }
+btnS.addEventListener('click',function(){openCard('soggetto');});
+btnL.addEventListener('click',function(){openCard('lettera');});
+document.getElementById('close').addEventListener('click',closeCard);
+function fitWord(){var w=document.getElementById('word');w.style.fontSize='';var sz=parseFloat(getComputedStyle(w).fontSize);while(w.scrollWidth>w.clientWidth&&sz>12){sz-=1;w.style.fontSize=sz+'px';}}
+fitWord(); window.addEventListener('resize',fitWord);
+</script>
+<script>
+(function(){
+  var PREV="P.html", NEXT="R.html";
+  var app=document.querySelector('.app');
+  var wrap=document.getElementById('stagewrap');
+  var EDGE_SKIP='#v3d, model-viewer, input, .card, .parents, summary, .go3d, .act, .close, .mute';
+  var s=null, mode=null, dx=0, busy=false, t0=0;
+  function can(d){ return d<0 ? !!NEXT : !!PREV; }
+  function setT(x,anim){ app.style.transition = anim ? 'transform .28s cubic-bezier(.2,.8,.2,1)' : 'none'; app.style.transform = x===0 ? 'none' : 'translateX('+x+'px)'; }
+  // ingresso: la nuova scheda scorre dentro dal lato da cui è arrivato il dito
+  try{
+    var inDir=sessionStorage.getItem('slideIn'); sessionStorage.removeItem('slideIn');
+    if(inDir){ var w0=window.innerWidth; setT(inDir==='from-right'? w0 : -w0, false); void app.offsetWidth; setT(0,true); setTimeout(function(){ app.style.transition='none'; app.style.transform='none'; }, 320); }
+  }catch(e){}
+  document.addEventListener('touchstart', function(e){
+    if(busy || (wrap && wrap.classList.contains('is3d'))) { s=null; return; }
+    if(e.target.closest && e.target.closest(EDGE_SKIP)) { s=null; return; }
+    s={x:e.touches[0].clientX, y:e.touches[0].clientY}; t0=Date.now(); mode=null; dx=0;
+  }, {passive:true});
+  document.addEventListener('touchmove', function(e){
+    if(!s || busy) return;
+    var ddx=e.touches[0].clientX-s.x, ddy=e.touches[0].clientY-s.y;
+    if(!mode && (Math.abs(ddx)>10 || Math.abs(ddy)>10)) mode = Math.abs(ddx) > 1.3*Math.abs(ddy) ? 'h' : 'v';
+    if(mode!=='h') return;
+    dx=ddx;
+    var follow = can(dx) ? dx : dx*0.25;   // resistenza ai bordi (prima e ultima lettera)
+    setT(follow,false);
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(!s || busy){ s=null; return; }
+    var moved = mode==='h';
+    var dt=Math.max(1,Date.now()-t0), v=Math.abs(dx)/dt;
+    var w=window.innerWidth;
+    var go = moved && can(dx) && (Math.abs(dx) > w*0.22 || (v > 0.45 && Math.abs(dx) > 40));
+    s=null;
+    if(go){
+      busy=true;
+      var target = dx<0 ? NEXT : PREV;
+      sessionStorage.setItem('slideIn', dx<0 ? 'from-right' : 'from-left');
+      setT(dx<0 ? -w : w, true);
+      setTimeout(function(){ location.href=target; }, 280);
+    } else if(moved){
+      setT(0,true); setTimeout(function(){ app.style.transition='none'; app.style.transform='none'; }, 300);
+    }
+  }, {passive:true});
+})();
+</script>
+</body></html>
