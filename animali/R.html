@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Rana", "testo": "La rana è un piccolo animale che vive vicino all’acqua. Da piccola, come girino, nuota nell’acqua. Da grande ha quattro zampe, salta lontano e cattura gli insetti con la lingua appiccicosa.", "hard": "Il «girino» è il cucciolo della rana: ha la coda e non ha ancora le zampe."}, "lettera": {"titolo": "La lettera R", "testo": "La R è una consonante. Si legge sempre r, come in rana.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Rana", "testo": "La rana è un piccolo animale che vive vicino all’acqua. Da piccola è un girino che nuota nell’acqua. Da grande ha quattro zampe, salta lontano e cattura gli insetti con la lingua appiccicosa.", "hard": "Il «girino» è il cucciolo della rana: ha un corpo tondo, una lunga coda e non ha ancora le zampe."}, "lettera": {"titolo": "La lettera R", "testo": "La R è una consonante. Si legge sempre r, come in rana.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

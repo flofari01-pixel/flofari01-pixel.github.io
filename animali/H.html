@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Husky", "testo": "L’husky è un cane forte e resistente che viene dalle terre fredde del nord. Ha un pelo folto e occhi azzurri o castani. Tira le slitte sulla neve e ama correre.", "hard": "La «slitta» è un mezzo senza ruote che scivola sulla neve."}, "lettera": {"titolo": "La lettera H", "testo": "La H è muta: spesso si scrive, ma non si pronuncia, come in hotel. Nelle parole straniere ha un suono aspirato, come in husky.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Husky", "testo": "L’husky è un cane forte e resistente che viene dalle terre fredde del Nord. Ha un pelo folto e occhi azzurri o castani. Tira le slitte sulla neve e ama correre.", "hard": "La «slitta» è un mezzo senza ruote che scivola sulla neve."}, "lettera": {"titolo": "La lettera H", "testo": "La H è muta: spesso si scrive, ma non si pronuncia, come in hotel. Nelle parole straniere ha un suono aspirato, come in husky.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

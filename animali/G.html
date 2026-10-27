@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Giraffa", "testo": "La giraffa è l’animale più alto del mondo. Con il suo collo lunghissimo arriva a mangiare le foglie in cima agli alberi. Le macchie sul suo mantello sono diverse per ogni giraffa.", "hard": "Il «mantello» è il pelo che ricopre il corpo di un animale."}, "lettera": {"titolo": "La lettera G", "testo": "La G è una consonante. Davanti alla E e alla I si legge «gi», come in giraffa. Davanti ad A, O e U si legge g, come in gatto.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Giraffa", "testo": "La giraffa è l’animale vivente più alto del mondo. Con il suo collo lunghissimo arriva a mangiare le foglie in cima agli alberi. Il suo mantello è ricoperto da macchie, diverse per ogni giraffa", "hard": "Il «mantello» è il pelo che ricopre il corpo di un animale."}, "lettera": {"titolo": "La lettera G", "testo": "La G è una consonante. Davanti alla E e alla I si legge g, come in giraffa. Davanti ad A, O e U si legge g, come in gatto.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

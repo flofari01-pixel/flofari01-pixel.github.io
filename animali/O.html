@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Orso", "testo": "L’orso è un grosso animale con il pelo folto e le zampe forti. Mangia frutti, pesci e miele, e in inverno molti orsi dormono a lungo nella tana.", "hard": "La «tana» è il rifugio dove un animale riposa e si ripara."}, "lettera": {"titolo": "La lettera O", "testo": "La O è una vocale, insieme ad A, E, I e U. Si legge sempre o, come in orso.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Orso", "testo": "L’orso è un grosso animale con il pelo folto e le zampe forti. Mangia carne, frutti, pesci e miele, e in inverno va in letargo nella tana.", "hard": "«Andare in letargo» vuol dire dormire per tutto l’inverno."}, "lettera": {"titolo": "La lettera O", "testo": "La O è una vocale, insieme ad A, E, I e U. Si legge sempre o, come in orso.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

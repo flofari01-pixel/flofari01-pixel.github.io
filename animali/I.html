@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Iguana", "testo": "L’iguana è un grosso rettile verde che vive nelle foreste calde. Ha una cresta di spine sulla schiena e una lunga coda e si arrampica bene sugli alberi.", "hard": "I «rettili» sono animali con la pelle ricoperta di squame, come le lucertole e i serpenti."}, "lettera": {"titolo": "La lettera I", "testo": "La I è una vocale, insieme ad A, E, O e U. Si legge sempre i, come in iguana.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Iguana", "testo": "L’iguana è un grosso rettile verde che vive nelle foreste calde. Ha una cresta di spine sulla schiena, una lunga coda e si arrampica bene sugli alberi.", "hard": "I «rettili» sono animali con la pelle ricoperta di squame, come le lucertole e i serpenti."}, "lettera": {"titolo": "La lettera I", "testo": "La I è una vocale, insieme ad A, E, O e U. Si legge sempre i, come in iguana.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

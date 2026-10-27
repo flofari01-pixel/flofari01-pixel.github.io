@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Elefante", "testo": "L’elefante è il più grande animale che vive sulla terraferma. Ha una lunga proboscide, che usa come un braccio per bere, mangiare e farsi la doccia, e due grandi zanne.", "hard": "La «proboscide» è il lungo naso dell’elefante, fatto di tanti muscoli."}, "lettera": {"titolo": "La lettera E", "testo": "La E è una vocale, insieme ad A, I, O e U. Si legge sempre e, come in elefante.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Elefante", "testo": "L’elefante è il più grande animale che vive sulla terraferma. Ha due grandi zanne, due orecchie larghe e una lunga proboscide, che usa come un braccio per bere, mangiare e farsi la doccia.", "hard": "La «proboscide» è il lungo naso dell’elefante, fatto di tanti muscoli."}, "lettera": {"titolo": "La lettera E", "testo": "La E è una vocale, insieme ad A, I, O e U. Si legge sempre e, come in elefante.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

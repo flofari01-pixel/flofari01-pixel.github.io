@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Coniglio", "testo": "Il coniglio è un piccolo animale con lunghe orecchie e il pelo morbido. Mangia erba, carote e foglie e corre veloce, saltellando con le zampe di dietro, più lunghe di quelle davanti.", "hard": "Un «erbivoro» è un animale che mangia solo piante."}, "lettera": {"titolo": "La lettera C", "testo": "La C è una consonante. Davanti alla A, alla O e alla U si legge k, come in coniglio. Davanti alla E e alla I si legge c, come in cespuglio.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Coniglio", "testo": "Il coniglio è un piccolo animale con le orecchie lunghe lunghe. È un erbivoro che corre veloce, saltellando con le zampe di dietro.", "hard": "«erbivoro» vuol dire che mangia solo piante."}, "lettera": {"titolo": "La lettera C", "testo": "La C è una consonante. Davanti alla A, alla O e alla U si legge k, come in coniglio. Davanti alla E e alla I si legge c, come in cespuglio.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

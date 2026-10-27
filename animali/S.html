@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Scimmia", "testo": "La scimmia è un animale agile e curioso che vive sugli alberi. Si arrampica con le mani e con i piedi, mangia frutta e vive in gruppo con le sue amiche.", "hard": "«Agile» vuol dire che si muove con facilità e prontezza."}, "lettera": {"titolo": "La lettera S", "testo": "La S è una consonante. Di solito si legge s, come in sole. Nel gruppo SCI si legge «sci», come in scimmia.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Scimmia", "testo": "La scimmia è un animale agile e curioso che vive sugli alberi. Si arrampica con le mani e con i piedi, mangia frutta e vive in gruppo.", "hard": "«Agile» vuol dire che si muove con facilità."}, "lettera": {"titolo": "La lettera S", "testo": "La S è una consonante. Di solito si legge s, come in sole. Nel gruppo SCI si legge «sci», come in scimmia.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

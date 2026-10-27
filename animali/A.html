@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Aquila", "testo": "L’aquila è un grande uccello che vola molto in alto. Ha ali larghe e forti, un becco ricurvo e una vista acutissima: da lontano vede anche i piccoli animali di cui si nutre.", "hard": "«Ricurvo» vuol dire piegato verso il basso, come un uncino."}, "lettera": {"titolo": "La lettera A", "testo": "La A è la prima lettera dell’alfabeto. È una vocale, insieme a E, I, O e U. Si legge sempre a, come in aquila.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Aquila", "testo": "L’aquila è un grande uccello che vola molto in alto. Ha ali larghe e forti, un becco ricurvo e una vista acutissima: da lontano vede anche i piccoli animali di cui si nutre.", "hard": "«ricurvo» vuol dire che è piegato verso il basso."}, "lettera": {"titolo": "La lettera A", "testo": "La A è la prima lettera dell’alfabeto. È una vocale, insieme a E, I, O e U. Si legge sempre a, come in aquila.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

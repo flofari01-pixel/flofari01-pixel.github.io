@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Uccello", "testo": "Gli uccelli sono animali con le piume, il becco e due ali. Molti sanno volare e cantano con melodie diverse. Costruiscono il nido e ci depongono le uova.", "hard": "Il «nido» è la casetta di rametti dove gli uccelli covano le uova."}, "lettera": {"titolo": "La lettera U", "testo": "La U è una vocale, insieme ad A, E, I e O. Si legge sempre u, come in uccello.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Uccello", "testo": "Gli uccelli sono animali con le piume, il becco e due ali. Molti sanno volare, cantano con melodie diverse e costruiscono il nido.", "hard": "Il «nido» è il posto dove le uova vengono deposte."}, "lettera": {"titolo": "La lettera U", "testo": "La U è una vocale, insieme ad A, E, I e O. Si legge sempre u, come in uccello.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

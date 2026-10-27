@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Koala", "testo": "Il koala è un animale australiano che vive sugli alberi di eucalipto. Dorme quasi tutto il giorno e mangia solo foglie di eucalipto. I cuccioli stanno in una tasca sul pancino della mamma.", "hard": "L’«eucalipto» è un albero alto con le foglie profumate."}, "lettera": {"titolo": "La lettera K", "testo": "La K è una lettera straniera, assieme a J, W, X e Y. Si legge sempre k, come in koala.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Koala", "testo": "Il koala è un animale australiano che vive sugli alberi di eucalipto. Dorme quasi tutto il giorno e mangia solo foglie di eucalipto. I cuccioli stanno in una tasca sul pancino della mamma, chiamata marsupio.", "hard": "L’«eucalipto» è un albero alto con le foglie profumate."}, "lettera": {"titolo": "La lettera K", "testo": "La K è una lettera straniera, assieme a J, W, X e Y. Si legge sempre k, come in koala.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Mucca", "testo": "La mucca è un animale da fattoria che mangia erba e fieno. Ci dà il latte, con cui si fanno il formaggio, il burro e lo yogurt. Il suo verso si chiama muggito e fa «muuu».", "hard": "Il «fieno» è l’erba tagliata e fatta seccare."}, "lettera": {"titolo": "La lettera M", "testo": "La M è una consonante. Si legge sempre m, come in mucca.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Mucca", "testo": "La mucca è un animale da fattoria che mangia erba e fieno. Ci dà il latte, con cui si fanno il formaggio, il burro e lo yogurt.", "hard": "Il «fieno» è l’erba tagliata e fatta seccare."}, "lettera": {"titolo": "La lettera M", "testo": "La M è una consonante. Si legge sempre m, come in mucca.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }

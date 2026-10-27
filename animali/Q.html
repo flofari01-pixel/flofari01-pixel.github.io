@@ -224,7 +224,7 @@ wordEl.addEventListener('click', tapWord); wordEl.addEventListener('keydown', on
 if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
 </script>
 <script>
-var SCHEDE = {"soggetto": {"titolo": "Quokka", "testo": "Il quokka è un piccolo marsupiale con il muso che sembra sorridere. Vive soprattutto nell’Australia occidentale, mangia erba e foglie e salta con le zampe di dietro.", "hard": "I «marsupiali» sono animali che portano i cuccioli in una tasca sul pancino."}, "lettera": {"titolo": "La lettera Q", "testo": "La Q è una consonante. Di solito si scrive sempre con la U. Si legge «cu», come in quokka.", "hard": ""}};
+var SCHEDE = {"soggetto": {"titolo": "Quokka", "testo": "Il quokka è un piccolo marsupiale con il muso che sembra sorridere. Vive soprattutto nell’Australia occidentale, mangia erba e foglie e salta con le zampe di dietro.", "hard": "I «marsupiali» sono animali che portano i cuccioli in una tasca sul pancino, come il koala, il quokka e il canguro."}, "lettera": {"titolo": "La lettera Q", "testo": "La Q è una consonante. Di solito si scrive sempre con la U. Si legge «cu», come in quokka.", "hard": ""}};
 var cardEl=document.getElementById('card'), cardTitle=document.getElementById('card-title'), cardText=document.getElementById('card-text'), cardHard=document.getElementById('card-hard');
 var btnS=document.getElementById('btn-soggetto'), btnL=document.getElementById('btn-lettera'), cardTimer=null, openId=0;
 function cardStop(){ current.forEach(function(a){try{a.pause();}catch(e){}}); current=[]; if('speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}} }
