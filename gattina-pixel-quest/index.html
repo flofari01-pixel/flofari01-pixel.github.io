@@ -657,22 +657,22 @@ function buildMenu(){
   });
 }
 function startGame(){
-  sfx('start');
+  sfx('start'); musicAllowed=true;
   lives=7;
   hideOverlay(); ckpt=null; loadLevel(0); state='banner'; bannerT=110; updateHUD();
 }
 function pickLevel(n){
-  sfx('select');
+  sfx('select'); musicAllowed=true;
   hideOverlay(); lives=7; ckpt=null;
   loadLevel(n); state='banner'; bannerT=110; updateHUD();
 }
 function goMenu(){
-  sfx('menu'); musicStop();
+  sfx('menu'); musicAllowed=false; musicStop();
   state='title';
   showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 }
 function nextLevel(n){
-  hideOverlay(); ckpt=null;
+  musicAllowed=true; hideOverlay(); ckpt=null;
   loadLevel(n);
   state='banner'; bannerT=110; updateHUD();
 }
@@ -829,8 +829,9 @@ function musicStop(){
   musWant++; musCur=-1;
   if(musSrc){ try{ musSrc.stop(); }catch(e){} musSrc=null; }
 }
+let musicAllowed=false; // la musica suona solo dentro i livelli, mai nei menu
 async function musicPlay(i){
-  if(i<0||i>=MUS_TRACKS){ musicStop(); return; }
+  if(!musicAllowed || i<0 || i>=MUS_TRACKS){ musicStop(); return; }
   if(i===musCur && musSrc) return; // già in riproduzione: non ricomincia
   musicStop(); musCur=i;
   const want=++musWant;
