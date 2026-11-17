@@ -1707,7 +1707,7 @@ document.querySelectorAll('#pad button').forEach(b=>{
       else if(k==='a') menuPress();
       unlockAudio(); return;
     }
-    hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='x') useReserve(); if(k==='y') yArrow=false; if((k==='l'||k==='r') && hold.y) yArrow=true; unlockAudio(); };
+    hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='x') goMenu(); if(k==='b') useReserve(); if(k==='y') yArrow=false; if((k==='l'||k==='r') && hold.y) yArrow=true; unlockAudio(); };
   // Y: un tocco senza frecce spara (al rilascio); con una freccia corre
   const off=e=>{ hold[k]=false; clearTimeout(menuRep[k]); clearInterval(menuRep[k]); if(k==='y'){ if(e&&e.type==='pointerup'&&!yArrow) fireReq=true; yArrow=false; } };
   b.addEventListener('pointerdown',on);
