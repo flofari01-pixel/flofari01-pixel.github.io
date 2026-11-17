@@ -730,7 +730,7 @@ function plStartAt(t){
   plStopSrc();
   const src=plCtx().createBufferSource();
   src.buffer=plBuf; src.loop=plLoopOn; src.loopStart=plTrim; src.loopEnd=plBuf.duration; src.connect(AC.destination);
-  src.onended=()=>{ if(plSrc===src){ plSrc=null; plOff=0; updatePlUI(); } };
+  src.onended=()=>{ if(plSrc===src){ plSrc=null; plOff=0; if(plCur<SONGS.length-1) plGo(1); else updatePlUI(); } }; // a fine canzone parte la successiva
   src.start(0,plTrim+t); plSrc=src; plT0=AC.currentTime-t; updatePlUI();
 }
 function fmtT(s){ s=Math.floor(s||0); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
