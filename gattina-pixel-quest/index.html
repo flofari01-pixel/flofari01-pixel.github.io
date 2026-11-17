@@ -628,8 +628,6 @@ function updateHUD(){
   if(shootOn) s+='  SPARO (X)';
   document.getElementById('hItems').textContent=s;
   // il pulsante SPARA sul touch è acceso solo quando si può sparare
-  const sb=document.querySelector('#pad button[data-k="x"]');
-  if(sb){ sb.style.opacity=shootOn?'1':'0.35'; sb.style.filter=shootOn?'':'grayscale(1)'; }
   const rb=document.getElementById('resBtn');
   if(rb){ rb.disabled=!(state==='play'&&!dropFx&&reserve.some(t=>t==='choc'?!big:!shootOn)); document.getElementById('resN').textContent=reserve.length; drawReserveIcon(); }
 }
