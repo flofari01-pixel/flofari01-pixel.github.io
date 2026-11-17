@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gattina Pixel Quest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap">
+<style>
+:root{--bg:#0d0817;--fg:#f4f1ea;--accent:#ff7fb0;--accent-d:#a33a64;--hud:#ffd23f;--line:#2b1d4a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 Inter,system-ui,sans-serif;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font:12px "Press Start 2P",monospace;color:var(--accent);margin:0 auto 12px;max-width:768px;line-height:1.6}
+#hud{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:space-between;align-items:center;font:8px "Press Start 2P",monospace;color:var(--hud);max-width:768px;margin:0 auto 10px}
+#stage{position:relative;max-width:768px;margin:0 auto;aspect-ratio:4/3;background:#000;border:3px solid var(--line);border-radius:4px;overflow:hidden}
+canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+.ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow-y:auto;background:rgba(8,4,18,.8);padding:12px}
+.ov[hidden]{display:none!important}
+.card{text-align:center;max-width:460px;margin:auto}
+.card h2{font:12px "Press Start 2P",monospace;color:var(--hud);margin:0 0 14px;line-height:1.7}
+.card p{margin:0 0 18px;color:#e8e2ff}
+button{font:9px "Press Start 2P",monospace;background:var(--accent);color:#1a0a14;border:0;padding:12px 16px;cursor:pointer;box-shadow:0 4px 0 var(--accent-d)}
+button:active{transform:translateY(2px);box-shadow:0 2px 0 var(--accent-d)}
+button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
+#menuBtn{font-size:8px;padding:6px 8px;box-shadow:0 3px 0 var(--accent-d)}
+.lvls{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:14px}
+.lvls[hidden]{display:none!important}
+.lvls button{font-size:7px;padding:8px 8px}
+.hint{max-width:768px;margin:12px auto 0;color:#a79cc4;font-size:13px}
+#pad{display:none;max-width:768px;margin:12px auto 0;justify-content:space-between;gap:10px}
+#pad button{flex:1;padding:16px 0;font-size:12px;touch-action:none;user-select:none}
+.arrows{display:flex;gap:10px;flex:2}
+@media (pointer:coarse){#pad{display:flex}}
+#resWrap{max-width:768px;margin:12px auto 0;display:flex;justify-content:flex-start}
+#resIco{width:40px;height:40px;image-rendering:pixelated}
+#resBtn{width:100px;height:100px;border-radius:50%;padding:0;font-size:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 0 var(--accent-d);touch-action:manipulation}
+#resBtn b{font-size:14px}
+#resBtn:disabled{opacity:.45;cursor:default}
+#prog{position:relative;width:120px;height:8px;background:var(--line);border:2px solid var(--accent);margin:4px 12px 4px auto;flex:0 0 auto;order:2}
+#hItems{order:1}
+#menuBtn{order:3}
+#progFill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent)}
+#progMe{position:absolute;top:-5px;width:4px;height:14px;background:#fff;transform:translateX(-50%)}
+#progFlag{position:absolute;top:-5px;width:4px;height:14px;background:var(--hud);transform:translateX(-50%);display:none}
+#progEnd{position:absolute;right:-6px;top:-5px;width:4px;height:14px;background:#9aff9a}
+/* telefono in orizzontale: gioco a tutto schermo al centro, comandi sulle due barre laterali */
+@media (pointer:coarse) and (orientation:landscape) and (max-height:600px){
+  html,body{height:100%;overflow:hidden}
+  body{padding:0;background:#000}
+  h1,.hint{display:none}
+  #stage{position:fixed;inset:0;max-width:none;margin:0;aspect-ratio:auto;border:0;border-radius:0;display:flex;align-items:center;justify-content:center;background:#000;z-index:1}
+  canvas{width:auto;height:100vh;height:100dvh;max-width:100%;aspect-ratio:4/3}
+  #hud{position:fixed;left:8px;top:6px;z-index:6;width:150px;max-width:none;margin:0;flex-direction:column;align-items:flex-start;gap:4px;font-size:6px}
+  #prog{margin:4px 0}
+  #pad{display:flex;position:fixed;inset:0;margin:0;max-width:none;pointer-events:none;z-index:6}
+  #pad .arrows{position:absolute;left:10px;bottom:10px;display:flex;gap:6px;flex:none;pointer-events:auto}
+  #pad .arrows button{width:46px;height:46px;padding:0;font-size:14px}
+  #pad > button{position:absolute;right:10px;width:80px;height:50px;padding:0;font-size:9px;pointer-events:auto}
+  #pad > button[data-k="x"]{bottom:72px}
+  #pad > button[data-k="j"]{bottom:10px}
+  #resWrap{position:fixed;right:10px;top:50px;margin:0;max-width:none;z-index:6}
+  #resBtn{width:64px;height:64px;font-size:6px;gap:3px}
+  #resBtn b{font-size:10px}
+  #resIco{width:22px;height:22px}
+}
+</style>
+</head>
+<body>
+<h1>Gattina Pixel Quest</h1>
+<div id="hud"><span id="hLvl"></span><span id="hLives"></span><div id="prog" title="Quanto manca al traguardo"><div id="progFill"></div><div id="progFlag"></div><div id="progMe"></div><div id="progEnd"></div></div><span id="hItems"></span><button id="menuBtn" type="button">MENU</button></div>
+<div id="stage">
+  <canvas id="c" width="256" height="192"></canvas>
+  <div id="ov" class="ov" hidden>
+    <div class="card">
+      <h2 id="ovT"></h2>
+      <p id="ovP"></p>
+      <button id="ovB" type="button"></button>
+      <div id="lvlBtns" class="lvls" hidden></div>
+    </div>
+  </div>
+</div>
+<div id="pad">
+  <div class="arrows">
+    <button type="button" data-k="l">&#9664;</button>
+    <button type="button" data-k="d">&#9660;</button>
+    <button type="button" data-k="r">&#9654;</button>
+  </div>
+  <button type="button" data-k="x">SPARA</button>
+  <button type="button" data-k="j">SALTA</button>
+</div>
+<div id="resWrap"><button id="resBtn" type="button" disabled><span>RISERVA</span><canvas id="resIco" width="24" height="24"></canvas><b id="resN">0</b></button></div>
+<p class="hint">Frecce o A / D per muoverti, Spazio o W per saltare, GIÙ per il salto mortale, X per sparare, R per usare la riserva.</p>
+<script>
+/* ---------- COSTANTI E SPRITE ---------- */
+const W=256,H=192,T=16,G=0.42,JUMP=-7.6,SPEED=1.9,MAXFALL=7;
+const cv=document.getElementById('c');
+let g=cv.getContext('2d'); // let: la riserva disegna il suo piccolo sprite cambiando contesto
+g.imageSmoothingEnabled=false;
+// lo sfondo si disegna a risoluzione tripla su un canvas nascosto e poi si riduce con l'interpolazione: scorrimento fluido
+const bgC=document.createElement('canvas'); bgC.width=W*3; bgC.height=H*3;
+const bgG=bgC.getContext('2d');
+const PAL={k:'#140a0c',w:'#ffffff',p:'#ff7fb0',r:'#d62828',y:'#ffd23f',B:'#8a4b22',b:'#c9854a',D:'#4a2412',u:'#3a6fd8',a:'#4cc9f0'};
+const KITTY=[
+"..k........k..",
+".kwk......kwk.",
+".kwwkkkkkkwwk.",
+".kwwwwwwwwwwk.",
+"k"+"w".repeat(12)+"k",
+"k"+"ww"+"kk"+"wwww"+"kk"+"ww"+"k",
+"k"+"ww"+"kk"+"wwww"+"kk"+"ww"+"k",
+"k"+"w".repeat(6)+"yy"+"w".repeat(4)+"k",
+".kwwwwwwwwwwk.",
+".kwww"+"k".repeat(5)+"wwk.",
+"..k"+"p".repeat(7)+"k...",
+".k"+"p".repeat(10)+"k.",
+"kw"+"p".repeat(10)+"wk",
+"kww"+"p".repeat(8)+"wwk",
+"kww"+"k".repeat(8)+"wwk",
+"..kwwk..kwwk.."
+];
+const KB=KITTY.map((r,j)=>(j>=3&&j<=8)?r:r.replace(/w/g,'B').replace(/p/g,'b'));
+const KR=KITTY.map(r=>r.replace(/p/g,'r'));
+// il gattino maschio che aspetta la gattina sotto il traguardo: vestito di blu
+const KBOY=KITTY.map(r=>r.replace(/p/g,'u'));
+// gattina di profilo, rivolta a destra (a sinistra si specchia); i piedi stanno sull'ultima riga
+const PSIDE=[
+"......kk........",
+".....kwwk.......",
+"..kkkkkkkkkkkk..",
+"..kwwwwwwwwwwk..",
+".kwwwwwwwwwwwwk.",
+".kwwwwwwww"+"kk"+"wwk.",
+".kwwwwwwww"+"kk"+"wwk.",
+".kwwwwwwwwwwwyk.",
+".kwwwwwwwwwwwwk.",
+"..kwwwwwwwwwwk..",
+".....kkkkkk.....",
+"....k"+"p".repeat(6)+"k....",
+"....k"+"p".repeat(6)+"k....",
+"....k"+"p".repeat(4)+"k......",
+"....kwwk........",
+"....kwwwwk......"
+];
+const KBS=PSIDE.map(r=>r.replace(/w/g,'B').replace(/p/g,'b'));
+const KRS=PSIDE.map(r=>r.replace(/p/g,'r'));
+// parti del profilo che si muovono: braccio (con manina bianca) e gamba (bianca)
+const PARM=["pk","pp","pp","ww"];
+const PLEG=["wk","wk","wk","wwk"];
+// orsetto di profilo: testa marrone, ma il viso è bianco perché indossa il cappuccio
+const BHEAD=PSIDE.map((r,i)=>r.split('').map((c,x)=>{
+  if(c==='p') return 'b';
+  if(c!=='w') return c;
+  return (i>=5&&i<=9&&x>=7)?'w':'B';
+}).join(''));
+const VAR={
+ kitty:{body:PSIDE, arm:PARM, leg:PLEG},
+ bear:{body:BHEAD, arm:PARM.map(r=>r.replace(/w/g,'B').replace(/p/g,'b')), leg:PLEG.map(r=>r.replace(/w/g,'B'))},
+ dress:{body:PSIDE.map(r=>r.replace(/p/g,'r')), arm:PARM.map(r=>r.replace(/p/g,'r')), leg:PLEG}
+};
+// tuta mimetica: con il casco la gattina indossa una tuta a macchie verdi e marroni al posto del rosa
+const CAMO_CH=['g','G','B','q','g','G','q','B'];
+function camoRows(rows){ return rows.map((r,y)=>r.split('').map((c,x)=>c==='p'?CAMO_CH[(x*3+y*5+((x*y)%4))%8]:c).join('')); }
+const CAMO_F=camoRows(KITTY);
+VAR.camo={body:camoRows(PSIDE), arm:camoRows(PARM), leg:camoRows(PLEG)};
+// vestiti per livello: quando la gattina prende l'oggetto che le dà i poteri, il suo vestito cambia
+// (indice = livello - 1; top sopra la vita, bottom sotto; i livelli senza voce restano invariati)
+Object.assign(PAL,{N:'#9c6b3f',A:'#3d4149',J:'#2f4a7a',C:'#eed5a0'}); // nocciola, antracite, jeans, crema (più caldo del bianco)
+const OUTFIT=[];
+OUTFIT[1]={top:'r',hat:true};         // 2: rosso con cappello da Babbo Natale
+OUTFIT[2]={top:'C'};                  // 3: crema
+OUTFIT[3]={top:'S'};                  // 4: grigio
+OUTFIT[4]={top:'N'};                  // 5: nocciola
+OUTFIT[5]={top:'A'};                  // 6: grigio antracite
+OUTFIT[6]={top:'N'};                  // 7: nocciola
+OUTFIT[7]={top:'N'};                  // 8: nocciola
+OUTFIT[8]={top:'r'};                  // 9: rosso
+OUTFIT[9]={top:'w',bottom:'J'};       // 10: maglietta bianca e jeans
+OUTFIT[10]={top:'k'};                 // 11: nero
+OUTFIT[11]={top:'r'};                 // 12: rosso
+OUTFIT[12]={top:'y'};                 // 13: giallo
+OUTFIT[13]={top:'w'};                 // 14: bianco
+OUTFIT[14]={top:'C',bottom:'S'};      // 15: maglietta crema, gonna grigia
+OUTFIT[15]={top:'v'};                 // 16: viola
+OUTFIT[16]={bikini:true};              // 17: bikini (due pezzi)
+OUTFIT[17]={top:'r',hat:true};         // 18: rosso con cappello da Babbo Natale
+OUTFIT[19]={top:'N'};                 // 20: nocciola
+OUTFIT[20]={bikini:true};              // 21: bikini (due pezzi)
+// le parti rosa del corpo diventano del colore scelto (metà alta = top, metà bassa = bottom)
+function dressRows(rows,top,bottom){
+  let lo=99,hi=-1; rows.forEach((r,y)=>{ if(r.includes('p')){ lo=Math.min(lo,y); hi=Math.max(hi,y); } });
+  const mid=(lo+hi)/2;
+  return rows.map((r,y)=>r.split('').map(c=>c==='p'?((y<=mid)?top:(bottom||top)):c).join(''));
+}
+// bikini a due pezzi: reggiseno e slip rossi, con una striscia di pelle bianca in mezzo
+function bikiniRows(rows){
+  let lo=99; rows.forEach((r,y)=>{ if(r.includes('p')) lo=Math.min(lo,y); });
+  return rows.map((r,y)=>r.split('').map(c=>{
+    if(c!=='p') return c;
+    if(y<=lo+1) return 'r';          // reggiseno
+    if(y===lo+2) return 'w';         // pelle tra i due pezzi
+    return 'r';                      // slip
+  }).join(''));
+}
+const OUT_CACHE={};
+function outfitSet(o){
+  const key=o.bikini?'bikini':o.top+'|'+(o.bottom||'');
+  if(!OUT_CACHE[key]) OUT_CACHE[key]=o.bikini
+    ? {front:bikiniRows(KITTY), side:bikiniRows(PSIDE), arm:dressRows(PARM,'r','r'), leg:PLEG}
+    : {front:dressRows(KITTY,o.top,o.bottom), side:dressRows(PSIDE,o.top,o.bottom), arm:dressRows(PARM,o.top,o.bottom), leg:PLEG};
+  return OUT_CACHE[key];
+}
+const BOW=[[11,0],[12,0],[13,0],[11,1],[12,1],[13,1],[12,2],[13,2]];
+const TEDDY=[
+".kk....kk.",
+"kBBk..kBBk",
+"kBBBkkBBBk",
+"kBBBBBBBBk",
+"kBkBBBBkBk",
+"kBBBBDBBBk",
+"kBBBBBBBBk",
+".kBBBBBBk.",
+".kBBkkBBk.",
+"..kk..kk.."
+];
+const HEART=[".xx...xx.","xxxx.xxxx","xxxxxxxxx","xxxxxxxxx",".xxxxxxx.","..xxxxx..","...xxx...","....x...."];
+const STAR=["..y..","yyyyy",".yyy.","yy.yy","y...y"];
+
+// oggetti da collezionare (contano nel conteggio) e oggetti potenziatori (fanno crescere la gattina)
+const POWER=['bear','umbrella','tree'];
+const COLL={
+ pop:{c:'#fff3c4',l:'POP CORN'}, ball:{c:'#d62828',l:'PALLINE'}, heart:{c:'#ff4f8b',l:'CUORI'},
+ star:{c:'#ffe066',l:'STELLE'}, shell:{c:'#f7d6b8',l:'CONCHIGLIE'}, meat:{c:'#8a4b22',l:'POLPETTE'},
+ crepe:{c:'#f4d03f',l:'CREPES'}, pizza:{c:'#ff9f1c',l:'PIZZE'}, tamb:{c:'#ffb703',l:'TAMBURELLI'},
+ flower:{c:'#ff7fb0',l:'FIORI'}, letter:{c:'#f1faee',l:'LETTERINE'}, guitar:{c:'#b5651d',l:'CHITARRE'},
+ painting:{c:'#c8a2c8',l:'QUADRI'}, note:{c:'#4cc9f0',l:'NOTE'}, bone:{c:'#f5f5dc',l:'OSSA'},
+ pumpkin:{c:'#ff7b00',l:'ZUCCHE'}, bikini:{c:'#e63946',l:'BIKINI'}, thermo:{c:'#e0e0e0',l:'TERMOMETRI'},
+ octo:{c:'#9d4edd',l:'POLPI'}, bow:{c:'#d62828',l:'FIOCCHETTI'}, helmet:{c:'#2a9d8f',l:'CASCHI'},
+ cake:{c:'#f2c14e',l:'TORTA'},
+ gelato:{c:'#7b4a2a',l:'GELATI AL CIOCCOLATO'}, biro:{c:'#4cc9f0',l:'BIRO'}, choc:{c:'#5a2e14',l:'CIOCCOLATO'},
+ drop:{c:'#4cc9f0',l:'GOCCE'}
+};
+
+/* ---------- AMBIENTI ---------- */
+const TH={
+ space:{deco:'space',sky1:'#07041f',sky2:'#24124a',gnd:'#40457a',gndTop:'#9aa3f0',plat:'#2a2358',platTop:'#7d86d9',bld:'#2a2358'},
+ xmasSea:{deco:'sea',sky1:'#58c4ff',sky2:'#d8f4ff',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#b3262c',sea:'#2a9dd6'},
+ xmas:{deco:'snow',sky1:'#14284a',sky2:'#3d6496',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#b3262c'},
+ teatro:{deco:'apollo',sky1:'#050818',sky2:'#18224f',gnd:'#2a2e3d',gndTop:'#6b7290',plat:'#3a2a1f',platTop:'#8a6a40',bld:'#d9cdb4'},
+ cave:{deco:'cave',sky1:'#8a7a5c',sky2:'#d9c9a0',gnd:'#9c8a68',gndTop:'#e8d9b0',plat:'#7a6a4e',platTop:'#b29c70',bld:'#e8dcc0'},
+ nardo:{deco:'city',sky1:'#f7b267',sky2:'#f4845f',gnd:'#b8a089',gndTop:'#e8d5b5',plat:'#8a6a50',platTop:'#c49a6c',bld:'#e8c9a0',win:'#7a4a2a'},
+ seaN:{deco:'sea',sky1:'#050818',sky2:'#1d3a6b',gnd:'#5a5560',gndTop:'#9a9aa8',plat:'#4a3e34',platTop:'#8a7a6a',bld:'#2d3f66',sea:'#1d4a7a'},
+ hillsN:{deco:'hills',sky1:'#050818',sky2:'#18224f',gnd:'#2e5a2e',gndTop:'#4f8a4f',plat:'#5a3e22',platTop:'#8a6a40',bld:'#0d1a10',hill:'#153a1c'},
+ lecce:{deco:'city',sky1:'#7ec8ff',sky2:'#cfeeff',gnd:'#c9b29a',gndTop:'#eadcc4',plat:'#9a7a5a',platTop:'#c49a6c',bld:'#e8d7b8',win:'#3a4a6a'},
+ beach:{deco:'sea',sky1:'#58c4ff',sky2:'#d8f4ff',gnd:'#e8d59a',gndTop:'#f6e7b8',plat:'#b58a5a',platTop:'#d9b07a',bld:'#f2e4c4',sea:'#2a9dd6'},
+ festa:{deco:'lights',sky1:'#1a0a2e',sky2:'#3a1a4a',gnd:'#4a3a4a',gndTop:'#7a6a7a',plat:'#5a2e3e',platTop:'#8a4e5e',bld:'#5a3a4a'},
+ otranto:{deco:'city',sky1:'#0a1030',sky2:'#24366b',gnd:'#4b4f63',gndTop:'#8a90b0',plat:'#3a2e3a',platTop:'#7a6a80',bld:'#1d2550',win:'#ffd87a'},
+ ship:{deco:'sea',sky1:'#7ec8ff',sky2:'#e8f7ff',gnd:'#e9e2d0',gndTop:'#ffffff',plat:'#8a6a4a',platTop:'#c49a6c',bld:'#ffffff',sea:'#1f7fb8'},
+ spooky:{deco:'spooky',sky1:'#120a1e',sky2:'#3a2a4a',gnd:'#3a3040',gndTop:'#6a5a70',plat:'#3a2a20',platTop:'#7a5a30',bld:'#2a2030'},
+ plants:{deco:'plants',sky1:'#7ed6ff',sky2:'#dff7ff',gnd:'#8fc16a',gndTop:'#b8e08a',plat:'#6b4a2a',platTop:'#3f8a3f',bld:'#e8d7b8'},
+ xmasN:{deco:'lights',sky1:'#14284a',sky2:'#3d6496',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#c8b89a'},
+ trulli:{deco:'trulli',sky1:'#79c7ff',sky2:'#e6f6ff',gnd:'#d8c7a0',gndTop:'#f3e6c4',plat:'#8a6a4a',platTop:'#b8925a',bld:'#f5f0e6'},
+ pizzica:{deco:'lights',sky1:'#1a0820',sky2:'#4a1a2a',gnd:'#3a2a30',gndTop:'#7a4a50',plat:'#5a2a20',platTop:'#9a5a30',bld:'#6a2a2a'}
+};
+
+/* ---------- LIVELLI FATTI A MANO (1, 2, 4) ---------- */
+const LV=[
+{name:'Interstellar',place:'Cinema "The Space"',sign:'THE SPACE',th:'space',end:'building',hud:['pop'],door:90,w:96,ecol:'#7cfc9a',
+ ground:[[0,22],[25,46],[49,80],[83,96]],
+ plats:[[12,8,4],[30,7,4],[52,8,5],[66,6,4],[74,8,4]],
+ boxes:[[27,6,'choc'],[42,6,'choc'],[8,6,'pop'],[62,6,'bear'],[36,4,'pop'],[56,5,'pop'],[69,3,'pop']],
+ items:[['pop',14,7],['pop',16,7],['pop',32,6],['pop',34,6],['pop',54,7],['pop',58,7],['pop',70,5],['pop',77,7]],
+ enemies:[10,40,62,86]},
+{name:'Gallipoli e il negozio di Natale',place:'Negozio di Natale',sign:'NATALE',th:'xmasSea',end:'building',hud:['ball'],door:90,w:96,ecol:'#ffffff',
+ ground:[[0,18],[21,40],[43,60],[63,96]],
+ plats:[[10,8,4],[28,7,4],[36,5,3],[50,7,5],[70,8,4]],
+ boxes:[[23,6,'choc'],[39,6,'choc'],[8,6,'ball'],[56,6,'tree']],
+ items:[['ball',12,7],['ball',14,7],['ball',16,7],['ball',29,6],['ball',31,6],['ball',37,4],['ball',39,4],['ball',51,6],['ball',53,6],['ball',55,6],['ball',71,7],['ball',74,7]],
+ enemies:[13,24,47,66,88]},
+{name:'Il Teatro',place:'Teatro Apollo',sign:'TEATRO APOLLO',th:'teatro',end:'apollo',hud:['drop'],door:90,w:96,ecol:'#b9b3c9',rain:true,
+ ground:[[0,16],[19,36],[39,56],[59,96]],
+ plats:[[8,8,4],[24,7,4],[32,5,3],[46,7,4],[62,8,5]],
+ boxes:[[21,6,'choc'],[35,6,'choc'],[51,6,'umbrella']],
+ items:[],
+ enemies:[10,45,64,84]}
+];
+
+/* ---------- LIVELLI GENERATI (cave e 5-21) ---------- */
+const GEN=[
+{n:'Il Parco delle Cave',p:'Cave di pietra leccese',th:'cave',end:'gate',coll:[['heart',12],['cake',4]],pw:['grow','umbrella','bear','grow'],seed:3},
+{n:'Nardò',p:'Centro storico di Nardò',th:'nardo',end:'bench',coll:[['heart',10],['crepe',4]],pw:['grow','bear','tree','umbrella']},
+{n:'Santa Caterina',p:'Scogli e mare di notte',th:'seaN',end:'heart',coll:[['star',10],['heart',4]]},
+{n:'Il superbingo',p:'Primo mese insieme',th:'hillsN',end:'car',coll:[['star',10],['painting',4]]},
+{n:'La campagna notturna',p:'Campagna di notte',th:'hillsN',end:'car',coll:[['star',10],['guitar',4]]},
+{n:'San Valentino',p:'Lecce di giorno',th:'lecce',end:'building',sign:'ER POLPETTA',coll:[['meat',10],['letter',4]]},
+{n:'Giornata al mare',p:'Spiaggia',th:'beach',end:'tree',coll:[['shell',10],['pizza',4]]},
+{n:'Aria Caddhipulina',p:'Spiaggia di giorno',th:'beach',end:'building',sign:'MARTINUCCI',coll:[['heart',10],['gelato',4]]},
+{n:'San Vito',p:'Luminarie della festa patronale',th:'festa',end:'building',sign:'LUNAPARK',coll:[['heart',10],['flower',4]]},
+{n:'Casa al mare',p:'Spiaggia',th:'beach',end:'bed',coll:[['biro',10],['heart',4]]},
+{n:'Crociera',p:'Crociera nel mare',th:'ship',end:'building',sign:'SBARCO',coll:[['heart',10],['thermo',4]]},
+{n:'Otranto',p:'Vie di Otranto di notte',th:'otranto',end:'building',sign:'LA POLPERIA',coll:[['heart',10],['octo',4]]},
+{n:'Pumpkin contest',p:'Paesaggio spettrale',th:'spooky',end:'pumpkin',coll:[['bone',10],['pumpkin',4]]},
+{n:'La spa',p:'Tra le piante',th:'plants',end:'building',sign:'LA CORTE DEI FIGULI',coll:[['heart',10],['bikini',4]]},
+{n:'Locorotondo',p:'Luci natalizie',th:'xmasN',end:'building',sign:'ROSTICCERIA',coll:[['ball',10],['bow',4]]},
+{n:'Quad',p:'Trulli di Alberobello',th:'trulli',end:'building',sign:'TRULLO',coll:[['star',10],['helmet',4]],vehicle:'quad'},
+{n:'Pizzica estiva',p:'Luminarie di notte',th:'pizzica',end:'building',sign:'PALCO',coll:[['note',10],['tamb',4]]},
+{n:'Masseria Rauccio',p:'Piscina',th:'plants',end:'building',sign:'MASSERIA RAUCCIO',coll:[['heart',10],['bikini',4]]}
+];
+const FIND=new Set(POWER.concat(GEN.map(c=>c.coll[c.coll.length-1][0])));
+const GEN_LV=GEN.map((c,i)=>({name:c.n,place:c.p,sign:c.sign||'',th:c.th,end:c.end,hud:c.coll.map(x=>x[0]),door:176,w:182,
+ gen:true,seed:c.seed||(i+7)*131,vehicle:c.vehicle,coll:c.coll,pw:[c.coll[c.coll.length-1][0]],ecol:'#b9b3c9'}));
+LV.splice(2,0,GEN_LV[0]);          // Il Parco delle Cave diventa il livello 3
+LV.push(...GEN_LV.slice(1));       // Nardò ... Masseria Rauccio
+// i livelli fatti a mano vengono allungati con un tratto generato in coda (dopo x=96)
+// oggetti della parte aggiunta dei livelli fatti a mano (raccolti, poi oggetto da trovare)
+const EXT_COLL={'Interstellar':[['pop',3],['bear',2]],'Gallipoli e il negozio di Natale':[['ball',3],['tree',2]],'Il Teatro':[['drop',3],['umbrella',2]]};
+LV.forEach((l,i)=>{
+  if(l.gen||l.extended) return;
+  // nella parte aggiunta ci sono anche cioccolato e oggetti da trovare (dopo la bandierina)
+  const t=genLayout(900+i*17,EXT_COLL[l.name]||[],[],74,0), OFF=96;
+  l.ground=l.ground.concat(t.ground.map(([a,b])=>[a+OFF,b+OFF]));
+  l.plats=l.plats.concat(t.plats.map(([x,y,w])=>[x+OFF,y,w]));
+  l.enemies=l.enemies.concat(t.enemies.map(x=>x+OFF));
+  l.boxes=l.boxes.concat(t.boxes.map(([x,y,ty,f])=>[x+OFF,y,ty,f]));
+  l.items=l.items.concat(t.items.map(([ty,x,y])=>[ty,x+OFF,y]));
+  l.w=182; l.door=176; l.extended=true;
+});
+
+/* ---------- GENERATORE DI LIVELLI ---------- */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function genLayout(seed,coll,pw,len=170,split=90){
+  const R=mulberry32(seed);
+  const ground=[]; let x=0;
+  while(x<len){ const l=12+Math.floor(R()*8); const e=Math.min(x+l,len); ground.push([x,e]); x=e+3; }
+  ground.push([Math.min(x,len+4),len+12]);
+  const plats=[];
+  for(const [a,b] of ground){
+    if(b-a>12 && R()<0.7){ const w=3+Math.floor(R()*3); const px=a+2+Math.floor(R()*Math.max(1,b-a-w-3)); plats.push([px,R()<0.5?7:8,w]); }
+  }
+  const pick=()=>{ const s=ground[Math.floor(R()*ground.length)]; return s[0]+2+Math.floor(R()*Math.max(1,s[1]-s[0]-4)); };
+  // le caselle non stanno mai sopra una mensola: così si possono colpire da sotto
+  const platCols=new Set(); for(const [px,,w] of plats) for(let k=0;k<w;k++) platCols.add(px+k);
+  const pickBox=()=>{ let x,k=0; do{ x=pick(); k++; }while(platCols.has(x)&&k<50); return x; };
+  // oggetti da trovare: al massimo 4 per livello, molto distanziati tra loro
+  const findXs=[];
+  const pickFind=()=>{ let x,k=0; do{ x=pick(); k++; }while((platCols.has(x)||findXs.some(f=>Math.abs(f-x)<14))&&k<300); findXs.push(x); return x; };
+  const boxes=[], items=[], enemies=[];
+  if(coll.length){
+    // ogni metà del livello ha le sue caselle (così dopo la bandierina si trova di nuovo tutto):
+    // un cioccolato, oggetti da trovare (sempre dopo il cioccolato) e oggetti da raccogliere
+    const find=coll[coll.length-1], collect=coll.slice(0,-1);
+    const nFind=Math.min(find[1],3); // 3 oggetti da trovare per livello
+    // mai nei primi 30 tratti del livello, e mai due caselle consecutive
+    const halves=split>0?[[30,split],[split,len]]:[[10,len]];
+    const H=halves.length;
+    // cioccolato e oggetti da trovare: mai due di loro a meno di 14 tratti l'uno dall'altro
+    const specials=[];
+    const groundOK=x=>ground.some(([a,b])=>x>=a+2&&x<b-2);
+    // posizioni libere in [lo,hi): sul terreno, non sopra una mensola, non affiancate, lontane almeno "gap" dagli speciali
+    const cands=(lo,hi,gap)=>{ const out=[]; for(let x=Math.max(0,lo);x<hi;x++){ if(!groundOK(x)||platCols.has(x)) continue; if(boxes.some(b=>Math.abs(b[0]-x)<=1)) continue; if(specials.some(s=>Math.abs(s-x)<gap)) continue; out.push(x); } return out; };
+    const inRange=(lo,hi)=>{ let c=cands(lo,hi,14); if(!c.length) c=cands(lo,hi,8); if(!c.length) c=cands(lo,hi,0); if(!c.length) return pick(); return c[Math.floor(R()*c.length)]; };
+    const special=(lo,hi,t,f)=>{ const x=inRange(lo,hi); specials.push(x); boxes.push([x,6,t,f]); return x; };
+    // sistema in ordine (x crescenti, distanza di almeno 14) cioccolati e oggetto da trovare della metà
+    const placeSeq=(lo,hi,seq)=>{
+      const n=seq.length;
+      for(let tries=0;tries<500;tries++){
+        const xs=[]; let prev=lo-14, ok=true;
+        for(let k=0;k<n&&ok;k++){
+          const r=n-1-k, a=Math.max(lo,prev+14), b=hi-14*r;
+          const c=[];
+          for(let x=a;x<b;x++) if(groundOK(x)&&!platCols.has(x)&&!boxes.some(q=>Math.abs(q[0]-x)<=1)&&!specials.some(s=>Math.abs(s-x)<14)) c.push(x);
+          if(!c.length){ ok=false; break; }
+          prev=c[Math.floor(R()*c.length)]; xs.push(prev);
+        }
+        if(ok){ xs.forEach((x,k)=>{ specials.push(x); boxes.push([x,6,seq[k][0],seq[k][1]]); }); return; }
+      }
+      // ripiego se non c'è spazio: posizioni più vicine possibile
+      let prev=lo-14; seq.forEach(([t,f])=>{ prev=special(Math.max(lo,prev+14),hi,t,f); });
+    };
+    let ci=0;
+    halves.forEach(([lo,hi],hIdx)=>{
+      const nf=Math.floor(nFind/H)+(hIdx===H-1?nFind%H:0);
+      // in ordine lungo la metà: 2 barrette di cioccolato, poi gli oggetti da trovare
+      const seq=[['choc',false],['choc',false]];
+      for(let j=0;j<nf;j++) seq.push([find[0],true]);
+      placeSeq(lo,hi,seq);
+      const nc=Math.ceil(Math.max(3,nFind)/H);
+      for(let j=0;j<nc;j++){ const x=inRange(lo,hi); boxes.push([x,6,collect.length?collect[ci%collect.length][0]:'pop',false]); ci++; }
+    });
+    // oggetti da raccogliere: sparsi nel livello, mai sulla colonna di una casella
+    const boxCols=new Set(boxes.map(b=>b[0]));
+    for(const [t,n] of collect) for(let i=0;i<n;i++){
+      let x,k=0; do{ x=pick(); k++; }while(boxCols.has(x)&&k<50);
+      items.push([t,x,R()<0.3?5:6]);
+    }
+  }
+  for(let i=0;i<4;i++){ let ex; do{ ex=pick(); }while(ex<12||ex>len-10); enemies.push(ex); }
+  return {ground,plats,boxes,items,enemies};
+}
+
+/* ---------- COLORI AGGIUNTIVI E DISEGNI DEGLI OGGETTI ---------- */
+Object.assign(PAL,{g:'#2f8a48',G:'#1d5a30',o:'#ff9f1c',O:'#c46a00',P:'#ff4f8b',c:'#f5e6c8',s:'#e8c880',
+ S:'#9a9aa8',L:'#4cc9f0',l:'#1f5f9a',v:'#9d4edd',V:'#5a1f8a',e:'#f1faee',t:'#7a7a7a',z:'#2a9d8f',
+ R:'#8a1020',m:'#ffe066',n:'#c9a24a',h:'#b5651d',q:'#b8ab92'});
+const POP=["..wwww...",".wwwwwww.","wwwywwwww","wwwwwwyww",".wwwwwwww","wwywwwwww",".wwwwwww.","..yy.y..."];
+const BALL=["...nn...","..nnnn..",".rrrrrrr","rrwrrrrr","rwrrrrrR","rrrrrrRR",".rrrrRR.","..RRRR.."];
+const SHELL=["...PPP...",".PPcPcPP.","PcPcPcPcP","PPPPPPPPP","...PPP..."];
+const MEAT=["..bbbbb.",".bBBBBbb","bBBBBBBb","bBrBBBrb","bBBBBBBb",".bBBBBb.","..bbbb.."];
+const PIZZA=["oooooooo","oyoyoyo.",".oyrryo.","..oyyo..","...oo..."];
+const TAMB=["..kkkkk..",".kyyyyyk.","kyryyyryk","kyyyyyyyk","kyryyyryk","kyyyyyyyk","kyryyyryk",".kyyyyyk.","..kkkkk.."];
+const FLOWER=[".pp.pp.","pPpppPp",".pyyyp.","pPpppPp",".pp.pp.","...g...","..ggg.."];
+const LETTER=["kkkkkkkkk","kwwwwwwwk","kwwrwrwwk","kwrrrrrwk","kwwwrwwwk","kkkkkkkkk"];
+const GUITAR=["...kk....","..kbbk...",".kbBBbk...",".kbBBbk...","..kbbk....","kkkbbkkkk","kbBBBBBbk","kbBBkBBbk","kbBBBBBbk","kkbbbbbkk","..kkkkk.."];
+const PAINTING=["nnnnnnnnn","nLLLLLLLn","nLLyLLLLn","nLLLLLLLn","ngggggggn","ngGgggggn","nnnnnnnnn"];
+const NOTE=["...LLL..","...L..L.","...L..L.","...L..L.","LLL.L.L.","LLLL..L.","LLLL...."];
+const BONE=["ww.....ww","wwwwwwwww",".wwwwwww.","wwwwwwwww","ww.....ww"];
+const PUMPKIN=["....g....","...gg....","ooooooooo","oOoOoOoOo","oOoOoOoOo","oOoOoOoOo","ooooooooo",".OOOOOOO."];
+// bikini a due pezzi: parte di sopra (due coppe con i lacci) e slip sotto, separati da un piccolo spazio
+const BIKINI=["r.........r","rrr.....rrr","rrrrr.rrrrr","...........","rrrrrrrrrrr",".rrrrrrrrr.","..rrrrrrr..","...rrrrr..."];
+// cappello da Babbo Natale: sulla testa della gattina nei livelli 2 e 18
+const SANTA_HAT=[
+".......w.......",
+"......www......",
+".....rrrrr.....",
+"....rrrrrrr....",
+"...rrrrrrrrr...",
+"..rrrrrrrrrrr..",
+"..wwwwwwwwwww.."
+];
+// casco integrale: copre tutta la testa, con la visiera scura
+const HELM_FULL=[
+"...kkkkkkkkk...",
+"..kzzzzzzzzzk..",
+".kzzzzzzzzzzzk.",
+".kzzzzzzzzzzzk.",
+"kzzzzzzzzzzzzzk",
+"kzkkkkkkkkkkkzk",
+"kzkLLkkkkkkkkzk",
+"kzkkkkkkkkkkkzk",
+".kzzzzzzzzzzzk.",
+"..kkkkkkkkkkk.."
+];
+const THERMO=["kkk","kwk","kwk","kwk","kwk","kwk","krk","rrr"];
+const OCTO=["..vvvvv..",".vvvvvvv.","vwwvvvwwv","vvvvvvvvv",".vvvvvvv.","v.v.v.v.v","v.v.v.v.v"];
+const FIOCCO=["rr.....rr","rrrr.rrrr","rrrrrrrrr",".rrrrrrr.","rrrr.rrrr","rr.....rr"];
+const HELMET=["..zzzzz..",".zzzzzzz.","zzzLzzzzz","zzzzzzzzz","zzzzzzzzz","zzzzzzzzz","kkkkkkkkk"];
+const CAKE=["..ppp....","wwwwwwwww","yyyyyyyyy","cccccccc.","cccccccc.","ssssssssss"];
+const CREPE=["..ssssss.",".sssssssss","sssyyysss","ssyyyyyss",".ssyyyss.","..ssss..."];
+const STAR7=["...m...","...m...","mmmmmmm",".mmmmm.","..mmm..",".mm.mm.","mm...mm"];
+const GELATO=["..kkk.kkk..",".khhhkhhhk.","kkkkkkkkkkk",".ksssssssk.","..ksssssk..","...ksssk...","....ksk...."];
+const BIRO=["kkkk","kLLk","kLLk","kLLk","kLLk","kkkk","kSSk","kSSk","kkkk",".kk."];
+// quad su cui è seduta la gattina nel livello Quad
+// quad visto di profilo (verso destra) e di fronte: più grande della gattina
+const QUAD_SIDE=["..................kkkkkk....","...................kk.......","...................kk.......",".......kkkkkk......kk.......","..kkkk.kkkkkk....kkkkk......","..kOOkkkkkkkkkkkkkoook......","..kkkkkooooooooookoookm.....","....kkkkkooooooookokkkkk....","...kkkkkkkkkkkkkkkkkkkkkk...","...kkkSkkk........kkkSkkk...","..kkkSSSkkk......kkkSSSkkk..","...kkkSkkk........kkkSkkk...","...kkkkkkk........kkkkkkk...","....kkkkk..........kkkkk....","......k..............k......"];
+// ruote del quad: due fotogrammi (raggi a croce e a X) che si alternano mentre il quad avanza
+function spinWheels(rows,phase){
+  const r=rows.map(s=>s.split(''));
+  for(const cx of [6,21]){
+    for(let y=9;y<=11;y++) for(let x=cx-2;x<=cx+2;x++) if(r[y][x]==='S') r[y][x]='k';
+    const cells=phase===0 ? [[9,cx],[10,cx-1],[10,cx],[10,cx+1],[11,cx]] : [[9,cx-1],[9,cx+1],[10,cx],[11,cx-1],[11,cx+1]];
+    for(const [y,x] of cells) r[y][x]='S';
+  }
+  return r.map(a=>a.join(''));
+}
+const QUAD_SPIN=[spinWheels(QUAD_SIDE,0),spinWheels(QUAD_SIDE,1)];
+const QUAD_FRONT=["............................","............................","............................","..kkkkkkkkkkkkkkkkkkkkkkkk..","..kkkkkkkkkkkkkkkkkkkkkkkk..","........kkkkkkkkkkkk........","........koookkkkoook........","........koookkkkoook........",".kkkkkkkkooooooooookkkkkkkk.",".kkkkkkkkooooooooookkkkkkkk.","...kkk..kkkkkkkkkkkk..kkk...","...kkk................kkk...","...kkk................kkk...","...kkk................kkk...","...kkk................kkk..."];
+// oggetti disegnati per tipo (orsetto, albero e ombrello hanno una funzione dedicata)
+// barretta di cioccolato: fa crescere la gattina
+const CIOC=[
+"kkkkkkkkkk",
+"kBBkBBkBBk",
+"kBBkBBkBBk",
+"kkkkkkkkkk",
+"kbbkbbkbbk",
+"kbbkbbkbbk",
+"kkkkkkkkkk"
+];
+// goccia d'acqua: è l'oggetto da trovare del Teatro
+const DROP=[
+"...k....",
+"..kak...",
+".kaak...",
+".kaaak..",
+"kaawaak.",
+"kaaaaak.",
+".kaaaak.",
+"..kkkk.."
+];
+const SPR={drop:DROP,choc:CIOC,pop:POP,ball:BALL,shell:SHELL,meat:MEAT,pizza:PIZZA,tamb:TAMB,flower:FLOWER,letter:LETTER,
+ guitar:GUITAR,painting:PAINTING,note:NOTE,bone:BONE,pumpkin:PUMPKIN,bikini:BIKINI,thermo:THERMO,
+ octo:OCTO,bow:FIOCCO,helmet:HELMET,cake:CAKE,crepe:CREPE,star:STAR7,gelato:GELATO,biro:BIRO};
+
+/* ---------- STATO ---------- */
+let state='title',lvlIdx=0,lives=7,powered=false,redDress=false,umbrella=false,big=false;
+let reserve=[],heldType=null,dropFx=null,helmet=false,ckpt=null,flag=null; // riserva del livello: lista di oggetti da trovare
+let shots=[],shootOn=false,shotCool=0,fireReq=false; // colpi di sparo (cuoricini) del livello
+let levelFind='bear'; // oggetto da trovare del livello (esce dalle caselle del cioccolato quando si è grandi)
+let findLeft=3; // oggetti da trovare ancora disponibili nel livello (3 in tutto)
+let boyBig=false; // il fidanzatino è grande se la gattina arriva al traguardo grande
+let hitCool=0,jumpBuf=0,bannerT=0,wet=0,kissT=0,cam=0;
+let L=null,tiles,boxes,items,enemies,rain=[],cnt={},tot={},pl,collTot=0;
+let stars=[],flakes=[];
+const keys={},hold={};
+
+function initBg(){
+  for(let i=0;i<70;i++) stars.push({x:Math.random()*512,y:Math.random()*H,s:Math.random()<0.2?2:1});
+  for(let i=0;i<40;i++) flakes.push({x:Math.random()*W,y:Math.random()*H,v:0.4+Math.random()*0.9});
+}
+
+/* ---------- CARICAMENTO LIVELLO ---------- */
+function loadLevel(i){
+  lvlIdx=i; L=LV[i];
+  musicPlay(i); // musica del livello
+  const lay=L.gen?genLayout(L.seed,L.coll,L.pw):L;
+  tiles=new Map(); boxes=[]; items=[]; enemies=[]; rain=[];
+  umbrella=false; big=false; powered=false; redDress=false; heldType=null; helmet=false; reserve=[]; dropFx=null; shots=[]; shootOn=false; shotCool=0; findLeft=3;
+  cnt={}; tot={}; collTot=0; cam=0; hitCool=0; jumpBuf=0; wet=0;
+  for(const [a,b] of lay.ground) for(let x=a;x<b;x++) for(let y=10;y<12;y++) tiles.set(x+','+y,'g');
+  for(const [x,y,w] of lay.plats) for(let k=0;k<w;k++) tiles.set((x+k)+','+y,'p');
+  for(const [x,y,t,f] of lay.boxes){
+    tiles.set(x+','+y,'b');
+    // f=true: la casella fa uscire un oggetto da trovare; altrimenti uno da raccogliere
+    boxes.push({x,y,t,used:false,find:f!==undefined?f:!COLL[t]});
+    if(COLL[t]||FIND.has(t)) tot[t]=(tot[t]||0)+1;
+  }
+  const fb=boxes.find(b=>b.find&&b.t!=='choc'); levelFind=fb?fb.t:'bear';
+  for(const [t,x,y] of lay.items){ items.push({t,x:x*T+3,y:y*T+3,got:false,c:items.length%5}); tot[t]=(tot[t]||0)+1; }
+  for(const x of lay.enemies) enemies.push({x:x*T,y:146,w:14,h:14,vy:0,dir:-1,onG:false,dead:false});
+  pl={x:32,y:144,w:12,h:16,vx:0,vy:0,onG:false,face:1,coyote:0,flipT:0,flipUsed:false};
+  // bandierina a metà livello: se si muore si riparte da lì
+  flag=null; const mid=Math.floor(L.w/2);
+  for(let d=0;d<60&&!flag;d++) for(const tx of [mid+d,mid-d]){
+    if(!flag && tiles.get(tx+',10')==='g' && !tiles.has(tx+',9')) flag={x:tx*T,y:10*T-16,reached:false};
+  }
+  updateHUD();
+}
+
+// barra di avanzamento: pallino bianco = dove sei, bandierina gialla = punto di ripresa trovato
+function updateProgress(){
+  const el=document.getElementById('prog'); if(!el||!L||!pl) return;
+  const total=L.door*T;
+  const f=v=>Math.max(0,Math.min(100,v/total*100));
+  document.getElementById('progFill').style.width=f(pl.x+pl.w/2)+'%';
+  document.getElementById('progMe').style.left=f(pl.x+pl.w/2)+'%';
+  const fl=document.getElementById('progFlag');
+  if(flag && flag.reached){ fl.style.display='block'; fl.style.left=f(flag.x)+'%'; }
+  else fl.style.display='none';
+}
+function updateHUD(){
+  if(!L) return;
+  document.getElementById('hLvl').textContent=(lvlIdx+1)+' '+L.name.toUpperCase();
+  document.getElementById('hLives').textContent='VITE '+Math.max(0,lives);
+  let s=L.hud.map(t=>COLL[t].l+' '+(cnt[t]||0)+'/'+(tot[t]||0)).join('  ');
+  if(big) s+='  GRANDE';
+  if(powered) s+='  ORSETTO';
+  if(shootOn) s+='  SPARO (X)';
+  document.getElementById('hItems').textContent=s;
+  // il pulsante SPARA sul touch è acceso solo quando si può sparare
+  const sb=document.querySelector('#pad button[data-k="x"]');
+  if(sb){ sb.style.opacity=shootOn?'1':'0.35'; sb.style.filter=shootOn?'':'grayscale(1)'; }
+  const rb=document.getElementById('resBtn');
+  if(rb){ rb.disabled=!(state==='play'&&!dropFx&&reserve.some(t=>t==='choc'?!big:!shootOn)); document.getElementById('resN').textContent=reserve.length; drawReserveIcon(); }
+}
+
+/* ---------- OVERLAY E MENU ---------- */
+function showOverlay(t,p,b,fn){
+  document.getElementById('ovT').textContent=t;
+  document.getElementById('ovP').textContent=p;
+  const btn=document.getElementById('ovB');
+  btn.textContent=b; btn.onclick=()=>{ sfx('click'); if(fn) fn(); };
+  document.getElementById('lvlBtns').hidden=(t!=='Gattina Pixel Quest');
+  document.getElementById('ov').hidden=false;
+  btn.focus({preventScroll:true});
+}
+function hideOverlay(){
+  document.getElementById('ov').hidden=true;
+  document.getElementById('lvlBtns').hidden=true;
+}
+function buildMenu(){
+  const box=document.getElementById('lvlBtns'); box.innerHTML='';
+  LV.forEach((l,i)=>{
+    const b=document.createElement('button'); b.type='button';
+    b.textContent=(i+1)+' '+l.name; b.onclick=()=>pickLevel(i);
+    box.appendChild(b);
+  });
+}
+function startGame(){
+  sfx('start');
+  lives=7;
+  hideOverlay(); ckpt=null; loadLevel(0); state='banner'; bannerT=110; updateHUD();
+}
+function pickLevel(n){
+  sfx('select');
+  hideOverlay(); lives=7; ckpt=null;
+  loadLevel(n); state='banner'; bannerT=110; updateHUD();
+}
+function goMenu(){
+  sfx('menu'); musicStop();
+  state='title';
+  showOverlay('Gattina Pixel Quest','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
+}
+function nextLevel(n){
+  hideOverlay(); ckpt=null;
+  loadLevel(n);
+  state='banner'; bannerT=110; updateHUD();
+}
+
+/* ---------- COLLISIONI ---------- */
+function overlap(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
+function resolveX(e,s){
+  const ty0=Math.floor(e.y/T), ty1=Math.floor((e.y+e.h-1)/T);
+  const tx0=Math.floor(e.x/T), tx1=Math.floor((e.x+e.w-1)/T);
+  for(let ty=ty0;ty<=ty1;ty++) for(let tx=tx0;tx<=tx1;tx++){
+    if(!tiles.has(tx+','+ty)) continue;
+    if(s>0) e.x=tx*T-e.w; else e.x=(tx+1)*T;
+    return true;
+  }
+  return false;
+}
+function resolveY(e){
+  const tx0=Math.floor(e.x/T), tx1=Math.floor((e.x+e.w-1)/T);
+  const ty0=Math.floor(e.y/T), ty1=Math.floor((e.y+e.h-1)/T);
+  for(let ty=ty0;ty<=ty1;ty++) for(let tx=tx0;tx<=tx1;tx++){
+    if(!tiles.has(tx+','+ty)) continue;
+    if(e.vy>0){ e.y=ty*T-e.h; e.vy=0; e.onG=true; }
+    else {
+      e.y=(ty+1)*T; e.vy=0;
+      if(e===pl && tiles.get(tx+','+ty)==='b') hitBox(tx,ty);
+    }
+    return true;
+  }
+  return false;
+}
+// cosa esce da una casella: quelle del cioccolato danno il cioccolato se si è piccole,
+// e l'oggetto da trovare del livello se si è grandi
+// gli oggetti da trovare sono 3 in tutto nel livello (findLeft); se finiscono, la casella è vuota
+function boxItem(b){
+  if(b.t==='choc'){
+    if(!big) return {t:'choc',find:false};
+    if(findLeft>0){ findLeft--; return {t:levelFind,find:true}; }
+    return {t:'choc',find:false};
+  }
+  if(b.find){
+    if(findLeft>0){ findLeft--; return {t:b.t,find:true}; }
+    return null;
+  }
+  return {t:b.t,find:false};
+}
+function hitBox(tx,ty){
+  sfx('bump');
+  const b=boxes.find(q=>q.x===tx&&q.y===ty);
+  if(!b||b.used) return;
+  b.used=true; tiles.set(tx+','+ty,'u');
+  const bi=boxItem(b);
+  if(bi) items.push({t:bi.t,x:tx*T+3,y:(ty-1)*T+3,got:false,c:items.length%5,find:bi.find});
+}
+
+// nome del luogo di arrivo di ogni livello (indice = livello - 1), mostrato a fine livello
+const ARRIVAL=[
+ 'Cinema The Space','Negozio di Natale','Cancello del Parco','Teatro Apollo',
+ 'Panchina di Nardò','Scogliera di Santa Caterina','La Macchina del Superbingo','La Macchina nella Campagna',
+ 'Er Polpetta','Albero sulla Spiaggia','Martinucci','Lunapark',
+ 'Casa al Mare','Sbarco','La Polperia','La Zucca Gigante',
+ 'La Corte dei Figuli','Rosticceria','Trullo','Palco','Masseria Rauccio'
+];
+// casella su cui si trovano i piedi (null se non c'è una casella chiusa)
+function feetBox(){
+  const tx=Math.floor((pl.x+pl.w/2)/T), ty=Math.floor((pl.y+pl.h+1)/T);
+  if(tiles.get(tx+','+ty)!=='b') return null;
+  const b=boxes.find(q=>q.x===tx&&q.y===ty);
+  return b&&!b.used?b:null;
+}
+// salta dalla casella, poi premi GIÙ in aria: la casella si apre e l'oggetto cade giù
+function dropBox(b){
+  sfx('bump');
+  if(!b||b.used) return;
+  const tx=b.x, ty=b.y;
+  b.used=true; tiles.set(tx+','+ty,'u');
+  let ty2=ty+1; while(ty2<12 && !tiles.has(tx+','+ty2)) ty2++;
+  const bi=boxItem(b);
+  if(bi) items.push({t:bi.t,x:tx*T+3,y:ty*T+3,got:false,c:items.length%5,find:bi.find,vy:0,tgt:(ty2-1)*T+3});
+}
+
+/* ---------- OGGETTI E DANNI ---------- */
+const COLL_PER_LIFE=5; // ogni tot oggetti da raccogliere si guadagna una vita
+// effetti sonori sintetizzati (niente file): moneta, crescita/potere, sparo
+let AC=null;
+const SFX={
+  coin:[[988,0.07],[1319,0.25]],                                   // moneta
+  power:[[392,0.06],[494,0.06],[587,0.06],[784,0.06],[988,0.06],[1175,0.06],[1568,0.2]], // crescita
+  fire:[[900,0.2,'sawtooth',120]],                                 // sputo di fuoco
+  jump:[[300,0.12,'square',600]],                                  // salto
+  flip:[[500,0.08,'triangle'],[700,0.08,'triangle'],[900,0.12,'triangle']], // salto mortale
+  land:[[160,0.05,'triangle',90]],                                 // atterraggio
+  stomp:[[440,0.06],[660,0.1]],                                    // schiacciato un mostro
+  kill:[[1200,0.04,'square',400]],                                 // mostro ucciso dallo sparo
+  hurt:[[620,0.09,'triangle',440],[440,0.12,'triangle',330]],     // colpita da un mostro: un 'ahi' morbido
+  die:[[600,0.15,'square',300],[300,0.15,'square',150],[150,0.4,'square',60]], // vita persa
+  gameover:[[400,0.2],[330,0.2],[262,0.2],[196,0.5]],              // game over
+  bump:[[200,0.04,'square',120]],                                  // colpo alla casella
+  reserve:[[660,0.05],[880,0.05],[1100,0.12]],                     // uso della riserva
+  checkpoint:[[784,0.1],[988,0.1],[1175,0.1],[1568,0.3]],          // bandierina raggiunta
+  win:[[523,0.1],[659,0.1],[784,0.1],[1047,0.1],[784,0.08],[1047,0.3]], // livello completato
+  oneup:[[659,0.07],[784,0.07],[1319,0.07],[1047,0.07],[1175,0.07],[1568,0.2]], // vita extra
+  select:[[660,0.06],[880,0.1]],                                   // livello scelto
+  start:[[392,0.1],[523,0.1],[659,0.1],[784,0.25]],                // inizio partita
+  menu:[[440,0.08,'triangle'],[330,0.1,'triangle']],               // menu
+  click:[[700,0.04,'triangle']],                                   // pulsante premuto
+  step:[[120,0.03,'triangle']],
+  thud:[[110,0.12,'triangle',50],[70,0.18,'triangle',40]]         // tonfo dopo la capriola                                     // passo                                  // sputo di fuoco
+};
+function unlockAudio(){
+  try{
+    if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended') AC.resume();
+  }catch(e){}
+}
+function sfx(k){
+  try{
+    unlockAudio();
+    if(!AC||AC.state!=='running') return;
+    let t=AC.currentTime;
+    musicDuck();
+    for(const [f,d,ty,f2] of SFX[k]){
+      const o=AC.createOscillator(), gn=AC.createGain();
+      o.type=ty||'square';
+      o.frequency.setValueAtTime(f,t);
+      if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
+      gn.gain.setValueAtTime(0.12,t);
+      gn.gain.exponentialRampToValueAtTime(0.001,t+d);
+      o.connect(gn); gn.connect(AC.destination);
+      o.start(t); o.stop(t+d);
+      t+=d;
+    }
+  }catch(e){}
+}
+/* ---------- MUSICA DI SOTTOFONDO: una traccia per livello (primi 11), in loop ---------- */
+// i file stanno in musica/livello_N.mp3 accanto alla pagina; il volume della musica si abbassa
+// per un attimo a ogni suono del gioco, così gli effetti si sentono sempre
+const MUS_VOL=0.55, MUS_DUCK=0.4; // musica quasi piena; si abbassa solo un attimo sotto i suoni
+const MUS_TRACKS=11;
+let musGain=null, musSrc=null, musCur=-1, musCache={}, musWant=0;
+function musicOut(){
+  if(!musGain){ musGain=AC.createGain(); musGain.gain.value=MUS_VOL; musGain.connect(AC.destination); }
+  return musGain;
+}
+function musicDuck(){
+  try{
+    if(!musGain||!AC) return;
+    const g=musGain.gain, t=AC.currentTime;
+    g.cancelScheduledValues(t); g.setValueAtTime(MUS_DUCK,t);
+    g.linearRampToValueAtTime(MUS_VOL,t+0.3);
+  }catch(e){}
+}
+function musicStop(){
+  musWant++; musCur=-1;
+  if(musSrc){ try{ musSrc.stop(); }catch(e){} musSrc=null; }
+}
+async function musicPlay(i){
+  if(i<0||i>=MUS_TRACKS){ musicStop(); return; }
+  if(i===musCur && musSrc) return; // già in riproduzione: non ricomincia
+  musicStop(); musCur=i;
+  const want=++musWant;
+  try{
+    unlockAudio();
+    if(!AC) return;
+    let buf=musCache[i];
+    if(!buf){
+      const r=await fetch('musica/livello_'+(i+1)+'.mp3');
+      buf=await AC.decodeAudioData(await r.arrayBuffer());
+      musCache[i]=buf;
+    }
+    if(want!==musWant) return; // nel frattempo è cambiato livello o si è fermata la musica
+    const src=AC.createBufferSource();
+    src.buffer=buf; src.loop=true; // loop: quando la canzone finisce riparte da sola
+    src.connect(musicOut()); src.start(); musSrc=src;
+  }catch(e){}
+}
+function pickItem(t,find){
+  sfx(t==='choc'||find?'power':'coin');
+  if(COLL[t]||FIND.has(t)) cnt[t]=(cnt[t]||0)+1;
+  if(t==='choc'){
+    // cioccolato: fa crescere la gattina piccola; se è già grande va in riserva (una sola barretta)
+    if(big){ if(!reserve.includes('choc')) reserve.push('choc'); }
+    else applyHeld(t);
+  } else if(!find){
+    // oggetti da raccogliere: solo vite
+    collTot++;
+    if(collTot%COLL_PER_LIFE===0){ lives++; sfx('oneup'); }
+  } else {
+    // oggetto da trovare: fa crescere e dà il potere di sparare;
+    // se la gattina ce l'ha già, va in riserva e sostituisce il cioccolato
+    if(shootOn){ reserve=reserve.filter(x=>x!=='choc'); reserve.push(t); }
+    else { setFind(t); big=true; }
+  }
+  updateHUD();
+}
+function hurt(){
+  sfx('hurt');
+  if(hitCool>0) return;
+  hitCool=70;
+  // un contatto con un mostro la rimpicciolisce; la riserva resta e si usa solo a mano
+  // primo colpo: perde il potere di sparare ma resta grande; il colpo dopo la rimpicciolisce; poi muore
+  if(shootOn){ clearHeld(); updateHUD(); return; }
+  if(big){ big=false; updateHUD(); return; }
+  die();
+}
+// il cioccolato (o la riserva che cade in testa) fa crescere la gattina
+function applyHeld(t){ big=true; }
+// l'oggetto da trovare dà il potere di sparare; il suo aspetto resta quello del tipo
+function setFind(t){
+  shootOn=true; heldType=t;
+  powered=t==='bear'; umbrella=t==='umbrella'; redDress=t==='tree'; helmet=t==='helmet';
+}
+function clearHeld(){ shootOn=false; heldType=null; powered=false; umbrella=false; redDress=false; helmet=false; }
+// disegna nel pulsante della riserva l'oggetto che verrà usato per primo
+function drawReserveIcon(){
+  const cvs=document.getElementById('resIco'); if(!cvs) return;
+  const mc=cvs.getContext('2d'); mc.clearRect(0,0,24,24);
+  if(!reserve.length) return;
+  const old=g; g=mc;
+  try{ drawItem({t:reserve[0],x:5,y:5,c:0,got:false}); } finally { g=old; }
+}
+// schiacciando la riserva l'oggetto cade sulla testa e la gattina torna grande
+// usa il primo oggetto della riserva utilizzabile: il cioccolato se si è piccole, un oggetto da trovare se non si ha il potere di sparare
+function useReserve(){
+  if(state!=='play'||dropFx) return;
+  const i=reserve.findIndex(t=>t==='choc'?!big:!shootOn);
+  if(i<0) return;
+  sfx('reserve');
+  dropFx={t:reserve.splice(i,1)[0],y:pl.y-40,vy:0};
+  updateHUD();
+}
+function die(){
+  sfx('die'); lives--; big=false; updateHUD();
+  if(lives<=0){
+    state='over'; musicStop(); sfx('gameover');
+    showOverlay('Game over','Le vite sono finite. Riprova dal Livello 1.','Ricomincia',startGame);
+    return;
+  }
+  // tornando alla bandierina la riserva rimane piena e si può usare
+  const c=ckpt, keep=reserve; loadLevel(lvlIdx);
+  if(c){ ckpt=c; pl.x=c.x; pl.y=c.y; if(flag) flag.reached=true; reserve=keep; updateHUD(); }
+  state='banner'; bannerT=90; updateHUD();
+}
+function win(){
+  sfx('win');
+  boyBig=big; // la sua taglia è quella della gattina all'arrivo
+  // fino al livello di Nardò (compreso) la frase è per Lof, poi per il fidanzatino
+  const fid=(lvlIdx<=LV.findIndex(l=>l.name==='Nardò'))?'Lof è così fiero di te!':'Il tuo fidanzatino è molto fiero di te!';
+  lives++; // completare un livello fa guadagnare una vita
+  updateHUD();
+  if(lvlIdx<LV.length-1){
+    state='won';
+    const n=lvlIdx+1;
+    showOverlay('Livello completato!','Complimenti, sei giunta a "'+ARRIVAL[lvlIdx]+'"! Hai finito "'+L.name+'". Prossima tappa: '+LV[n].name+'. '+fid,'Avanti',()=>nextLevel(n));
+  } else {
+    state='end'; kissT=0;
+    showOverlay('Un bacetto per te!','Hai finito tutti i livelli. Il bacetto è tuo! '+fid,'Gioca ancora',startGame);
+  }
+}
+
+/* ---------- AGGIORNAMENTO ---------- */
+function tick(){
+  if(state==='banner'){ bannerT--; if(bannerT<=0) state='play'; return; }
+  if(state==='end'){ kissT++; return; }
+  if(state!=='play') return;
+
+  pl.pb=pl.y+pl.h; // posizione dei piedi all'inizio del frame (per lo "schiacciamento")
+  if(hitCool>0) hitCool--;
+  if(pl.turnT>0) pl.turnT--;
+  // l'oggetto della riserva cade dall'alto; quando tocca la testa la gattina torna grande
+  if(dropFx){
+    dropFx.vy+=0.35; dropFx.y+=dropFx.vy;
+    if(dropFx.y>=pl.y-12){ sfx('power'); if(dropFx.t!=='choc') setFind(dropFx.t); big=true; dropFx=null; updateHUD(); }
+  }
+  // le caselle del cioccolato spariscono finché si ha il potere di sparare, e tornano quando lo si perde
+  for(const b of boxes){
+    if(b.t!=='choc'||b.used) continue;
+    const k=b.x+','+b.y;
+    if(shootOn){ if(tiles.has(k)) tiles.delete(k); }
+    else if(!tiles.has(k)) tiles.set(k,'b');
+  }
+  if(jumpBuf>0) jumpBuf--;
+  const down=!!(keys.ArrowDown||keys.KeyS||hold.d);
+  const left=keys.ArrowLeft||keys.KeyA||hold.l;
+  const right=keys.ArrowRight||keys.KeyD||hold.r;
+  const dir=(right?1:0)-(left?1:0);
+  // al cambio di direzione la vista frontale compare per qualche istante (vedi drawPlayer)
+  if(dir){ if(dir!==pl.face) pl.turnT=12; pl.face=dir; }
+  pl.vx=dir*SPEED*(pl.onG?1:1.4); // la pioggia non rallenta più la gattina // in aria si salta più in lungo
+  if(pl.onG && pl.vx){ pl.walk=(pl.walk||0)+0.4; pl.wheel=(pl.wheel||0)+Math.abs(pl.vx); pl.stepT=(pl.stepT||0)+1; if(pl.stepT%18===0) sfx('step'); } // fase della camminata e passi
+  if(wet>0) wet--;
+  if(jumpBuf>0 && (pl.onG||pl.coyote>0)){
+    // SU + GIÙ = salto mortale: salta più in alto e fa una capriola
+    const mortale=down;
+    pl.jbox=feetBox(); // casella da cui si salta (se c'è)
+    pl.vy=mortale?JUMP*1.15:JUMP; pl.onG=false; pl.coyote=0; jumpBuf=0;
+    sfx('jump'); // il tasto giù non produce suoni
+    if(mortale){ pl.flipT=1; pl.flipUsed=true; }
+  }
+  // GIÙ mentre si è in aria = salto mortale (una volta sola per salto)
+  if(!pl.onG && !pl.flipUsed && pl.flipT===0 && down){ pl.flipT=1; pl.flipUsed=true; pl.pending=pl.jbox; pl.jbox=null; }
+  if(pl.flipT>0){ pl.flipT++; if(pl.flipT>32) pl.flipT=0; }
+
+  pl.vy=Math.min(pl.vy+G,MAXFALL);
+  pl.onG=false;
+  pl.x+=pl.vx; if(pl.vx) resolveX(pl,pl.vx);
+  pl.x=Math.max(0,Math.min(L.w*T-pl.w,pl.x));
+  const hitV=pl.vy; // velocità di caduta prima del contatto col terreno
+  pl.y+=pl.vy; resolveY(pl);
+  // la casella si apre solo quando ci atterri sopra
+  if(pl.onG){
+    let onBox=false;
+    if(pl.pending && feetBox()===pl.pending){ dropBox(pl.pending); onBox=true; } // stesso suono del colpo di testa
+    // tonfo solo se la capriola finisce a terra senza aver colpito una casella
+    if(hitV>1.5 && pl.flipUsed && !onBox) sfx('thud');
+    pl.pending=null; pl.coyote=6; pl.flipT=0; pl.flipUsed=false;
+  } else if(pl.coyote>0) pl.coyote--;
+  if(pl.y>H){ die(); return; }
+
+  cam=Math.max(0,Math.min(L.w*T-W,pl.x+pl.w/2-W/2));
+
+  // oggetti usciti da una casella: cadono fino al terreno
+  for(const it of items){
+    if(it.tgt!==undefined){ it.vy=Math.min(it.vy+G,MAXFALL); it.y+=it.vy; if(it.y>=it.tgt){ it.y=it.tgt; it.tgt=undefined; } }
+  }
+  for(const it of items){
+    if(it.got||!overlap(pl,{x:it.x,y:it.y,w:10,h:10})) continue;
+    it.got=true; pickItem(it.t,it.find);
+  }
+  items=items.filter(i=>!i.got);
+
+  for(const e of enemies){
+    if(e.dead) continue;
+    e.x+=e.dir*0.5;
+    if(resolveX(e,e.dir)) e.dir*=-1;
+    e.vy=Math.min(e.vy+G,MAXFALL); e.onG=false;
+    e.y+=e.vy; resolveY(e);
+    if(e.onG){
+      const ax=Math.floor((e.dir>0?e.x+e.w+1:e.x-1)/T), ay=Math.floor((e.y+e.h+1)/T);
+      if(!tiles.has(ax+','+ay)) e.dir*=-1;
+    }
+    if(overlap(pl,e)){
+      if(pl.vy>0 && pl.pb<=e.y+6){ e.dead=true; pl.vy=-5.2; pl.onG=false; sfx('stomp'); }
+      else hurt();
+    }
+  }
+  // sparo: il cuoricino vola dritto e uccide il primo mostro che colpisce
+  if(shotCool>0) shotCool--;
+  if(fireReq && shootOn && shotCool===0 && state==='play'){
+    shots.push({x:pl.face>0?pl.x+pl.w:pl.x-8,y:pl.y+4,vx:3*pl.face,vy:0,grounded:false,life:200});
+    shotCool=18; sfx('fire');
+  }
+  fireReq=false;
+  for(const s of shots){
+    s.life--;
+    // orizzontale: contro un muro il cuoricino si ferma
+    const nx=s.x+s.vx, wx=Math.floor((nx+(s.vx>0?8:-1))/T);
+    if(tiles.has(wx+','+Math.floor((s.y+1)/T)) || tiles.has(wx+','+Math.floor((s.y+6)/T))) s.life=0;
+    s.x=nx;
+    // verticale: cade su una mensola o sul pavimento e poi continua a strisciare
+    const cxT=Math.floor((s.x+4)/T);
+    if(s.grounded && !tiles.has(cxT+','+Math.floor((s.y+7.5)/T))) s.grounded=false;
+    if(!s.grounded){
+      s.vy=Math.min(s.vy+0.3,4);
+      const ny=s.y+s.vy, row=Math.floor((ny+7)/T);
+      if(s.vy>0 && s.y+7<=row*T && tiles.has(cxT+','+row)){ s.y=row*T-7; s.vy=0; s.grounded=true; }
+      else s.y=ny;
+    }
+    if(s.y>H) s.life=0;
+    for(const e of enemies){
+      if(!e.dead && s.x<e.x+e.w && s.x+8>e.x && s.y<e.y+e.h && s.y+7>e.y){
+        // il mostro colpito diventa un oggetto da raccogliere
+        e.dead=true; s.life=0; sfx('kill');
+        const ct=(L.hud&&L.hud[0])||'pop';
+        items.push({t:ct,x:e.x,y:e.y,got:false,c:items.length%5,find:false});
+        tot[ct]=(tot[ct]||0)+1;
+      }
+    }
+  }
+  shots=shots.filter(s=>s.life>0);
+  enemies=enemies.filter(e=>!e.dead);
+
+  if(L.rain){
+    if(Math.random()<0.17) rain.push({x:cam+Math.random()*W,y:-4,v:3+Math.random()*2});
+    for(const d of rain){
+      d.y+=d.v; d.x-=0.6;
+      if(d.y>H){ d.dead=true; continue; }
+      if(!umbrella && d.x>pl.x && d.x<pl.x+pl.w && d.y>pl.y && d.y<pl.y+pl.h){ d.dead=true; wet=90; }
+    }
+    rain=rain.filter(d=>!d.dead);
+  }
+
+  // la bandierina a metà livello diventa il punto di ripresa
+  if(flag && !flag.reached && pl.x+pl.w>flag.x && pl.x<flag.x+12){ flag.reached=true; ckpt={x:flag.x,y:flag.y}; sfx('checkpoint'); }
+
+  // entrata automatica nel luogo di fine livello
+  const dx=L.door*T;
+  if(pl.x+pl.w>dx+4 && pl.x<dx+5*T-4) win();
+}
+
+/* ---------- DISEGNO: SPRITE E OGGETTI ---------- */
+function drawSprite(rows,x,y){
+  for(let j=0;j<rows.length;j++){
+    const row=rows[j];
+    for(let i=0;i<row.length;i++){
+      const c=row[i]; if(c==='.') continue;
+      g.fillStyle=PAL[c]; g.fillRect(x+i,y+j,1,1);
+    }
+  }
+}
+function drawPixelPoints(pts,x,y,col){
+  g.fillStyle=col; for(const [i,j] of pts) g.fillRect(x+i,y+j,1,1);
+}
+function drawHeart(cx,cy,k,col){
+  g.fillStyle=col;
+  for(let j=0;j<HEART.length;j++) for(let i=0;i<HEART[j].length;i++)
+    if(HEART[j][i]==='x') g.fillRect(cx+(i-4)*k,cy+(j-4)*k,k,k);
+}
+function drawUmbrella(x,y){
+  g.fillStyle='#7b2cbf';
+  g.beginPath(); g.arc(x+5,y+6,6,Math.PI,0); g.fill();
+  g.fillStyle='#8a4b22'; g.fillRect(x+4,y+6,1,6);
+}
+function drawTree(x,y){
+  g.fillStyle='#2f8a48';
+  for(let j=0;j<8;j++){ const w=1+j; g.fillRect(x+5-Math.floor(w/2),y+j,w,1); }
+  g.fillStyle='#6b3e22'; g.fillRect(x+4,y+8,2,2);
+  g.fillStyle='#ffd23f'; g.fillRect(x+4,y,2,1);
+}
+function drawItem(it){
+  const x=it.x|0, y=it.y|0, t=it.t;
+  if(SPR[t]){ drawSprite(SPR[t],x,y); return; }
+  if(t==='bear') drawSprite(TEDDY,x,y);
+  else if(t==='umbrella') drawUmbrella(x,y);
+  else if(t==='tree') drawTree(x,y);
+  else if(t==='grow'){
+    g.fillStyle='#d62828'; g.beginPath(); g.arc(x+5,y+5,5,0,Math.PI*2); g.fill();
+    g.fillStyle='#fff'; g.fillRect(x+3,y+3,2,2); g.fillRect(x+7,y+6,1,1);
+  }
+  else if(t==='heart') drawHeart(x+5,y+4,1,COLL.heart.c);
+  else if(t==='star') drawSprite(STAR,x,y);
+  else {
+    g.fillStyle=COLL[t].c; g.beginPath(); g.arc(x+5,y+5,4,0,Math.PI*2); g.fill();
+    g.fillStyle='#fff'; g.fillRect(x+3,y+3,1,1);
+  }
+}
+// il gattino maschio aspetta sotto il traguardo, appena prima dell'ingresso
+// grande o piccolo come la gattina quando arriva al traguardo (prima dell'arrivo segue la gattina)
+function drawBoyKitten(){
+  if(!L) return;
+  const arrived=(state==='won'||state==='end');
+  const s=(arrived?boyBig:big)?1.5:1;
+  g.save(); g.translate(L.door*T-24+7,160); g.scale(s,s); drawSprite(KBOY,-7,-16); g.restore();
+}
+// cuoricino sparato (piccolo, rosa)
+function drawShot(s){
+  g.fillStyle=PAL.p;
+  for(let j=0;j<HEART.length;j++) for(let i=0;i<HEART[j].length;i++)
+    if(HEART[j][i]==='x') g.fillRect(Math.round(s.x)+i-1,Math.round(s.y)+j-1,1,1);
+}
+function drawEnemy(e){
+  if(L.th==='space'){
+    g.fillStyle='#7cfc9a'; g.beginPath(); g.ellipse(e.x+7,e.y+7,7,6,0,0,Math.PI*2); g.fill();
+    g.fillStyle='#140a0c'; g.fillRect(e.x+4,e.y+5,2,2); g.fillRect(e.x+9,e.y+5,2,2);
+  } else if(L.th.startsWith('xmas')){
+    g.fillStyle='#ffffff'; g.beginPath(); g.arc(e.x+7,e.y+10,5,0,Math.PI*2); g.fill();
+    g.beginPath(); g.arc(e.x+7,e.y+4,4,0,Math.PI*2); g.fill();
+    g.fillStyle='#140a0c'; g.fillRect(e.x+5,e.y+3,1,1); g.fillRect(e.x+8,e.y+3,1,1);
+    g.fillStyle='#ff9f1c'; g.fillRect(e.x+7,e.y+4,2,1);
+  } else {
+    g.fillStyle=L.ecol||'#b9b3c9'; g.beginPath(); g.ellipse(e.x+7,e.y+7,6,7,0,0,Math.PI*2); g.fill();
+    g.fillStyle='#140a0c'; g.fillRect(e.x+4,e.y+5,3,1); g.fillRect(e.x+8,e.y+5,3,1);
+  }
+}
+
+/* ---------- DISEGNO: SFONDI ---------- */
+function skyline(bc,wc,off){
+  for(let i=0;i<30;i++){
+    const h=20+((i*37)%50);
+    const x=i*18-(off%18)-18;
+    g.fillStyle=bc; g.fillRect(x,H-30-h,16,h+30);
+    for(let w=0;w<3;w++) for(let r=0;r*8<h;r++){
+      if(((i*7+r*3+w*5)%5)===0){ g.fillStyle=wc; g.fillRect(x+3+w*4,H-26-h+r*8,2,3); }
+    }
+  }
+}
+/* ---------- SFONDI A STRISCIA: si disegnano una volta e scorrono con offset decimali ---------- */
+const stripCache={};
+function stripFor(key,period,paint){
+  if(!stripCache[key]){
+    const c=document.createElement('canvas'); c.width=period*3; c.height=H*3;
+    const sg=c.getContext('2d'); sg.setTransform(3,0,0,3,0,0); sg.imageSmoothingEnabled=false;
+    const mg=g; g=sg; paint(); g=mg;
+    stripCache[key]=c;
+  }
+  return stripCache[key];
+}
+// disegna la striscia ripetuta a ciclo, spostata di off (anche con decimali: il canvas la interpola)
+function drawStrip(c,period,off){
+  const sx=((off%period)+period)%period;
+  g.imageSmoothingEnabled=true;
+  for(let k=-1;k<=1;k++) g.drawImage(c,k*period-sx,0,period,H);
+  g.imageSmoothingEnabled=false;
+}
+function drawSkyStrip(bc,wc,off){
+  const c=stripFor('sky|'+bc+'|'+wc,540,()=>skyline(bc,wc,0));
+  drawStrip(c,540,off);
+}
+function drawDeco(th){
+  const d=th.deco, off=cam, wrap=(v)=>((v%W)+W)%W;
+  if(d==='space'){
+    g.fillStyle='#fff';
+    for(const s of stars){ g.fillRect(wrap(s.x-off*0.3),s.y|0,s.s,s.s); }
+  }
+  else if(d==='snow'){
+    g.fillStyle='rgba(255,255,255,.85)';
+    for(const f of flakes){
+      f.y+=f.v; f.x+=Math.sin(f.y/9)*0.3;
+      if(f.y>H){ f.y=-2; f.x=Math.random()*W; }
+      const s=f.v>1?2:1; g.fillRect(f.x|0,f.y|0,s,s);
+    }
+  }
+  else if(d==='apollo'){
+    g.fillStyle='#fff6d6'; g.beginPath(); g.arc(220,30,10,0,Math.PI*2); g.fill();
+    drawSkyStrip('#0a1030','#ffd87a',off*0.25);
+  }
+  else if(d==='city'){ drawSkyStrip(th.bld,th.win||'#ffd87a',off*0.25); }
+  else if(d==='cave'){
+    for(let i=0;i<8;i++){ g.fillStyle=i%2?'#b8a57e':'#a8966e'; g.fillRect(0,20+i*18,W,9); }
+    g.fillStyle='#7a6a4e';
+    for(let i=0;i<6;i++){ g.fillRect(wrap(i*52-off*0.4),40+(i%3)*30,20,6); }
+  }
+  else if(d==='sea'){
+    g.fillStyle='#ffe9a8'; g.beginPath(); g.arc(210,28,9,0,Math.PI*2); g.fill();
+    g.fillStyle=th.sea; g.fillRect(0,120,W,72);
+    g.fillStyle='rgba(255,255,255,.5)';
+    for(let i=0;i<12;i++){ g.fillRect(wrap(i*30-off*0.4),126+(i%3)*12,8,1); }
+  }
+  else if(d==='hills'){
+    for(const s of stars){ g.fillStyle='#fff'; g.fillRect(wrap(s.x-off*0.3),s.y|0,s.s,s.s); }
+    g.fillStyle=th.hill;
+    for(let i=0;i<5;i++){ g.beginPath(); g.ellipse(wrap(i*70-off*0.3)-30,190,50,30,0,0,Math.PI*2); g.fill(); }
+  }
+  else if(d==='lights'){
+    const cols=['#ffd23f','#ff4f8b','#4cc9f0'];
+    for(let i=0;i<60;i++){ g.fillStyle=cols[i%3]; g.fillRect(wrap(i*17-off*0.5),(8+(i%2)*6+Math.sin(i)*3),2,2); }
+    drawSkyStrip(th.bld,'#ffd87a',off*0.25);
+  }
+  else if(d==='spooky'){
+    g.fillStyle='#e8e0ff'; g.beginPath(); g.arc(200,30,9,0,Math.PI*2); g.fill();
+    g.fillStyle='#0a0612';
+    for(let i=0;i<6;i++){ const x=wrap(i*50-off*0.3); g.fillRect(x,130,2,40); g.fillRect(x-4,136,10,2); }
+  }
+  else if(d==='plants'){
+    g.fillStyle='#3f8a3f';
+    for(let i=0;i<7;i++){ g.beginPath(); g.arc(wrap(i*44-off*0.35),176,18,0,Math.PI*2); g.fill(); }
+  }
+  else if(d==='trulli'){
+    const c=stripFor('trulli',256,()=>{
+      for(let i=0;i<6;i++) for(const x of [(i*48)%256, (i*48)%256-256]){
+        g.fillStyle='#f5f0e6'; g.fillRect(x,150,14,20);
+        g.fillStyle='#6a4a3a'; g.beginPath(); g.moveTo(x-2,150); g.lineTo(x+7,134); g.lineTo(x+16,150); g.fill();
+      }
+    });
+    drawStrip(c,256,off*0.35);
+  }
+}
+
+/* ---------- DISEGNO: TERRENO E FINE LIVELLO ---------- */
+function drawTiles(th){
+  const x0=Math.floor(cam/T)-1, x1=Math.ceil((cam+W)/T)+1;
+  for(let tx=x0;tx<=x1;tx++) for(let ty=0;ty<12;ty++){
+    const k=tiles.get(tx+','+ty); if(!k) continue;
+    const X=tx*T, Y=ty*T, above=!tiles.has(tx+','+(ty-1));
+    if(k==='g'){
+      g.fillStyle=th.gnd; g.fillRect(X,Y,T,T);
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X,Y+7,T,1); g.fillRect(X+(ty%2?4:11),Y+(ty%2?0:8),1,8);
+      if(above){ g.fillStyle=th.gndTop; g.fillRect(X,Y,T,3); }
+    } else if(k==='p'){
+      g.fillStyle=th.plat; g.fillRect(X,Y,T,T);
+      g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(X,Y+8,T,1);
+      if(above){ g.fillStyle=th.platTop; g.fillRect(X,Y,T,3); }
+    } else if(k==='b'){
+      g.fillStyle='#f5a524'; g.fillRect(X,Y,T,T);
+      g.fillStyle='#7a3e10'; g.fillRect(X,Y+T-1,T,1); g.fillRect(X,Y,1,T); g.fillRect(X+T-1,Y,1,T); g.fillRect(X,Y,T,1);
+      g.fillStyle='#fff3c4'; g.fillRect(X+6,Y+4,4,1); g.fillRect(X+9,Y+5,2,2); g.fillRect(X+7,Y+8,2,2); g.fillRect(X+7,Y+11,2,1);
+    } else if(k==='u'){
+      g.fillStyle='#6b4a2b'; g.fillRect(X,Y,T,T);
+      g.fillStyle='#3a2414'; g.fillRect(X,Y,T,1); g.fillRect(X,Y+T-1,T,1); g.fillRect(X,Y,1,T); g.fillRect(X+T-1,Y,1,T);
+    }
+  }
+}
+function drawApollo(dx,bw,top,base){
+  g.fillStyle='#d9cdb4'; g.fillRect(dx+2,top+8,bw-4,base-top-8);
+  g.fillStyle='#efe6d2'; g.fillRect(dx-3,top,bw+6,8);
+  g.fillStyle='#b8ab92'; g.fillRect(dx-3,top+6,bw+6,2);
+  g.fillStyle='#0b0f22'; g.fillRect(dx+8,top+1,bw-16,5);
+  g.fillStyle='#ffe9a8'; g.font='4px "Press Start 2P",monospace'; g.textAlign='center';
+  g.fillText('TEATRO APOLLO',dx+bw/2,top+5);
+  for(const i of [0,1,3,4]){
+    const cx=dx+6+i*((bw-12)/4);
+    g.fillStyle='#f6eedb'; g.fillRect(cx-2,top+10,4,base-top-14);
+    g.fillStyle='#a89c84'; g.fillRect(cx+1,top+10,1,base-top-14);
+  }
+  g.fillStyle='#ffd23f'; g.fillRect(dx+33,base-16,14,16);
+  g.fillStyle='#0b0f22'; g.fillRect(dx+39,base-16,2,16);
+  g.fillStyle='#e6dccb'; g.fillRect(dx-6,base-4,bw+12,2); g.fillRect(dx-10,base-2,bw+20,2);
+  g.fillStyle='#fff3a0'; g.fillRect(dx+4,base-6,1,1); g.fillRect(dx+bw-5,base-6,1,1);
+  g.textAlign='left';
+}
+function drawEnd(th){
+  const dx=L.door*T, bw=5*T, base=10*T, top=3*T;
+  const e=L.end;
+  if(e==='apollo'){ drawApollo(dx,bw,top,base); return; }
+  if(e==='gate'){
+    g.fillStyle='#3a3a44'; g.fillRect(dx,base-40,4,40); g.fillRect(dx+bw-4,base-40,4,40);
+    g.fillStyle='#55555f'; for(let x=dx+4;x<dx+bw-4;x+=4) g.fillRect(x,base-34,1,34);
+    g.fillRect(dx,base-40,bw,2);
+    g.fillStyle='#9a9aa8'; g.fillRect(dx+bw/2-8,base-44,16,3);
+    return;
+  }
+  if(e==='bench'){
+    g.fillStyle='#7a4a2a'; g.fillRect(dx+8,base-10,64,3); g.fillRect(dx+12,base-7,3,7); g.fillRect(dx+63,base-7,3,7);
+    drawHeart(dx+20,base-18,1,'#ff4f8b'); drawHeart(dx+40,base-22,1,'#ff4f8b'); drawHeart(dx+60,base-18,1,'#ff4f8b');
+    return;
+  }
+  if(e==='heart'){
+    drawHeart(dx+bw/2,base-30,6,'#ff4f8b');
+    g.fillStyle='#55555f'; g.fillRect(dx+bw/2-1,base-12,2,12);
+    return;
+  }
+  if(e==='car'){
+    g.fillStyle='#f5f5f5'; g.fillRect(dx+4,base-14,bw-8,10);
+    g.fillRect(dx+18,base-22,bw-36,8);
+    g.fillStyle='#1a2030'; g.fillRect(dx+20,base-20,bw-40,5);
+    g.fillStyle='#111'; g.beginPath(); g.arc(dx+16,base-3,3,0,Math.PI*2); g.fill();
+    g.beginPath(); g.arc(dx+bw-16,base-3,3,0,Math.PI*2); g.fill();
+    return;
+  }
+  if(e==='bed'){
+    g.fillStyle='#7a4a2a'; g.fillRect(dx+6,base-14,bw-12,8);
+    g.fillStyle='#ffffff'; g.fillRect(dx+8,base-18,bw-16,5);
+    g.fillStyle='#ff7fb0'; g.fillRect(dx+bw/2,base-18,bw/2-8,5);
+    return;
+  }
+  if(e==='tree'){
+    for(const x of [dx+10,dx+40,dx+68]){
+      g.fillStyle='#6b3e22'; g.fillRect(x-1,base-6,3,6);
+      g.fillStyle='#2f8a48'; g.beginPath(); g.moveTo(x,base-24); g.lineTo(x-8,base-6); g.lineTo(x+8,base-6); g.fill();
+    }
+    return;
+  }
+  if(e==='pumpkin'){
+    g.fillStyle='#ff7b00'; g.beginPath(); g.arc(dx+bw/2,base-22,20,0,Math.PI*2); g.fill();
+    g.fillStyle='#2f8a48'; g.fillRect(dx+bw/2-1,base-44,2,6);
+    return;
+  }
+  // edificio generico con insegna e cartello di stato
+  g.fillStyle=th.bld; g.fillRect(dx,top,bw,base-top);
+  g.fillStyle='#ffd23f'; g.fillRect(dx+4,top+4,bw-8,10);
+  g.fillStyle='#140a0c'; g.font='6px monospace'; g.textAlign='center';
+  g.fillText(L.sign||L.name.toUpperCase(),dx+bw/2,top+11);
+  g.fillStyle='#0b0f22'; g.fillRect(dx+bw/2-6,base-16,12,16);
+  g.fillStyle='#0b0f22'; g.fillRect(dx+bw/2-20,base-28,40,9);
+  g.fillStyle='#ffffff'; g.font='6px monospace';
+  g.fillText(L.th.startsWith('xmas')?'CHIUSO':'APERTO',dx+bw/2,base-21);
+  g.textAlign='left';
+}
+
+/* ---------- DISEGNO: GATTINA ---------- */
+// gattina di profilo: gamba e braccio si muovono durante la camminata
+// vestito del livello attivo: solo quando la gattina ha preso l'oggetto che dà i poteri
+function outfitNow(){ return (heldType && OUTFIT[lvlIdx]) ? Object.assign({hat:!!OUTFIT[lvlIdx].hat}, outfitSet(OUTFIT[lvlIdx])) : null; }
+function santaOn(){ const od=outfitNow(); return !!(od&&od.hat); }
+function frontNow(){
+  if(powered) return KB;
+  if(helmet) return CAMO_F;
+  const od=outfitNow();
+  if(od) return od.front;
+  return redDress?KR:KITTY;
+}
+function drawProfile(x0,y0){
+  const od=outfitNow();
+  const v=powered?VAR.bear:(helmet?VAR.camo:(od?{body:od.side,arm:od.arm,leg:od.leg}:(redDress?VAR.dress:VAR.kitty)));
+  const ph=L.vehicle==='quad'?0:(pl.walk||0); // sul quad braccia e gambe restano ferme
+  const lx=Math.round(Math.sin(ph)*1.5), ly=Math.sin(ph)>0.5?-1:0;
+  const ax=Math.round(Math.sin(ph+Math.PI)*1);
+  drawSprite(v.body,x0,y0);
+  // braccio e gamba stanno entrambi al centro del corpo (visti di profilo)
+  drawSprite(v.leg,x0+6+lx,y0+12+ly);
+  drawSprite(v.arm,x0+6+ax,y0+9);
+}
+// mani sul manubrio del quad (coordinate della gattina seduta)
+function drawRideHands(front){
+  const hand=(x,y)=>{ g.fillStyle=PAL.w; g.fillRect(x,y,2,2); };
+  const arm=(x1,y1,x2,y2)=>{
+    g.fillStyle=helmet?PAL.g:PAL.p; const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1),1);
+    for(let i=0;i<=n;i++) g.fillRect(Math.round(x1+(x2-x1)*i/n),Math.round(y1+(y2-y1)*i/n),1,1);
+  };
+  if(front){ arm(-4,-9,-11,-5); arm(4,-9,10,-5); hand(-12,-5); hand(10,-5); }
+  else {
+    // mentre guida il braccio si muove con la camminata
+    const ph=pl.walk||0, w=Math.round(Math.sin(ph)*1.5), dy=Math.sin(ph)>0?-1:0;
+    arm(0,-8,6+w,-8+dy); hand(6+w,-9+dy);
+  }
+}
+function drawPlayer(){
+  if(hitCool>0 && Math.floor(hitCool/4)%2) return;
+  // da ferma la gattina è di fronte; quando si muove (o è in aria) è di profilo
+  // (a terra vale anche il "coyote time": evita lo scambio di vista frame per frame da fermi)
+  const still=(pl.onG||pl.coyote>0) && pl.vx===0;
+  // sul quad la gattina resta sempre di profilo, tranne un attimo al cambio di direzione
+  const onQuad=L.vehicle==='quad';
+  const showFront=onQuad ? (pl.turnT>0) : still;
+  const front=showFront ? frontNow() : null;
+  const s=big?1.5:1;
+  if(pl.flipT>0){
+    const cx=Math.round(pl.x+pl.w/2), cy=Math.round(pl.y+pl.h/2);
+    g.save(); g.translate(cx,cy); g.rotate(pl.face*(pl.flipT/32)*Math.PI*2); g.scale(s,s);
+    if(front) drawSprite(front,-7,-8); else drawProfile(-7,-8);
+    if(helmet) drawSprite(HELM_FULL,-7,-8);
+    if(santaOn()) drawSprite(SANTA_HAT,-7,-14);
+    drawPixelPoints(BOW,front?-7:-9,-8,PAL.r);
+    g.restore();
+    return;
+  }
+  const ox=Math.round(pl.x+pl.w/2), oy=Math.round(pl.y+pl.h);
+  g.save();
+  g.translate(ox,oy); g.scale(pl.face<0?-s:s,s);
+  const quad=L.vehicle==='quad';
+  if(quad){ drawSprite(front?QUAD_FRONT:QUAD_SPIN[Math.floor((pl.wheel||0)/6)%2],-14,-14); g.translate(0,-6); } // il quad sta sotto, la gattina è seduta sulla sella
+  if(front){ drawSprite(front,-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-7,-16,PAL.r); }
+  else { drawProfile(-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-9,-16,PAL.r); }
+  if(quad) drawRideHands(!!front);
+  g.restore();
+}
+
+// bandierina segnaposto: grigia finché non è stata raggiunta, gialla dopo
+function drawFlag(){
+  g.fillStyle='#f5f5f5'; g.fillRect(flag.x+6,flag.y-26,2,28);
+  g.fillStyle=flag.reached?'#ffd23f':'#9aa0a6';
+  g.fillRect(flag.x+8,flag.y-26,9,6); g.fillRect(flag.x+8,flag.y-20,6,2);
+}
+
+/* ---------- RENDER ---------- */
+function draw(){
+  const th=TH[L.th];
+  // sfondo (cielo, case, mare) disegnato a risoluzione tripla, poi ridotto con l'interpolazione
+  const mainG=g; g=bgG; bgG.setTransform(3,0,0,3,0,0); bgG.imageSmoothingEnabled=false;
+  const gr=g.createLinearGradient(0,0,0,H);
+  gr.addColorStop(0,th.sky1); gr.addColorStop(1,th.sky2);
+  g.fillStyle=gr; g.fillRect(0,0,W,H);
+  drawDeco(th);
+  g=mainG; g.setTransform(1,0,0,1,0,0);
+  g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
+  g.drawImage(bgC,0,0,W,H);
+  g.imageSmoothingEnabled=false;
+
+  g.save();
+  g.translate(-Math.round(cam),0);
+  drawTiles(th);
+  drawEnd(th);
+  drawBoyKitten();
+  for(const it of items) drawItem(it);
+  for(const e of enemies) drawEnemy(e);
+  for(const s of shots) drawShot(s);
+  updateProgress();
+  if(flag) drawFlag();
+  drawPlayer();
+  // l'oggetto della riserva cade sulla testa
+  if(dropFx) drawItem({t:dropFx.t,x:pl.x+1,y:dropFx.y});
+  if(umbrella) drawUmbrella(Math.round(pl.x+1),Math.round(pl.y-(big?12:8)));
+  if(L.rain && rain.length){
+    g.fillStyle='rgba(170,210,255,.75)';
+    for(const d of rain) g.fillRect(d.x|0,d.y|0,1,3);
+  }
+  if(state==='end'){
+    const dx=L.door*T, bw=5*T, base=10*T;
+    drawHeart(dx+bw-6,base-7,2,'#ff4f8b');
+    drawHeart(dx+bw+6,base-14,1,'#ff9fc4');
+    drawHeart(dx+bw-18,base-16,1,'#ff9fc4');
+  }
+  g.restore();
+
+  if(state==='banner'){
+    g.textAlign='center';
+    g.fillStyle='rgba(0,0,0,.6)'; g.fillRect(0,62,W,62);
+    g.fillStyle='#ffd23f'; g.font='9px "Press Start 2P",monospace';
+    g.fillText('LIVELLO '+(lvlIdx+1),W/2,84);
+    g.fillStyle='#ffffff'; g.font='8px "Press Start 2P",monospace';
+    g.fillText(L.name.toUpperCase(),W/2,104);
+    g.font='7px "Press Start 2P",monospace'; g.fillStyle='#c9bfe8';
+    g.fillText(L.place,W/2,116);
+    g.textAlign='left';
+  }
+}
+
+/* ---------- CICLO E COMANDI ---------- */
+let acc=0,last=performance.now();
+function loop(now){
+  acc+=Math.min(100,now-last); last=now;
+  while(acc>=1000/60){ tick(); acc-=1000/60; }
+  draw();
+  requestAnimationFrame(loop);
+}
+const JUMP_KEYS=['Space','ArrowUp','KeyW'];
+addEventListener('keydown',e=>{
+  const game=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'];
+  if(game.includes(e.code)) e.preventDefault();
+  keys[e.code]=true;
+  if(JUMP_KEYS.includes(e.code)) jumpBuf=7;
+  if(e.code==='Enter' && !document.getElementById('ov').hidden) document.getElementById('ovB').click();
+  if(e.code==='KeyR') useReserve();
+  if(e.code==='KeyX' && !e.repeat) fireReq=true;
+  unlockAudio();
+});
+addEventListener('keyup',e=>{ keys[e.code]=false; });
+document.querySelectorAll('#pad button').forEach(b=>{
+  const k=b.dataset.k;
+  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='j') jumpBuf=7; if(k==='x') fireReq=true; unlockAudio(); };
+  const off=()=>{ hold[k]=false; };
+  b.addEventListener('pointerdown',on);
+  b.addEventListener('pointerup',off);
+  b.addEventListener('pointerleave',off);
+  b.addEventListener('pointercancel',off);
+});
+document.getElementById('menuBtn').addEventListener('click',goMenu);
+document.getElementById('resBtn').addEventListener('click',useReserve);
+
+/* ---------- AVVIO ---------- */
+initBg();
+loadLevel(0);
+buildMenu();
+state='title';
+showOverlay('Gattina Pixel Quest','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
