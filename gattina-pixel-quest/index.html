@@ -1496,13 +1496,36 @@ function loop(now){
   draw();
   requestAnimationFrame(loop);
 }
+// navigazione dei menu con la croce (frecce) e A per scegliere
+function menuBtns(){ const ov=document.getElementById('ov'); if(ov.hidden) return []; return [...ov.querySelectorAll('button')].filter(b=>b.offsetParent!==null&&!b.disabled); }
+function menuMove(dx,dy){
+  const bs=menuBtns(); if(!bs.length) return;
+  const cur=bs.indexOf(document.activeElement);
+  if(cur<0){ bs[0].focus(); return; }
+  const c=bs[cur].getBoundingClientRect(), cx=c.left+c.width/2, cy=c.top+c.height/2;
+  let best=-1, bd=Infinity;
+  bs.forEach((b,i)=>{
+    if(i===cur) return;
+    const r=b.getBoundingClientRect(), ddx=r.left+r.width/2-cx, ddy=r.top+r.height/2-cy;
+    if(dx && Math.sign(ddx)!==dx) return;
+    if(dy && Math.sign(ddy)!==dy) return;
+    const d=dx ? Math.abs(ddx)+2*Math.abs(ddy) : Math.abs(ddy)+2*Math.abs(ddx);
+    if(d<bd){ bd=d; best=i; }
+  });
+  if(best>=0) bs[best].focus();
+}
+function menuPress(){ const bs=menuBtns(); if(!bs.length) return; const f=bs.includes(document.activeElement)?document.activeElement:bs[0]; f.click(); }
 const JUMP_KEYS=['Space','ArrowUp','KeyW'];
 addEventListener('keydown',e=>{
   const game=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'];
   if(game.includes(e.code)) e.preventDefault();
   keys[e.code]=true;
   if(JUMP_KEYS.includes(e.code)) jumpBuf=7;
-  if(e.code==='Enter' && !document.getElementById('ov').hidden) document.getElementById('ovB').click();
+  if(!document.getElementById('ov').hidden){
+    const md={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.code];
+    if(md) menuMove(md[0],md[1]);
+    if(e.code==='Enter') menuPress();
+  }
   if(e.code==='KeyR') useReserve();
   if(e.code==='KeyP'||e.code==='Escape') togglePause();
   if(e.code==='KeyX' && !e.repeat) fireReq=true;
@@ -1513,7 +1536,13 @@ let yArrow=false; // Y premuto con una freccia = corsa, non sparo
 document.querySelectorAll('#pad button').forEach(b=>{
   const k=b.dataset.k;
   if(k==='p'){ b.addEventListener('pointerdown',e=>{ e.preventDefault(); togglePause(); }); return; }
-  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='x') useReserve(); if(k==='y') yArrow=false; if((k==='l'||k==='r') && hold.y) yArrow=true; unlockAudio(); };
+  const on=e=>{ e.preventDefault();
+    if(!document.getElementById('ov').hidden){ // nei menu la croce sposta il cursore e A sceglie
+      const md={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k];
+      if(md) menuMove(md[0],md[1]); else if(k==='a') menuPress();
+      unlockAudio(); return;
+    }
+    hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='x') useReserve(); if(k==='y') yArrow=false; if((k==='l'||k==='r') && hold.y) yArrow=true; unlockAudio(); };
   // Y: un tocco senza frecce spara (al rilascio); con una freccia corre
   const off=e=>{ hold[k]=false; if(k==='y'){ if(e&&e.type==='pointerup'&&!yArrow) fireReq=true; yArrow=false; } };
   b.addEventListener('pointerdown',on);
