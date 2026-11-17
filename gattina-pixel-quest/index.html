@@ -1661,7 +1661,7 @@ function menuMove(dx,dy){
   // elenco delle canzoni: su/giù scorre in cerchio (dalla prima si sale all'ultima)
   const pl=[...document.getElementById('plList').children];
   const pi=pl.indexOf(document.activeElement);
-  if(pi>=0 && dy){ const n=pl.length; pl[(pi+dy+n)%n].focus(); return; }
+  if(pi>=0 && dy){ const n=pl.length; if(dy>0 && pi===n-1){ document.getElementById('plBack').focus(); return; } pl[(pi+dy+n)%n].focus(); return; } // giù dall'ultima va su INDIETRO, su dalla prima va all'ultima
   const cur=bs.indexOf(document.activeElement);
   if(cur<0){ bs[0].focus(); return; }
   const c=bs[cur].getBoundingClientRect(), cx=c.left+c.width/2, cy=c.top+c.height/2;
