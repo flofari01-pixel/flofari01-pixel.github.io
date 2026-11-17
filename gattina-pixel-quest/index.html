@@ -960,7 +960,7 @@ function tick(){
   const dir=(right?1:0)-(left?1:0);
   // al cambio di direzione la vista frontale compare per qualche istante (vedi drawPlayer)
   if(dir){ if(dir!==pl.face) pl.turnT=12; pl.face=dir; }
-  const run=!!(hold.b||keys.KeyZ); // B (o Z) tenuto: corsa veloce
+  const run=!!(hold.y||keys.KeyZ); // Y (o Z) tenuto: corsa veloce
   pl.vx=dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4); // la pioggia non rallenta più la gattina // in aria si salta più in lungo
   if(pl.onG && pl.vx){ pl.walk=(pl.walk||0)+0.4; pl.wheel=(pl.wheel||0)+Math.abs(pl.vx); pl.stepT=(pl.stepT||0)+1; const every=run?9:18; if(pl.stepT%every===0) sfx(run?'run':'step'); } // fase della camminata e passi
   if(wet>0) wet--;
@@ -1492,7 +1492,7 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{ keys[e.code]=false; });
 document.querySelectorAll('#pad button').forEach(b=>{
   const k=b.dataset.k;
-  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='y') fireReq=true; if(k==='x') useReserve(); unlockAudio(); };
+  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='x') useReserve(); unlockAudio(); };
   const off=()=>{ hold[k]=false; };
   b.addEventListener('pointerdown',on);
   b.addEventListener('pointerup',off);
