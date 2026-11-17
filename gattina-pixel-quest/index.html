@@ -863,7 +863,7 @@ function win(){
 
 /* ---------- AGGIORNAMENTO ---------- */
 function tick(){
-  if(state==='banner'){ bannerT--; if(bannerT<=0) state='play'; return; }
+  if(state==='banner'){ bannerT--; if(bannerT<=0){ state='play'; updateHUD(); } return; } // riaccende la riserva
   if(state==='end'){ kissT++; return; }
   if(state!=='play') return;
 
