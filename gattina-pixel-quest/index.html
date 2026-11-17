@@ -65,8 +65,8 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
   #hud{position:fixed;left:8px;top:6px;z-index:6;width:150px;max-width:none;margin:0;flex-direction:column;align-items:flex-start;gap:4px;font-size:6px}
   #prog{margin:4px 0}
   #pad{display:flex;position:fixed;inset:0;margin:0;max-width:none;pointer-events:none;z-index:6}
-  #pad .lcol{position:absolute;left:10px;bottom:10px;pointer-events:auto}
-  #pad .faces{position:absolute;right:10px;bottom:10px;pointer-events:auto;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
+  #pad .lcol{position:absolute;left:10px;bottom:24px;pointer-events:auto}
+  #pad .faces{position:absolute;right:10px;bottom:24px;pointer-events:auto;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
   #pad .dpad{grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
   #pad [data-k="p"]{width:56px;height:20px;font-size:6px}
   #pad button{font-size:8px}
@@ -78,7 +78,7 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 /* telefono in verticale: comandi subito sotto il testo, a larghezza piena */
 @media (pointer:coarse) and (orientation:portrait){
   .hint{display:none}
-  #pad{margin:14px auto 0;padding:0}
+  #pad{margin:-6px auto 0;padding:0}
 }
 </style>
 </head>
