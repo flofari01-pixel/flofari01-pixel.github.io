@@ -42,8 +42,8 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 .arrows{display:flex;gap:10px;flex:2}
 @media (pointer:coarse){#pad{display:flex}}
 #resWrap{max-width:768px;margin:12px auto 0;display:flex;justify-content:flex-end}
-#resIco{width:40px;height:40px;image-rendering:pixelated}
-#resBtn{width:100px;height:100px;border-radius:50%;padding:0;font-size:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 0 var(--accent-d);touch-action:manipulation}
+#resIco{width:26px;height:26px;image-rendering:pixelated}
+#resBtn{width:72px;height:72px;border-radius:50%;padding:0;font-size:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 0 var(--accent-d);touch-action:manipulation}
 #resBtn b{font-size:14px}
 #resBtn:disabled{opacity:.45;cursor:default}
 #prog{position:relative;width:120px;height:8px;background:var(--line);border:2px solid var(--accent);margin:4px 12px 4px auto;flex:0 0 auto;order:2}
@@ -74,7 +74,8 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 }
 /* telefono in verticale: comandi subito sotto il testo, a larghezza piena */
 @media (pointer:coarse) and (orientation:portrait){
-  #pad{margin:22px auto 0;padding:0}
+  .hint{display:none}
+  #pad{margin:14px auto 0;padding:0}
 }
 </style>
 </head>
