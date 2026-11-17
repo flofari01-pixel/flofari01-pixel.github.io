@@ -27,8 +27,16 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 .lvls[hidden]{display:none!important}
 #plBtn{margin-top:14px;font-size:7px;padding:10px 10px}
 #plPanel{margin-top:12px}
-#plPanel .pl{width:260px;max-width:100%;margin:0 auto;padding-left:26px;text-align:left;font-size:10px;line-height:1.8;color:var(--fg)}
-#plPanel button{margin-top:12px}
+#plList{width:260px;max-width:100%;margin:0 auto;text-align:left}
+#plList button{display:block;width:100%;margin:0 0 6px;text-align:left;font:12px/1.3 Inter,system-ui,sans-serif;padding:9px 10px;box-shadow:0 3px 0 var(--accent-d)}
+#plBack,#plPBack{margin-top:12px}
+#plPlayer{margin-top:10px}
+#plImg{display:block;width:192px;height:144px;max-width:100%;margin:0 auto;image-rendering:pixelated;border:2px solid var(--accent);background:#000}
+#plName{font:13px/1.4 Inter,system-ui,sans-serif;margin:10px 0 0}
+#plTime{font:12px Inter,system-ui,sans-serif;opacity:.8;margin:6px 0 0}
+.plRow{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:10px;flex-wrap:wrap}
+.plRow button{font-size:7px;padding:9px 7px}
+#plSeek{width:150px;max-width:100%;accent-color:var(--accent)}
 .lvls button{font-size:7px;padding:8px 8px}
 .hint{max-width:768px;margin:12px auto 0;color:#a79cc4;font-size:13px}
 #pad{display:none;max-width:768px;margin:12px auto 0;justify-content:space-between;align-items:center;gap:10px}
@@ -99,30 +107,26 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
       <div id="lvlBtns" class="lvls" hidden></div>
       <button id="plBtn" type="button" hidden>PLAYLIST DELLE COLONNE SONORE</button>
       <div id="plPanel" hidden>
-        <ol class="pl">
-        <li>Interstellar - Hans Zimmer</li>
-        <li>Tutto il Resto è Noi - Nayt</li>
-        <li>Here Comes Santa Claus - Gene Autry</li>
-        <li>E Luce Fu (Parte 1) - BB Lof</li>
-        <li>End of Beginning - Djo</li>
-        <li>Those Eyes - New West</li>
-        <li>Superbingo - BB Lof</li>
-        <li>Tutto Quello Che Ho - BB Lof</li>
-        <li>Con o Senza Te - BB Lof</li>
-        <li>Che cosa c&#x27;è - Gino Paoli</li>
-        <li>Aria Caddhipulina - Antonio Castrignanò</li>
-        <li>Banda di San Vito</li>
-        <li>E Luce Fu (Parte 2) - BB Lof</li>
-        <li>Nera Salsa di Soia - Tananai</li>
-        <li>Innamorato - Blanco</li>
-        <li>Spooky song - Suno</li>
-        <li>Die For You - The Weeknd</li>
-        <li>All I Want For Christmas is You - Mariah Carey</li>
-        <li>50 special - Lùnapop</li>
-        <li>Santu Paulu - Alla Bua</li>
-        <li>CAPISUTTA - Dave Flux</li>
-        </ol>
+        <div id="plList" class="pl"></div>
         <button id="plBack" type="button">INDIETRO</button>
+      </div>
+      <div id="plPlayer" hidden>
+        <img id="plImg" alt="">
+        <p id="plName"></p>
+        <div class="plRow">
+          <button type="button" data-pa="prev">&#9664;&#9664;</button>
+          <button type="button" id="plPlay">&#9654;</button>
+          <button type="button" data-pa="stop">&#9632;</button>
+          <button type="button" data-pa="next">&#9654;&#9654;</button>
+          <button type="button" id="plLoop">LOOP</button>
+        </div>
+        <div class="plRow">
+          <button type="button" data-pa="back10">-10</button>
+          <input id="plSeek" type="range" min="0" max="100" step="0.1" value="0">
+          <button type="button" data-pa="fwd10">+10</button>
+        </div>
+        <p id="plTime">0:00 / 0:00</p>
+        <button id="plPBack" type="button">INDIETRO</button>
       </div>
     </div>
   </div>
@@ -592,7 +596,6 @@ const DROP=[
 const SPR={drop:DROP,choc:CIOC,pop:POP,ball:BALL,shell:SHELL,meat:MEAT,pizza:PIZZA,tamb:TAMB,flower:FLOWER,letter:LETTER,
  guitar:GUITAR,painting:PAINTING,note:NOTE,bone:BONE,pumpkin:PUMPKIN,bikini:BIKINI,thermo:THERMO,
  octo:OCTO,bow:FIOCCO,helmet:HELMET,cake:CAKE,crepe:CREPE,star:STAR7,gelato:GELATO,biro:BIRO};
-
 /* ---------- STATO ---------- */
 let state='title',lvlIdx=0,lives=7,powered=false,redDress=false,umbrella=false,big=false;
 let reserve=[],heldType=null,dropFx=null,helmet=false,ckpt=null,flag=null; // riserva del livello: lista di oggetti da trovare
@@ -670,21 +673,99 @@ function showOverlay(t,p,b,fn){
   const btn=document.getElementById('ovB');
   btn.textContent=b; btn.onclick=()=>{ sfx('click'); if(fn) fn(); };
   document.getElementById('lvlBtns').hidden=(t!=='Syria Kitty Bros');
-  btn.hidden=false; document.getElementById('plBtn').hidden=(t!=='Syria Kitty Bros'); document.getElementById('plPanel').hidden=true;
+  btn.hidden=false; document.getElementById('plBtn').hidden=(t!=='Syria Kitty Bros'); document.getElementById('plPanel').hidden=true; document.getElementById('plPlayer').hidden=true;
   document.getElementById('ov').hidden=false;
   btn.focus({preventScroll:true});
 }
-// playlist delle colonne sonore: elenco delle canzoni dei livelli, in ordine
+// playlist delle colonne sonore: elenco delle canzoni (una per livello), ascolto con controlli
+const SONGS=["Interstellar - Hans Zimmer", "Tutto il Resto è Noi - Nayt", "Here Comes Santa Claus - Gene Autry", "E Luce Fu (Parte 1) - BB Lof", "End of Beginning - Djo", "Those Eyes - New West", "Superbingo - BB Lof", "Tutto Quello Che Ho - BB Lof", "Con o Senza Te - BB Lof", "Che cosa c'è - Gino Paoli", "Aria Caddhipulina - Antonio Castrignanò", "Banda di San Vito", "E Luce Fu (Parte 2) - BB Lof", "Nera Salsa di Soia - Tananai", "Innamorato - Blanco", "Spooky song - Suno", "Die For You - The Weeknd", "All I Want For Christmas is You - Mariah Carey", "50 special - Lùnapop", "Santu Paulu - Alla Bua", "CAPISUTTA - Dave Flux"];
+const plPrev=[]; // anteprime dei livelli (screen del livello)
+const plBufs=[]; // canzoni decodificate (si può saltare in qualsiasi punto)
+let plCur=0, plBuf=null, plSrc=null, plOff=0, plT0=0, plLoopOn=false;
+function plCtx(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state!=='running') AC.resume().catch(()=>{}); return AC; }
+// screen del livello: disegna il livello in una tela nascosta, poi ripristina il menu
+function levelShot(i){
+  if(plPrev[i]!==undefined) return plPrev[i];
+  const pc=document.createElement('canvas'); pc.width=W; pc.height=H;
+  const saved=g; g=pc.getContext('2d'); g.imageSmoothingEnabled=false;
+  try{ loadLevel(i); draw(); plPrev[i]=pc.toDataURL(); }
+  catch(e){ plPrev[i]=''; }
+  finally{ g=saved; loadLevel(0); }
+  return plPrev[i];
+}
+async function plFetch(i){
+  if(plBufs[i]) return plBufs[i];
+  const r=await fetch('musica/livello_'+(i+1)+'.mp3');
+  const buf=await plCtx().decodeAudioData(await r.arrayBuffer());
+  plBufs[i]=buf; return buf;
+}
+function plPos(){
+  if(!plSrc) return plOff;
+  let t=plCtx().currentTime-plT0;
+  if(plBuf) t = plLoopOn ? t%plBuf.duration : Math.min(t,plBuf.duration);
+  return t;
+}
+function plStopSrc(){
+  if(plSrc){ const s=plSrc; plSrc=null; s.onended=null; try{ s.stop(); }catch(e){} }
+}
+function plStartAt(t){
+  plStopSrc();
+  const src=plCtx().createBufferSource();
+  src.buffer=plBuf; src.loop=plLoopOn; src.connect(AC.destination);
+  src.onended=()=>{ if(plSrc===src){ plSrc=null; plOff=0; updatePlUI(); } };
+  src.start(0,t); plSrc=src; plT0=AC.currentTime-t; updatePlUI();
+}
+function fmtT(s){ s=Math.floor(s||0); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function updatePlUI(){
+  const d=plBuf?plBuf.duration:0, t=plPos();
+  const seek=document.getElementById('plSeek');
+  seek.max=d||100;
+  if(document.activeElement!==seek) seek.value=t;
+  document.getElementById('plTime').textContent=fmtT(t)+' / '+fmtT(d);
+  document.getElementById('plPlay').textContent=plSrc?'❚❚':'▶';
+  document.getElementById('plLoop').textContent='LOOP: '+(plLoopOn?'SÌ':'NO');
+}
+setInterval(()=>{ if(!document.getElementById('plPlayer').hidden) updatePlUI(); },250);
+async function plLoad(i,play){
+  plCur=i; plStopSrc(); plOff=0;
+  document.getElementById('plName').textContent=(i+1)+'. '+SONGS[i];
+  document.getElementById('plImg').src=levelShot(i);
+  const buf=await plFetch(i);
+  if(plCur!==i) return; // nel frattempo si è scelta un'altra canzone
+  plBuf=buf;
+  if(play) plStartAt(0); else updatePlUI();
+}
+function plPlayPause(){ if(plSrc){ plOff=plPos(); plStopSrc(); updatePlUI(); } else if(plBuf) plStartAt(plOff); }
+function plStop(){ plStopSrc(); plOff=0; updatePlUI(); }
+function plGo(d){ const n=Math.max(0,Math.min(SONGS.length-1,plCur+d)); plLoad(n,true); }
+function plSeekTo(s){
+  const d=plBuf?plBuf.duration:0; const t=Math.max(0,Math.min(d,s));
+  if(plSrc) plStartAt(t); else { plOff=t; updatePlUI(); }
+}
 function showPlaylist(){
   document.getElementById('ovT').textContent='Playlist delle colonne sonore';
   document.getElementById('ovP').textContent='';
   document.getElementById('ovB').hidden=true;
   document.getElementById('lvlBtns').hidden=true;
   document.getElementById('plBtn').hidden=true;
+  document.getElementById('plPlayer').hidden=true;
   document.getElementById('plPanel').hidden=false;
-  document.getElementById('plBack').focus({preventScroll:true});
+  document.querySelector('#plList button').focus({preventScroll:true});
+}
+function openSong(i){
+  document.getElementById('plPanel').hidden=true;
+  document.getElementById('plPlayer').hidden=false;
+  plLoad(i,true);
+  document.getElementById('plPlay').focus({preventScroll:true});
+}
+function backToList(){
+  plStopSrc(); plOff=plPos();
+  document.getElementById('plPlayer').hidden=true;
+  document.getElementById('plPanel').hidden=false;
+  document.querySelectorAll('#plList button')[plCur].focus({preventScroll:true});
 }
 function hidePlaylist(){
+  plStopSrc(); plOff=0;
   showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 }
 function hideOverlay(){
@@ -1135,6 +1216,7 @@ function tick(){
   if(pl.x+pl.w>dx+4 && pl.x<dx+5*T-4) win();
 }
 
+
 /* ---------- DISEGNO: SPRITE E OGGETTI ---------- */
 function drawSprite(rows,x,y){
   for(let j=0;j<rows.length;j++){
@@ -1541,8 +1623,10 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 // navigazione dei menu con la croce (frecce) e A per scegliere
-function menuBtns(){ const ov=document.getElementById('ov'); if(ov.hidden) return []; return [...ov.querySelectorAll('button')].filter(b=>b.offsetParent!==null&&!b.disabled); }
+function menuBtns(){ const ov=document.getElementById('ov'); if(ov.hidden) return []; return [...ov.querySelectorAll('button, input[type=range]')].filter(b=>b.offsetParent!==null&&!b.disabled); }
 function menuMove(dx,dy){
+  const ae=document.activeElement;
+  if(ae&&ae.type==='range'&&dx){ plSeekTo(plPos()+dx*5); return; } // la barra del tempo si muove con la croce
   const bs=menuBtns(); if(!bs.length) return;
   const cur=bs.indexOf(document.activeElement);
   if(cur<0){ bs[0].focus(); return; }
@@ -1576,6 +1660,7 @@ addEventListener('keydown',e=>{
   unlockAudio();
 });
 addEventListener('keyup',e=>{ keys[e.code]=false; });
+const menuRep={};
 let yArrow=false; // Y premuto con una freccia = corsa, non sparo
 document.querySelectorAll('#pad button').forEach(b=>{
   const k=b.dataset.k;
@@ -1583,12 +1668,13 @@ document.querySelectorAll('#pad button').forEach(b=>{
   const on=e=>{ e.preventDefault();
     if(!document.getElementById('ov').hidden){ // nei menu la croce sposta il cursore e A sceglie
       const md={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k];
-      if(md) menuMove(md[0],md[1]); else if(k==='a') menuPress();
+      if(md){ menuMove(md[0],md[1]); clearTimeout(menuRep[k]); clearInterval(menuRep[k]); menuRep[k]=setTimeout(()=>{ menuRep[k]=setInterval(()=>menuMove(md[0],md[1]),130); },420); } // tenuta premuta: scorre
+      else if(k==='a') menuPress();
       unlockAudio(); return;
     }
     hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='x') useReserve(); if(k==='y') yArrow=false; if((k==='l'||k==='r') && hold.y) yArrow=true; unlockAudio(); };
   // Y: un tocco senza frecce spara (al rilascio); con una freccia corre
-  const off=e=>{ hold[k]=false; if(k==='y'){ if(e&&e.type==='pointerup'&&!yArrow) fireReq=true; yArrow=false; } };
+  const off=e=>{ hold[k]=false; clearTimeout(menuRep[k]); clearInterval(menuRep[k]); if(k==='y'){ if(e&&e.type==='pointerup'&&!yArrow) fireReq=true; yArrow=false; } };
   b.addEventListener('pointerdown',on);
   b.addEventListener('pointerup',off);
   b.addEventListener('pointerleave',off);
@@ -1597,6 +1683,17 @@ document.querySelectorAll('#pad button').forEach(b=>{
 document.getElementById('menuBtn').addEventListener('click',goMenu);
 document.getElementById('plBtn').addEventListener('click',()=>{ sfx('click'); showPlaylist(); });
 document.getElementById('plBack').addEventListener('click',()=>{ sfx('click'); hidePlaylist(); });
+document.getElementById('plPBack').addEventListener('click',()=>{ sfx('click'); backToList(); });
+document.getElementById('plPlay').addEventListener('click',()=>{ sfx('click'); plPlayPause(); });
+document.getElementById('plLoop').addEventListener('click',()=>{ sfx('click'); plLoopOn=!plLoopOn; if(plSrc) plSrc.loop=plLoopOn; updatePlUI(); });
+document.getElementById('plSeek').addEventListener('input',e=>plSeekTo(+e.target.value));
+document.querySelectorAll('#plPlayer [data-pa]').forEach(b=>b.addEventListener('click',()=>{
+  sfx('click'); const a=b.dataset.pa;
+  if(a==='prev') plGo(-1); else if(a==='next') plGo(1); else if(a==='stop') plStop();
+  else if(a==='back10') plSeekTo(plPos()-10); else if(a==='fwd10') plSeekTo(plPos()+10);
+}));
+// elenco delle canzoni: un pulsante per livello
+SONGS.forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=(i+1)+'. '+t; b.addEventListener('click',()=>{ sfx('click'); openSong(i); }); document.getElementById('plList').appendChild(b); });
 document.getElementById('resBtn').addEventListener('click',useReserve);
 
 /* ---------- AVVIO ---------- */
