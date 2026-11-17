@@ -668,6 +668,7 @@ function updateHUD(){
 }
 
 /* ---------- OVERLAY E MENU ---------- */
+let intentionalBlur=false, lastMenuFocus=null; // il cursore del menu non si perde toccando lo schermo
 function showOverlay(t,p,b,fn){
   document.getElementById('ovT').textContent=t;
   document.getElementById('ovP').textContent=p;
@@ -677,7 +678,7 @@ function showOverlay(t,p,b,fn){
   btn.hidden=false; document.getElementById('ovT').hidden=false; document.getElementById('ovP').hidden=false; document.getElementById('plBtn').hidden=(t!=='Syria Kitty Bros'); document.getElementById('plPanel').hidden=true; document.getElementById('plPlayer').hidden=true;
   document.getElementById('ov').hidden=false;
   // nel menu iniziale nessun pulsante è selezionato: la prima freccia giù seleziona la playlist (primo pulsante)
-  if(t==='Syria Kitty Bros'){ if(document.activeElement) document.activeElement.blur(); }
+  if(t==='Syria Kitty Bros'){ if(document.activeElement){ intentionalBlur=true; document.activeElement.blur(); intentionalBlur=false; } lastMenuFocus=null; }
   else btn.focus({preventScroll:true});
 }
 // playlist delle colonne sonore: elenco delle canzoni (una per livello), ascolto con controlli
@@ -1723,6 +1724,14 @@ document.querySelectorAll('#pad button').forEach(b=>{
   b.addEventListener('pointerleave',off);
   b.addEventListener('pointercancel',off);
   b.addEventListener('lostpointercapture',off);
+});
+// toccare un punto che non è un pulsante non deve far perdere la selezione del menu
+document.addEventListener('mousedown',e=>{ if(!document.getElementById('ov').hidden && !e.target.closest('button, input, a')) e.preventDefault(); },true);
+document.addEventListener('focusin',e=>{ if(e.target.closest && e.target.closest('#ov') && e.target.matches('button, input')) lastMenuFocus=e.target; });
+document.addEventListener('focusout',e=>{
+  if(intentionalBlur || e.relatedTarget || document.getElementById('ov').hidden || !lastMenuFocus) return;
+  const lf=lastMenuFocus;
+  setTimeout(()=>{ if(!document.getElementById('ov').hidden && (!document.activeElement || document.activeElement===document.body)) lf.focus({preventScroll:true}); },0);
 });
 // sicurezza: se il gioco perde il tocco (scorrimento, cambio app) si azzerano comandi e ripetizioni
 function resetPad(){ for(const k in hold) hold[k]=false; for(const k in menuRep){ clearTimeout(menuRep[k]); clearInterval(menuRep[k]); } }
