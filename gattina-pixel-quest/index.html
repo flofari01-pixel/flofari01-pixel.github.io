@@ -676,8 +676,9 @@ function showOverlay(t,p,b,fn){
   document.getElementById('lvlBtns').hidden=(t!=='Syria Kitty Bros');
   btn.hidden=false; document.getElementById('ovT').hidden=false; document.getElementById('ovP').hidden=false; document.getElementById('plBtn').hidden=(t!=='Syria Kitty Bros'); document.getElementById('plPanel').hidden=true; document.getElementById('plPlayer').hidden=true;
   document.getElementById('ov').hidden=false;
-  // nel menu iniziale il cursore parte dalla playlist (primo pulsante)
-  (t==='Syria Kitty Bros' ? document.getElementById('plBtn') : btn).focus({preventScroll:true});
+  // nel menu iniziale nessun pulsante è selezionato: la prima freccia giù seleziona la playlist (primo pulsante)
+  if(t==='Syria Kitty Bros'){ if(document.activeElement) document.activeElement.blur(); }
+  else btn.focus({preventScroll:true});
 }
 // playlist delle colonne sonore: elenco delle canzoni (una per livello), ascolto con controlli
 const SONGS=["Interstellar - Hans Zimmer", "Here Comes Santa Claus - Gene Autry", "Tutto il Resto è Noi - Nayt", "E Luce Fu (Parte 1) - BB Lof", "End of Beginning - Djo", "Those Eyes - New West", "Superbingo - BB Lof", "Tutto Quello Che Ho - BB Lof", "Con o Senza Te - BB Lof", "Che cosa c'è - Gino Paoli", "Aria Caddhipulina - Antonio Castrignanò", "Banda di San Vito", "E Luce Fu (Parte 2) - BB Lof", "Nera Salsa di Soia - Tananai", "Innamorato - Blanco", "Spooky song - Suno", "Die For You - The Weeknd", "All I Want For Christmas is You - Mariah Carey", "50 special - Lùnapop", "Santu Paulu - Alla Bua", "CAPISUTTA - Dave Flux"];
