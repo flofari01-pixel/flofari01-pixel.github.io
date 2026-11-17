@@ -25,7 +25,7 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 #menuBtn{font-size:8px;padding:6px 8px;box-shadow:0 3px 0 var(--accent-d)}
 .lvls{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:14px auto 0;width:240px;max-width:100%}
 .lvls[hidden]{display:none!important}
-#plBtn{margin-top:14px;font-size:7px;padding:10px 10px}
+#plBtn{display:block;margin:14px auto 12px;font-size:7px;padding:10px 10px}
 #plPanel{margin-top:12px}
 #plList{width:260px;max-width:100%;margin:0 auto;text-align:left}
 #plList button{display:block;width:100%;margin:0 0 6px;text-align:left;font:12px/1.3 Inter,system-ui,sans-serif;padding:9px 10px;box-shadow:0 3px 0 var(--accent-d)}
@@ -104,9 +104,9 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
     <div class="card">
       <h2 id="ovT"></h2>
       <p id="ovP"></p>
+      <button id="plBtn" type="button" hidden>PLAYLIST DELLE COLONNE SONORE</button>
       <button id="ovB" type="button"></button>
       <div id="lvlBtns" class="lvls" hidden></div>
-      <button id="plBtn" type="button" hidden>PLAYLIST DELLE COLONNE SONORE</button>
       <div id="plPanel" hidden>
         <div id="plList" class="pl"></div>
         <button id="plBack" type="button">INDIETRO</button>
