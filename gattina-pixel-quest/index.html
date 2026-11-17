@@ -29,14 +29,15 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 #plPanel{margin-top:12px}
 #plList{width:260px;max-width:100%;margin:0 auto;text-align:left}
 #plList button{display:block;width:100%;margin:0 0 6px;text-align:left;font:12px/1.3 Inter,system-ui,sans-serif;padding:9px 10px;box-shadow:0 3px 0 var(--accent-d)}
-#plBack,#plPBack{margin-top:12px}
-#plPlayer{margin-top:10px}
-#plImg{display:block;width:192px;height:144px;max-width:100%;margin:0 auto;image-rendering:pixelated;border:2px solid var(--accent);background:#000}
-#plName{font:13px/1.4 Inter,system-ui,sans-serif;margin:10px 0 0}
-#plTime{font:12px Inter,system-ui,sans-serif;opacity:.8;margin:6px 0 0}
-.plRow{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:10px;flex-wrap:wrap}
-.plRow button{font-size:7px;padding:9px 7px}
-#plSeek{width:150px;max-width:100%;accent-color:var(--accent)}
+#plBack{margin-top:12px}
+#plPBack{margin-top:6px;font-size:7px;padding:7px 10px}
+#plPlayer{margin-top:4px}
+#plImg{display:block;width:112px;height:84px;max-width:100%;margin:0 auto;image-rendering:pixelated;border:2px solid var(--accent);background:#000}
+#plName{font:11px/1.3 Inter,system-ui,sans-serif;margin:5px 0 0}
+#plTime{font:11px Inter,system-ui,sans-serif;opacity:.8;margin:4px 0 0}
+.plRow{display:flex;gap:5px;justify-content:center;align-items:center;margin-top:6px;flex-wrap:wrap}
+.plRow button{font-size:7px;padding:6px 6px}
+#plSeek{width:130px;max-width:100%;accent-color:var(--accent)}
 .lvls button{font-size:7px;padding:8px 8px}
 .hint{max-width:768px;margin:12px auto 0;color:#a79cc4;font-size:13px}
 #pad{display:none;max-width:768px;margin:12px auto 0;justify-content:space-between;align-items:center;gap:10px}
@@ -673,7 +674,7 @@ function showOverlay(t,p,b,fn){
   const btn=document.getElementById('ovB');
   btn.textContent=b; btn.onclick=()=>{ sfx('click'); if(fn) fn(); };
   document.getElementById('lvlBtns').hidden=(t!=='Syria Kitty Bros');
-  btn.hidden=false; document.getElementById('plBtn').hidden=(t!=='Syria Kitty Bros'); document.getElementById('plPanel').hidden=true; document.getElementById('plPlayer').hidden=true;
+  btn.hidden=false; document.getElementById('ovT').hidden=false; document.getElementById('ovP').hidden=false; document.getElementById('plBtn').hidden=(t!=='Syria Kitty Bros'); document.getElementById('plPanel').hidden=true; document.getElementById('plPlayer').hidden=true;
   document.getElementById('ov').hidden=false;
   btn.focus({preventScroll:true});
 }
@@ -681,7 +682,8 @@ function showOverlay(t,p,b,fn){
 const SONGS=["Interstellar - Hans Zimmer", "Here Comes Santa Claus - Gene Autry", "Tutto il Resto è Noi - Nayt", "E Luce Fu (Parte 1) - BB Lof", "End of Beginning - Djo", "Those Eyes - New West", "Superbingo - BB Lof", "Tutto Quello Che Ho - BB Lof", "Con o Senza Te - BB Lof", "Che cosa c'è - Gino Paoli", "Aria Caddhipulina - Antonio Castrignanò", "Banda di San Vito", "E Luce Fu (Parte 2) - BB Lof", "Nera Salsa di Soia - Tananai", "Innamorato - Blanco", "Spooky song - Suno", "Die For You - The Weeknd", "All I Want For Christmas is You - Mariah Carey", "50 special - Lùnapop", "Santu Paulu - Alla Bua", "CAPISUTTA - Dave Flux"];
 const plPrev=[]; // anteprime dei livelli (screen del livello)
 const plBufs=[]; // canzoni decodificate (si può saltare in qualsiasi punto)
-let plCur=0, plBuf=null, plSrc=null, plOff=0, plT0=0, plLoopOn=false;
+const plOrder=[];
+let plCur=0, plBuf=null, plTrim=0, plSrc=null, plOff=0, plT0=0, plLoopOn=false;
 function plCtx(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state!=='running') AC.resume().catch(()=>{}); return AC; }
 // screen del livello: disegna il livello in una tela nascosta, poi ripristina il menu
 function levelShot(i){
@@ -697,12 +699,25 @@ async function plFetch(i){
   if(plBufs[i]) return plBufs[i];
   const r=await fetch('musica/livello_'+(i+1)+'.mp3');
   const buf=await plCtx().decodeAudioData(await r.arrayBuffer());
-  plBufs[i]=buf; return buf;
+  // salta il silenzio iniziale: primo campione udibile (con 50 ms di margine)
+  let first=buf.length;
+  for(let c=0;c<buf.numberOfChannels;c++){
+    const d=buf.getChannelData(c);
+    for(let k=0;k<first;k++){ if(Math.abs(d[k])>0.01){ first=k; break; } }
+  }
+  const trim=Math.max(0,first/buf.sampleRate-0.05);
+  plBufs[i]={buf,trim};
+  // tiene in memoria solo le ultime canzoni usate (le decodifiche sono pesanti)
+  plOrder.push(i);
+  while(plOrder.length>3){ const old=plOrder.shift(); if(old!==plCur) plBufs[old]=undefined; else plOrder.push(old); }
+  return plBufs[i];
 }
+function plDur(){ return plBuf? plBuf.duration-plTrim : 0; }
 function plPos(){
   if(!plSrc) return plOff;
   let t=plCtx().currentTime-plT0;
-  if(plBuf) t = plLoopOn ? t%plBuf.duration : Math.min(t,plBuf.duration);
+  const d=plDur();
+  if(d>0) t = plLoopOn ? t%d : Math.min(t,d);
   return t;
 }
 function plStopSrc(){
@@ -711,13 +726,13 @@ function plStopSrc(){
 function plStartAt(t){
   plStopSrc();
   const src=plCtx().createBufferSource();
-  src.buffer=plBuf; src.loop=plLoopOn; src.connect(AC.destination);
+  src.buffer=plBuf; src.loop=plLoopOn; src.loopStart=plTrim; src.loopEnd=plBuf.duration; src.connect(AC.destination);
   src.onended=()=>{ if(plSrc===src){ plSrc=null; plOff=0; updatePlUI(); } };
-  src.start(0,t); plSrc=src; plT0=AC.currentTime-t; updatePlUI();
+  src.start(0,plTrim+t); plSrc=src; plT0=AC.currentTime-t; updatePlUI();
 }
 function fmtT(s){ s=Math.floor(s||0); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
 function updatePlUI(){
-  const d=plBuf?plBuf.duration:0, t=plPos();
+  const d=plDur(), t=plPos();
   const seek=document.getElementById('plSeek');
   seek.max=d||100;
   if(document.activeElement!==seek) seek.value=t;
@@ -730,20 +745,22 @@ async function plLoad(i,play){
   plCur=i; plStopSrc(); plOff=0;
   document.getElementById('plName').textContent=(i+1)+'. '+SONGS[i];
   document.getElementById('plImg').src=levelShot(i);
-  const buf=await plFetch(i);
+  const {buf,trim}=await plFetch(i);
   if(plCur!==i) return; // nel frattempo si è scelta un'altra canzone
-  plBuf=buf;
+  plBuf=buf; plTrim=trim;
   if(play) plStartAt(0); else updatePlUI();
 }
 function plPlayPause(){ if(plSrc){ plOff=plPos(); plStopSrc(); updatePlUI(); } else if(plBuf) plStartAt(plOff); }
 function plStop(){ plStopSrc(); plOff=0; updatePlUI(); }
 function plGo(d){ const n=Math.max(0,Math.min(SONGS.length-1,plCur+d)); plLoad(n,true); }
 function plSeekTo(s){
-  const d=plBuf?plBuf.duration:0; const t=Math.max(0,Math.min(d,s));
+  const t=Math.max(0,Math.min(plDur(),s));
   if(plSrc) plStartAt(t); else { plOff=t; updatePlUI(); }
 }
 function showPlaylist(){
+  const ov=document.getElementById('ov'); ov.scrollTop=0;
   document.getElementById('ovT').textContent='Playlist delle colonne sonore';
+  document.getElementById('ovT').hidden=false;
   document.getElementById('ovP').textContent='';
   document.getElementById('ovB').hidden=true;
   document.getElementById('lvlBtns').hidden=true;
@@ -753,6 +770,9 @@ function showPlaylist(){
   document.querySelector('#plList button').focus({preventScroll:true});
 }
 function openSong(i){
+  const ov=document.getElementById('ov'); ov.scrollTop=0;
+  document.getElementById('ovT').hidden=true;
+  document.getElementById('ovP').hidden=true;
   document.getElementById('plPanel').hidden=true;
   document.getElementById('plPlayer').hidden=false;
   plLoad(i,true);
@@ -760,6 +780,9 @@ function openSong(i){
 }
 function backToList(){
   plStopSrc(); plOff=plPos();
+  const ov=document.getElementById('ov'); ov.scrollTop=0;
+  document.getElementById('ovT').hidden=false;
+  document.getElementById('ovP').hidden=false;
   document.getElementById('plPlayer').hidden=true;
   document.getElementById('plPanel').hidden=false;
   document.querySelectorAll('#plList button')[plCur].focus({preventScroll:true});
@@ -1693,6 +1716,8 @@ document.querySelectorAll('#plPlayer [data-pa]').forEach(b=>b.addEventListener('
   else if(a==='back10') plSeekTo(plPos()-10); else if(a==='fwd10') plSeekTo(plPos()+10);
 }));
 // elenco delle canzoni: un pulsante per livello
+// caricamento anticipato: quando si mette il cursore su una canzone, la si prepara
+document.getElementById('plList').addEventListener('focusin',e=>{ const i=[...document.getElementById('plList').children].indexOf(e.target); if(i>=0) plFetch(i).catch(()=>{}); });
 SONGS.forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=(i+1)+'. '+t; b.addEventListener('click',()=>{ sfx('click'); openSong(i); }); document.getElementById('plList').appendChild(b); });
 document.getElementById('resBtn').addEventListener('click',useReserve);
 
