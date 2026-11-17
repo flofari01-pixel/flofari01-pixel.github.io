@@ -25,6 +25,10 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 #menuBtn{font-size:8px;padding:6px 8px;box-shadow:0 3px 0 var(--accent-d)}
 .lvls{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:14px auto 0;width:240px;max-width:100%}
 .lvls[hidden]{display:none!important}
+#plBtn{margin-top:14px;font-size:7px;padding:10px 10px}
+#plPanel{margin-top:12px}
+#plPanel .pl{width:260px;max-width:100%;margin:0 auto;padding-left:26px;text-align:left;font-size:10px;line-height:1.8;color:var(--fg)}
+#plPanel button{margin-top:12px}
 .lvls button{font-size:7px;padding:8px 8px}
 .hint{max-width:768px;margin:12px auto 0;color:#a79cc4;font-size:13px}
 #pad{display:none;max-width:768px;margin:12px auto 0;justify-content:space-between;align-items:center;gap:10px}
@@ -93,6 +97,33 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
       <p id="ovP"></p>
       <button id="ovB" type="button"></button>
       <div id="lvlBtns" class="lvls" hidden></div>
+      <button id="plBtn" type="button" hidden>PLAYLIST DELLE COLONNE SONORE</button>
+      <div id="plPanel" hidden>
+        <ol class="pl">
+        <li>Interstellar - Hans Zimmer</li>
+        <li>Tutto il Resto è Noi - Nayt</li>
+        <li>Here Comes Santa Claus - Gene Autry</li>
+        <li>E Luce Fu (Parte 1) - BB Lof</li>
+        <li>End of Beginning - Djo</li>
+        <li>Those Eyes - New West</li>
+        <li>Superbingo - BB Lof</li>
+        <li>Tutto Quello Che Ho - BB Lof</li>
+        <li>Con o Senza Te - BB Lof</li>
+        <li>Che cosa c&#x27;è - Gino Paoli</li>
+        <li>Aria Caddhipulina - Antonio Castrignanò</li>
+        <li>Banda di San Vito</li>
+        <li>E Luce Fu (Parte 2) - BB Lof</li>
+        <li>Nera Salsa di Soia - Tananai</li>
+        <li>Innamorato - Blanco</li>
+        <li>Spooky song - Suno</li>
+        <li>Die For You - The Weeknd</li>
+        <li>All I Want For Christmas is You - Mariah Carey</li>
+        <li>50 special - Lùnapop</li>
+        <li>Santu Paulu - Alla Bua</li>
+        <li>CAPISUTTA - Dave Flux</li>
+        </ol>
+        <button id="plBack" type="button">INDIETRO</button>
+      </div>
     </div>
   </div>
 </div>
@@ -639,8 +670,22 @@ function showOverlay(t,p,b,fn){
   const btn=document.getElementById('ovB');
   btn.textContent=b; btn.onclick=()=>{ sfx('click'); if(fn) fn(); };
   document.getElementById('lvlBtns').hidden=(t!=='Syria Kitty Bros');
+  btn.hidden=false; document.getElementById('plBtn').hidden=(t!=='Syria Kitty Bros'); document.getElementById('plPanel').hidden=true;
   document.getElementById('ov').hidden=false;
   btn.focus({preventScroll:true});
+}
+// playlist delle colonne sonore: elenco delle canzoni dei livelli, in ordine
+function showPlaylist(){
+  document.getElementById('ovT').textContent='Playlist delle colonne sonore';
+  document.getElementById('ovP').textContent='';
+  document.getElementById('ovB').hidden=true;
+  document.getElementById('lvlBtns').hidden=true;
+  document.getElementById('plBtn').hidden=true;
+  document.getElementById('plPanel').hidden=false;
+  document.getElementById('plBack').focus({preventScroll:true});
+}
+function hidePlaylist(){
+  showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 }
 function hideOverlay(){
   document.getElementById('ov').hidden=true;
@@ -1550,6 +1595,8 @@ document.querySelectorAll('#pad button').forEach(b=>{
   b.addEventListener('pointercancel',off);
 });
 document.getElementById('menuBtn').addEventListener('click',goMenu);
+document.getElementById('plBtn').addEventListener('click',()=>{ sfx('click'); showPlaylist(); });
+document.getElementById('plBack').addEventListener('click',()=>{ sfx('click'); hidePlaylist(); });
 document.getElementById('resBtn').addEventListener('click',useReserve);
 
 /* ---------- AVVIO ---------- */
