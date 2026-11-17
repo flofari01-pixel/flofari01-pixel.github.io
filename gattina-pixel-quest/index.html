@@ -901,7 +901,7 @@ function win(){
   // fino al livello di Nardò (compreso) la frase è per Lof, poi per il fidanzatino
   const fid=(lvlIdx<=LV.findIndex(l=>l.name==='Nardò'))?'Lof è così fiero di te!':'Il tuo fidanzatino è molto fiero di te!';
   // al Teatro arriva il primo bacetto: messaggio speciale al posto della frase abituale
-  const kissMsg="Tu e Lof vi siete dati il primo bacetto! congratulazioni! D'ora in poi sarete due fidanzatini";
+  const kissMsg="Tu e Lof vi siete dati il primo bacetto! congratulazioni!";
   const msg=(lvlIdx===LV.findIndex(l=>l.name==='Il Teatro'))?kissMsg:fid;
   lives++; // completare un livello fa guadagnare una vita
   updateHUD();
