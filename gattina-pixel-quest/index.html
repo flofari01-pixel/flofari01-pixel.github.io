@@ -839,7 +839,9 @@ function die(){
   }
   // tornando alla bandierina la riserva rimane piena e si può usare
   const c=ckpt, keep=reserve; loadLevel(lvlIdx);
-  if(c){ ckpt=c; pl.x=c.x; pl.y=c.y; if(flag) flag.reached=true; reserve=keep; updateHUD(); }
+  reserve=keep; // la riserva resta anche se si ricomincia senza checkpoint
+  if(c){ ckpt=c; pl.x=c.x; pl.y=c.y; if(flag) flag.reached=true; }
+  updateHUD();
   state='banner'; bannerT=90; updateHUD();
 }
 function win(){
