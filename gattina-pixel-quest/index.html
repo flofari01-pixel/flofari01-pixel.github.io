@@ -1650,6 +1650,14 @@ function menuBtns(){ const ov=document.getElementById('ov'); if(ov.hidden) retur
 function menuMove(dx,dy){
   const ae=document.activeElement;
   const bs=menuBtns(); if(!bs.length) return;
+  // schermata di ascolto: destra/sinistra seguono l'ordine dei tasti (◀◀ ▶ ■ ▶▶ LOOP, poi -10, barra, +10, INDIETRO)
+  const pp=document.getElementById('plPlayer');
+  if(dx && !pp.hidden && pp.contains(document.activeElement)){
+    const items=[...pp.querySelectorAll('button, input[type=range]')];
+    const i=items.indexOf(document.activeElement);
+    if(i>=0) items[Math.max(0,Math.min(items.length-1,i+dx))].focus();
+    return;
+  }
   // elenco delle canzoni: su/giù scorre in cerchio (dalla prima si sale all'ultima)
   const pl=[...document.getElementById('plList').children];
   const pi=pl.indexOf(document.activeElement);
