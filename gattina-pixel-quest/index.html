@@ -1490,10 +1490,12 @@ addEventListener('keydown',e=>{
   unlockAudio();
 });
 addEventListener('keyup',e=>{ keys[e.code]=false; });
+let yArrow=false; // Y premuto con una freccia = corsa, non sparo
 document.querySelectorAll('#pad button').forEach(b=>{
   const k=b.dataset.k;
-  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='x') useReserve(); unlockAudio(); };
-  const off=()=>{ hold[k]=false; };
+  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='x') useReserve(); if(k==='y') yArrow=false; if((k==='l'||k==='r') && hold.y) yArrow=true; unlockAudio(); };
+  // Y: un tocco senza frecce spara (al rilascio); con una freccia corre
+  const off=e=>{ hold[k]=false; if(k==='y'){ if(e&&e.type==='pointerup'&&!yArrow) fireReq=true; yArrow=false; } };
   b.addEventListener('pointerdown',on);
   b.addEventListener('pointerup',off);
   b.addEventListener('pointerleave',off);
