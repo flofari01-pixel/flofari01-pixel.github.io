@@ -403,13 +403,51 @@ Object.assign(PAL,{g:'#2f8a48',G:'#1d5a30',o:'#ff9f1c',O:'#c46a00',P:'#ff4f8b',c
  R:'#8a1020',m:'#ffe066',n:'#c9a24a',h:'#b5651d',q:'#b8ab92'});
 const POP=["..wwww...",".wwwwwww.","wwwywwwww","wwwwwwyww",".wwwwwwww","wwywwwwww",".wwwwwww.","..yy.y..."];
 const BALL=["...nn...","..nnnn..",".rrrrrrr","rrwrrrrr","rwrrrrrR","rrrrrrRR",".rrrrRR.","..RRRR.."];
-const SHELL=["...PPP...",".PPcPcPP.","PcPcPcPcP","PPPPPPPPP","...PPP..."];
+const SHELL=[
+"....P....",
+"...PcP...",
+"..PPcPP..",
+".PcPcPcP.",
+"PPPPcPPPP",
+"PcPcPcPcP",
+"PPPPPPPPP",
+".PPPPPPP.",
+"..P.P.P.."
+];
 const MEAT=["..bbbbb.",".bBBBBbb","bBBBBBBb","bBrBBBrb","bBBBBBBb",".bBBBBb.","..bbbb.."];
 const PIZZA=["oooooooo","oyoyoyo.",".oyrryo.","..oyyo..","...oo..."];
 const TAMB=["..kkkkk..",".kyyyyyk.","kyryyyryk","kyyyyyyyk","kyryyyryk","kyyyyyyyk","kyryyyryk",".kyyyyyk.","..kkkkk.."];
 const FLOWER=[".pp.pp.","pPpppPp",".pyyyp.","pPpppPp",".pp.pp.","...g...","..ggg.."];
-const LETTER=["kkkkkkkkk","kwwwwwwwk","kwwrwrwwk","kwrrrrrwk","kwwwrwwwk","kkkkkkkkk"];
-const GUITAR=["...kk....","..kbbk...",".kbBBbk...",".kbBBbk...","..kbbk....","kkkbbkkkk","kbBBBBBbk","kbBBkBBbk","kbBBBBBbk","kkbbbbbkk","..kkkkk.."];
+const LETTER=[
+"kkkkkkkkkkk",
+"kscccccrrsk",
+"kcsccccrrck",
+"kccscccscck",
+"kcccscsccck",
+"kccccccccck",
+"kccccccccck",
+"kkkkkkkkkkk"
+];
+const GUITAR=[
+"...nkkkn...",
+"...khhhk...",
+"....kqk....",
+"....kqk....",
+"....kqk....",
+"....kqk....",
+"....kqk....",
+"....kqk....",
+"..kkhhhkk..",
+".khhhkhhhk.",
+".khhkkkhhk.",
+"..khhkhhk..",
+"...khhhk...",
+"..khhhhhk..",
+".khhhhhhhk.",
+"khhhhhhhhhk",
+"khhhhhhhhhk",
+".kkkkkkkkk."
+];
 const PAINTING=["nnnnnnnnn","nLLLLLLLn","nLLyLLLLn","nLLLLLLLn","ngggggggn","ngGgggggn","nnnnnnnnn"];
 const NOTE=["...LLL..","...L..L.","...L..L.","...L..L.","LLL.L.L.","LLLL..L.","LLLL...."];
 const BONE=["ww.....ww","wwwwwwwww",".wwwwwww.","wwwwwwwww","ww.....ww"];
@@ -444,7 +482,17 @@ const OCTO=["..vvvvv..",".vvvvvvv.","vwwvvvwwv","vvvvvvvvv",".vvvvvvv.","v.v.v.v
 const FIOCCO=["rr.....rr","rrrr.rrrr","rrrrrrrrr",".rrrrrrr.","rrrr.rrrr","rr.....rr"];
 const HELMET=["..zzzzz..",".zzzzzzz.","zzzLzzzzz","zzzzzzzzz","zzzzzzzzz","zzzzzzzzz","kkkkkkkkk"];
 const CAKE=["..ppp....","wwwwwwwww","yyyyyyyyy","cccccccc.","cccccccc.","ssssssssss"];
-const CREPE=["..ssssss.",".sssssssss","sssyyysss","ssyyyyyss",".ssyyyss.","..ssss..."];
+const CREPE=[
+"OOOOOOOOOOO",
+".OsysssssO.",
+".OssPssysO.",
+"..OsssPsO..",
+"..OssyssO..",
+"...OPssO...",
+"....OsO....",
+"....OsO....",
+".....O....."
+];
 const STAR7=["...m...","...m...","mmmmmmm",".mmmmm.","..mmm..",".mm.mm.","mm...mm"];
 const GELATO=["..kkk.kkk..",".khhhkhhhk.","kkkkkkkkkkk",".ksssssssk.","..ksssssk..","...ksssk...","....ksk...."];
 const BIRO=["kkkk","kLLk","kLLk","kLLk","kLLk","kkkk","kSSk","kSSk","kkkk",".kk."];
