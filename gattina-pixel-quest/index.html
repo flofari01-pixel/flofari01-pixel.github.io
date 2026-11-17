@@ -788,7 +788,7 @@ function sfx(k){
 // i file stanno in musica/livello_N.mp3 accanto alla pagina; il volume della musica si abbassa
 // per un attimo a ogni suono del gioco, così gli effetti si sentono sempre
 const MUS_VOL=0.55, MUS_DUCK=0.4; // musica quasi piena; si abbassa solo un attimo sotto i suoni
-const MUS_TRACKS=11;
+const MUS_TRACKS=21;
 let musGain=null, musSrc=null, musCur=-1, musCache={}, musWant=0;
 function musicOut(){
   if(!musGain){ musGain=AC.createGain(); musGain.gain.value=MUS_VOL; musGain.connect(AC.destination); }
