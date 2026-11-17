@@ -27,8 +27,15 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 .lvls[hidden]{display:none!important}
 .lvls button{font-size:7px;padding:8px 8px}
 .hint{max-width:768px;margin:12px auto 0;color:#a79cc4;font-size:13px}
-#pad{display:none;max-width:768px;margin:12px auto 0;justify-content:space-between;gap:10px}
-#pad button{flex:1;padding:16px 0;font-size:12px;touch-action:none;user-select:none}
+#pad{display:none;max-width:768px;margin:12px auto 0;justify-content:space-between;align-items:center;gap:10px}
+#pad .cl{display:grid;gap:4px}
+#pad .dpad{grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px)}
+#pad .faces{grid-template-areas:". x ." "y . a" ". b .";grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px)}
+#pad button{padding:0;font-size:12px;touch-action:none;user-select:none;box-shadow:0 4px 0 #1b1424}
+#pad .dpad button{background:#3a2d4d;color:#f4e9ff;border-radius:8px}
+#pad .faces button{background:var(--accent);color:#1a0a14;border-radius:50%}
+#pad [data-k="u"]{grid-area:u}#pad [data-k="l"]{grid-area:l}#pad [data-k="r"]{grid-area:r}#pad [data-k="d"]{grid-area:d}
+#pad [data-k="x"]{grid-area:x}#pad [data-k="y"]{grid-area:y}#pad [data-k="a"]{grid-area:a}#pad [data-k="b"]{grid-area:b}
 .arrows{display:flex;gap:10px;flex:2}
 @media (pointer:coarse){#pad{display:flex}}
 #resWrap{max-width:768px;margin:12px auto 0;display:flex;justify-content:flex-end}
@@ -53,11 +60,10 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
   #hud{position:fixed;left:8px;top:6px;z-index:6;width:150px;max-width:none;margin:0;flex-direction:column;align-items:flex-start;gap:4px;font-size:6px}
   #prog{margin:4px 0}
   #pad{display:flex;position:fixed;inset:0;margin:0;max-width:none;pointer-events:none;z-index:6}
-  #pad .arrows{position:absolute;left:10px;bottom:10px;display:flex;gap:6px;flex:none;pointer-events:auto}
-  #pad .arrows button{width:46px;height:46px;padding:0;font-size:14px}
-  #pad > button{position:absolute;right:10px;width:80px;height:50px;padding:0;font-size:9px;pointer-events:auto}
-  #pad > button[data-k="x"]{bottom:72px}
-  #pad > button[data-k="j"]{bottom:10px}
+  #pad .cl{position:absolute;bottom:10px;pointer-events:auto}
+  #pad .dpad{left:10px;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px)}
+  #pad .faces{right:10px;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px)}
+  #pad button{font-size:10px}
   #resWrap{position:fixed;right:10px;top:50px;margin:0;max-width:none;z-index:6}
   #resBtn{width:64px;height:64px;font-size:6px;gap:3px}
   #resBtn b{font-size:10px}
@@ -86,13 +92,18 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 <div id="resWrap"><button id="resBtn" type="button" disabled><span>RISERVA</span><canvas id="resIco" width="24" height="24"></canvas><b id="resN">0</b></button></div>
 <p class="hint">Frecce o A / D per muoverti, Spazio o W per saltare, GIÙ per il salto mortale, X per sparare, R per usare la riserva.</p>
 <div id="pad">
-  <div class="arrows">
+  <div class="cl dpad">
+    <button type="button" data-k="u">&#9650;</button>
     <button type="button" data-k="l">&#9664;</button>
-    <button type="button" data-k="d">&#9660;</button>
     <button type="button" data-k="r">&#9654;</button>
+    <button type="button" data-k="d">&#9660;</button>
   </div>
-  <button type="button" data-k="x">SPARA</button>
-  <button type="button" data-k="j">SALTA</button>
+  <div class="cl faces">
+    <button type="button" data-k="x">X</button>
+    <button type="button" data-k="y">Y</button>
+    <button type="button" data-k="a">A</button>
+    <button type="button" data-k="b">B</button>
+  </div>
 </div>
 <script>
 /* ---------- COSTANTI E SPRITE ---------- */
@@ -937,7 +948,7 @@ function tick(){
     else if(!tiles.has(k)) tiles.set(k,'b');
   }
   if(jumpBuf>0) jumpBuf--;
-  const down=!!(keys.ArrowDown||keys.KeyS||hold.d);
+  const down=!!(keys.ArrowDown||keys.KeyS||hold.d||hold.y);
   const left=keys.ArrowLeft||keys.KeyA||hold.l;
   const right=keys.ArrowRight||keys.KeyD||hold.r;
   const dir=(right?1:0)-(left?1:0);
@@ -1474,7 +1485,7 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{ keys[e.code]=false; });
 document.querySelectorAll('#pad button').forEach(b=>{
   const k=b.dataset.k;
-  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='j') jumpBuf=7; if(k==='x') fireReq=true; unlockAudio(); };
+  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='b') fireReq=true; if(k==='x') useReserve(); unlockAudio(); };
   const off=()=>{ hold[k]=false; };
   b.addEventListener('pointerdown',on);
   b.addEventListener('pointerup',off);
