@@ -1651,6 +1651,10 @@ function menuMove(dx,dy){
   const ae=document.activeElement;
   if(ae&&ae.type==='range'&&dx){ plSeekTo(plPos()+dx*5); return; } // la barra del tempo si muove con la croce
   const bs=menuBtns(); if(!bs.length) return;
+  // elenco delle canzoni: su/giù scorre in cerchio (dalla prima si sale all'ultima)
+  const pl=[...document.getElementById('plList').children];
+  const pi=pl.indexOf(document.activeElement);
+  if(pi>=0 && dy){ const n=pl.length; pl[(pi+dy+n)%n].focus(); return; }
   const cur=bs.indexOf(document.activeElement);
   if(cur<0){ bs[0].focus(); return; }
   const c=bs[cur].getBoundingClientRect(), cx=c.left+c.width/2, cy=c.top+c.height/2;
