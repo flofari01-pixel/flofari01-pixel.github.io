@@ -816,7 +816,7 @@ function pickLevel(n){
   loadLevel(n); state='banner'; bannerT=110; updateHUD();
 }
 function goMenu(){
-  sfx('menu'); musicAllowed=false; musicStop();
+  sfx('menu'); musicAllowed=false; musicStop(); plStopSrc(); plOff=0; // ferma anche la playlist
   state='title';
   showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 }
@@ -1652,6 +1652,8 @@ function menuBtns(){ const ov=document.getElementById('ov'); if(ov.hidden) retur
 function menuMove(dx,dy){
   const ae=document.activeElement;
   const bs=menuBtns(); if(!bs.length) return;
+  // il pulsante MENU selezionato con X: la croce riporta sui pulsanti del menu
+  if(document.activeElement===document.getElementById('menuBtn')){ bs[0].focus({preventScroll:true}); return; }
   // schermata di ascolto: destra/sinistra seguono l'ordine dei tasti (◀◀ ▶ ■ ▶▶ LOOP, poi -10, barra, +10, INDIETRO)
   const pp=document.getElementById('plPlayer');
   if(dx && !pp.hidden && pp.contains(document.activeElement)){
@@ -1678,7 +1680,7 @@ function menuMove(dx,dy){
   });
   if(best>=0) bs[best].focus();
 }
-function menuPress(){ const bs=menuBtns(); if(!bs.length) return; const f=bs.includes(document.activeElement)?document.activeElement:bs[0]; f.click(); }
+function menuPress(){ if(document.activeElement===document.getElementById('menuBtn')){ goMenu(); return; } const bs=menuBtns(); if(!bs.length) return; const f=bs.includes(document.activeElement)?document.activeElement:bs[0]; f.click(); }
 const JUMP_KEYS=['Space','ArrowUp','KeyW'];
 addEventListener('keydown',e=>{
   const game=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'];
@@ -1707,6 +1709,7 @@ document.querySelectorAll('#pad button').forEach(b=>{
       const md={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k];
       if(md){ menuMove(md[0],md[1]); clearTimeout(menuRep[k]); clearInterval(menuRep[k]); menuRep[k]=setTimeout(()=>{ menuRep[k]=setInterval(()=>menuMove(md[0],md[1]),130); },420); } // tenuta premuta: scorre
       else if(k==='a') menuPress();
+      else if(k==='x') document.getElementById('menuBtn').focus({preventScroll:true}); // X seleziona il pulsante MENU
       unlockAudio(); return;
     }
     hold[k]=true;
