@@ -36,7 +36,7 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 #pad .dpad button,#pad .ctr{background:#3a2d4d;color:#f4e9ff;box-shadow:none}
 #pad .dpad [data-k="u"]{border-radius:6px 6px 0 0}#pad .dpad [data-k="d"]{border-radius:0 0 6px 6px}#pad .dpad [data-k="l"]{border-radius:6px 0 0 6px}#pad .dpad [data-k="r"]{border-radius:0 6px 6px 0}
 #pad .ctr{grid-area:c}
-#pad .lcol{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+#pad .lcol{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
 #pad [data-k="p"]{width:64px;height:24px;font-size:7px;padding:0;background:#3a2d4d;color:#f4e9ff;box-shadow:0 3px 0 #1b1424;border-radius:6px}
 #pad .faces button{background:var(--accent);color:#1a0a14;border-radius:50%}
 #pad [data-k="u"]{grid-area:u}#pad [data-k="l"]{grid-area:l}#pad [data-k="r"]{grid-area:r}#pad [data-k="d"]{grid-area:d}
@@ -942,9 +942,10 @@ function win(){
 let pausedFrom=null;
 // pausa: ferma il gioco e mostra il pannello; Riprendi (o P/Esc) torna al punto preciso
 function togglePause(){
-  if(state==='pause'){ hideOverlay(); state=pausedFrom; pausedFrom=null; return; }
+  if(state==='pause'){ hideOverlay(); state=pausedFrom; pausedFrom=null; try{ if(AC.state==='suspended') AC.resume(); }catch(e){} return; }
   if(state!=='play' && state!=='banner') return;
   pausedFrom=state; state='pause';
+  try{ if(AC.state==='running') AC.suspend(); }catch(e){} // ferma la musica (e i suoni) finché non si riprende
   for(const k in hold) hold[k]=false;
   for(const k in keys) keys[k]=false;
   showOverlay('In pausa','Premi Riprendi per continuare.','Riprendi',togglePause);
