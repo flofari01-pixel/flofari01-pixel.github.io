@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Gattina Pixel Quest</title>
+<title>Syria Kitty Bros</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap">
 <style>
@@ -28,11 +28,14 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 .lvls button{font-size:7px;padding:8px 8px}
 .hint{max-width:768px;margin:12px auto 0;color:#a79cc4;font-size:13px}
 #pad{display:none;max-width:768px;margin:12px auto 0;justify-content:space-between;align-items:center;gap:10px}
-#pad .cl{display:grid;gap:4px}
-#pad .dpad{grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px)}
-#pad .faces{grid-template-areas:". x ." "y . a" ". b .";grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px)}
-#pad button{padding:0;font-size:12px;touch-action:none;user-select:none;box-shadow:0 4px 0 #1b1424}
-#pad .dpad button{background:#3a2d4d;color:#f4e9ff;border-radius:8px}
+#pad .cl{display:grid;gap:6px}
+#pad .dpad{grid-template-areas:". u ." "l c r" ". d .";grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px);gap:0}
+#pad .faces{grid-template-areas:". x ." "y . a" ". b .";grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px)}
+#pad button{padding:0;font-size:9px;touch-action:none;user-select:none;box-shadow:0 3px 0 #1b1424}
+#pad .dpad{filter:drop-shadow(0 3px 0 #1b1424)}
+#pad .dpad button,#pad .ctr{background:#3a2d4d;color:#f4e9ff;box-shadow:none}
+#pad .dpad [data-k="u"]{border-radius:6px 6px 0 0}#pad .dpad [data-k="d"]{border-radius:0 0 6px 6px}#pad .dpad [data-k="l"]{border-radius:6px 0 0 6px}#pad .dpad [data-k="r"]{border-radius:0 6px 6px 0}
+#pad .ctr{grid-area:c}
 #pad .faces button{background:var(--accent);color:#1a0a14;border-radius:50%}
 #pad [data-k="u"]{grid-area:u}#pad [data-k="l"]{grid-area:l}#pad [data-k="r"]{grid-area:r}#pad [data-k="d"]{grid-area:d}
 #pad [data-k="x"]{grid-area:x}#pad [data-k="y"]{grid-area:y}#pad [data-k="a"]{grid-area:a}#pad [data-k="b"]{grid-area:b}
@@ -61,9 +64,9 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
   #prog{margin:4px 0}
   #pad{display:flex;position:fixed;inset:0;margin:0;max-width:none;pointer-events:none;z-index:6}
   #pad .cl{position:absolute;bottom:10px;pointer-events:auto}
-  #pad .dpad{left:10px;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px)}
-  #pad .faces{right:10px;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px)}
-  #pad button{font-size:10px}
+  #pad .dpad{left:10px;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
+  #pad .faces{right:10px;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
+  #pad button{font-size:8px}
   #resWrap{position:fixed;right:10px;top:50px;margin:0;max-width:none;z-index:6}
   #resBtn{width:64px;height:64px;font-size:6px;gap:3px}
   #resBtn b{font-size:10px}
@@ -76,7 +79,7 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 </style>
 </head>
 <body>
-<h1>Gattina Pixel Quest</h1>
+<h1>Syria Kitty Bros</h1>
 <div id="hud"><span id="hLvl"></span><span id="hLives"></span><div id="prog" title="Quanto manca al traguardo"><div id="progFill"></div><div id="progFlag"></div><div id="progMe"></div><div id="progEnd"></div></div><span id="hItems"></span><button id="menuBtn" type="button">MENU</button></div>
 <div id="stage">
   <canvas id="c" width="256" height="192"></canvas>
@@ -90,11 +93,12 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
   </div>
 </div>
 <div id="resWrap"><button id="resBtn" type="button" disabled><span>RISERVA</span><canvas id="resIco" width="24" height="24"></canvas><b id="resN">0</b></button></div>
-<p class="hint">Frecce o A / D per muoverti, Spazio o W per saltare, GIÙ per il salto mortale, X per sparare, R per usare la riserva.</p>
+<p class="hint">Frecce o A / D per muoverti, Spazio o W per saltare, GIÙ dopo il salto per il salto mortale, X per sparare, Z per correre, R per usare la riserva.</p>
 <div id="pad">
   <div class="cl dpad">
     <button type="button" data-k="u">&#9650;</button>
     <button type="button" data-k="l">&#9664;</button>
+    <span class="ctr"></span>
     <button type="button" data-k="r">&#9654;</button>
     <button type="button" data-k="d">&#9660;</button>
   </div>
@@ -629,7 +633,7 @@ function showOverlay(t,p,b,fn){
   document.getElementById('ovP').textContent=p;
   const btn=document.getElementById('ovB');
   btn.textContent=b; btn.onclick=()=>{ sfx('click'); if(fn) fn(); };
-  document.getElementById('lvlBtns').hidden=(t!=='Gattina Pixel Quest');
+  document.getElementById('lvlBtns').hidden=(t!=='Syria Kitty Bros');
   document.getElementById('ov').hidden=false;
   btn.focus({preventScroll:true});
 }
@@ -658,7 +662,7 @@ function pickLevel(n){
 function goMenu(){
   sfx('menu'); musicStop();
   state='title';
-  showOverlay('Gattina Pixel Quest','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
+  showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 }
 function nextLevel(n){
   hideOverlay(); ckpt=null;
@@ -768,6 +772,7 @@ const SFX={
   menu:[[440,0.08,'triangle'],[330,0.1,'triangle']],               // menu
   click:[[700,0.04,'triangle']],                                   // pulsante premuto
   step:[[120,0.03,'triangle']],
+  run:[[180,0.025,'triangle'],[150,0.025,'triangle']], // passi svelti della corsa
   thud:[[110,0.12,'triangle',50],[70,0.18,'triangle',40]]         // tonfo dopo la capriola                                     // passo                                  // sputo di fuoco
 };
 function unlockAudio(){
@@ -948,14 +953,15 @@ function tick(){
     else if(!tiles.has(k)) tiles.set(k,'b');
   }
   if(jumpBuf>0) jumpBuf--;
-  const down=!!(keys.ArrowDown||keys.KeyS||hold.d||hold.y);
+  const down=!!(keys.ArrowDown||keys.KeyS||hold.d);
   const left=keys.ArrowLeft||keys.KeyA||hold.l;
   const right=keys.ArrowRight||keys.KeyD||hold.r;
   const dir=(right?1:0)-(left?1:0);
   // al cambio di direzione la vista frontale compare per qualche istante (vedi drawPlayer)
   if(dir){ if(dir!==pl.face) pl.turnT=12; pl.face=dir; }
-  pl.vx=dir*SPEED*(pl.onG?1:1.4); // la pioggia non rallenta più la gattina // in aria si salta più in lungo
-  if(pl.onG && pl.vx){ pl.walk=(pl.walk||0)+0.4; pl.wheel=(pl.wheel||0)+Math.abs(pl.vx); pl.stepT=(pl.stepT||0)+1; if(pl.stepT%18===0) sfx('step'); } // fase della camminata e passi
+  const run=!!(hold.b||keys.KeyZ); // B (o Z) tenuto: corsa veloce
+  pl.vx=dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4); // la pioggia non rallenta più la gattina // in aria si salta più in lungo
+  if(pl.onG && pl.vx){ pl.walk=(pl.walk||0)+0.4; pl.wheel=(pl.wheel||0)+Math.abs(pl.vx); pl.stepT=(pl.stepT||0)+1; const every=run?9:18; if(pl.stepT%every===0) sfx(run?'run':'step'); } // fase della camminata e passi
   if(wet>0) wet--;
   if(jumpBuf>0 && (pl.onG||pl.coyote>0)){
     // SU + GIÙ = salto mortale: salta più in alto e fa una capriola
@@ -1485,7 +1491,7 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{ keys[e.code]=false; });
 document.querySelectorAll('#pad button').forEach(b=>{
   const k=b.dataset.k;
-  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='b') fireReq=true; if(k==='x') useReserve(); unlockAudio(); };
+  const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='y') fireReq=true; if(k==='x') useReserve(); unlockAudio(); };
   const off=()=>{ hold[k]=false; };
   b.addEventListener('pointerdown',on);
   b.addEventListener('pointerup',off);
@@ -1500,7 +1506,7 @@ initBg();
 loadLevel(0);
 buildMenu();
 state='title';
-showOverlay('Gattina Pixel Quest','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
+showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 requestAnimationFrame(loop);
 </script>
 </body>
