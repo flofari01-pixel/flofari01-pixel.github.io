@@ -900,15 +900,18 @@ function win(){
   boyBig=big; // la sua taglia è quella della gattina all'arrivo
   // fino al livello di Nardò (compreso) la frase è per Lof, poi per il fidanzatino
   const fid=(lvlIdx<=LV.findIndex(l=>l.name==='Nardò'))?'Lof è così fiero di te!':'Il tuo fidanzatino è molto fiero di te!';
+  // al Teatro arriva il primo bacetto: messaggio speciale al posto della frase abituale
+  const kissMsg="Tu e Lof vi siete dati il primo bacetto! congratulazioni! D'ora in poi sarete due fidanzatini";
+  const msg=(lvlIdx===LV.findIndex(l=>l.name==='Il Teatro'))?kissMsg:fid;
   lives++; // completare un livello fa guadagnare una vita
   updateHUD();
   if(lvlIdx<LV.length-1){
     state='won';
     const n=lvlIdx+1;
-    showOverlay('Livello completato!','Complimenti, sei giunta a "'+ARRIVAL[lvlIdx]+'"! Hai finito "'+L.name+'". Prossima tappa: '+LV[n].name+'. '+fid,'Avanti',()=>nextLevel(n));
+    showOverlay('Livello completato!','Complimenti, sei giunta a "'+ARRIVAL[lvlIdx]+'"! Hai finito "'+L.name+'". Prossima tappa: '+LV[n].name+'. '+msg,'Avanti',()=>nextLevel(n));
   } else {
     state='end'; kissT=0;
-    showOverlay('Un bacetto per te!','Hai finito tutti i livelli. Il bacetto è tuo! '+fid,'Gioca ancora',startGame);
+    showOverlay('Hai finito tutti i livelli!',fid,'Gioca ancora',startGame);
   }
 }
 
