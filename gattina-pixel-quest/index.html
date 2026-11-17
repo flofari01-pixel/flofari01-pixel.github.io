@@ -1649,7 +1649,6 @@ function loop(now){
 function menuBtns(){ const ov=document.getElementById('ov'); if(ov.hidden) return []; return [...ov.querySelectorAll('button, input[type=range]')].filter(b=>b.offsetParent!==null&&!b.disabled); }
 function menuMove(dx,dy){
   const ae=document.activeElement;
-  if(ae&&ae.type==='range'&&dx){ plSeekTo(plPos()+dx*5); return; } // la barra del tempo si muove con la croce
   const bs=menuBtns(); if(!bs.length) return;
   // elenco delle canzoni: su/giù scorre in cerchio (dalla prima si sale all'ultima)
   const pl=[...document.getElementById('plList').children];
@@ -1693,6 +1692,7 @@ document.querySelectorAll('#pad button').forEach(b=>{
   const k=b.dataset.k;
   if(k==='p'){ b.addEventListener('pointerdown',e=>{ e.preventDefault(); togglePause(); }); return; }
   const on=e=>{ e.preventDefault();
+    try{ b.setPointerCapture(e.pointerId); }catch(_){} // il tasto riceve sempre il rilascio, anche se il dito scivola
     if(!document.getElementById('ov').hidden){ // nei menu la croce sposta il cursore e A sceglie
       const md={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k];
       if(md){ menuMove(md[0],md[1]); clearTimeout(menuRep[k]); clearInterval(menuRep[k]); menuRep[k]=setTimeout(()=>{ menuRep[k]=setInterval(()=>menuMove(md[0],md[1]),130); },420); } // tenuta premuta: scorre
@@ -1706,7 +1706,13 @@ document.querySelectorAll('#pad button').forEach(b=>{
   b.addEventListener('pointerup',off);
   b.addEventListener('pointerleave',off);
   b.addEventListener('pointercancel',off);
+  b.addEventListener('lostpointercapture',off);
 });
+// sicurezza: se il gioco perde il tocco (scorrimento, cambio app) si azzerano comandi e ripetizioni
+function resetPad(){ for(const k in hold) hold[k]=false; for(const k in menuRep){ clearTimeout(menuRep[k]); clearInterval(menuRep[k]); } }
+addEventListener('blur',resetPad);
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) resetPad(); });
+document.addEventListener('pointercancel',resetPad);
 document.getElementById('menuBtn').addEventListener('click',goMenu);
 document.getElementById('plBtn').addEventListener('click',()=>{ sfx('click'); showPlaylist(); });
 document.getElementById('plBack').addEventListener('click',()=>{ sfx('click'); hidePlaylist(); });
@@ -1714,6 +1720,8 @@ document.getElementById('plPBack').addEventListener('click',()=>{ sfx('click'); 
 document.getElementById('plPlay').addEventListener('click',()=>{ sfx('click'); plPlayPause(); });
 document.getElementById('plLoop').addEventListener('click',()=>{ sfx('click'); plLoopOn=!plLoopOn; if(plSrc) plSrc.loop=plLoopOn; updatePlUI(); });
 document.getElementById('plSeek').addEventListener('input',e=>plSeekTo(+e.target.value));
+// dopo aver toccato la barra del tempo il cursore torna sui tasti, così le frecce funzionano di nuovo
+document.getElementById('plSeek').addEventListener('pointerup',()=>{ const s=document.getElementById('plSeek'); s.blur(); document.getElementById('plPlay').focus({preventScroll:true}); });
 document.querySelectorAll('#plPlayer [data-pa]').forEach(b=>b.addEventListener('click',()=>{
   sfx('click'); const a=b.dataset.pa;
   if(a==='prev') plGo(-1); else if(a==='next') plGo(1); else if(a==='stop') plStop();
