@@ -36,6 +36,8 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 #pad .dpad button,#pad .ctr{background:#3a2d4d;color:#f4e9ff;box-shadow:none}
 #pad .dpad [data-k="u"]{border-radius:6px 6px 0 0}#pad .dpad [data-k="d"]{border-radius:0 0 6px 6px}#pad .dpad [data-k="l"]{border-radius:6px 0 0 6px}#pad .dpad [data-k="r"]{border-radius:0 6px 6px 0}
 #pad .ctr{grid-area:c}
+#pad .lcol{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+#pad [data-k="p"]{width:64px;height:24px;font-size:7px;padding:0;background:#3a2d4d;color:#f4e9ff;box-shadow:0 3px 0 #1b1424;border-radius:6px}
 #pad .faces button{background:var(--accent);color:#1a0a14;border-radius:50%}
 #pad [data-k="u"]{grid-area:u}#pad [data-k="l"]{grid-area:l}#pad [data-k="r"]{grid-area:r}#pad [data-k="d"]{grid-area:d}
 #pad [data-k="x"]{grid-area:x}#pad [data-k="y"]{grid-area:y}#pad [data-k="a"]{grid-area:a}#pad [data-k="b"]{grid-area:b}
@@ -63,9 +65,10 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
   #hud{position:fixed;left:8px;top:6px;z-index:6;width:150px;max-width:none;margin:0;flex-direction:column;align-items:flex-start;gap:4px;font-size:6px}
   #prog{margin:4px 0}
   #pad{display:flex;position:fixed;inset:0;margin:0;max-width:none;pointer-events:none;z-index:6}
-  #pad .cl{position:absolute;bottom:10px;pointer-events:auto}
-  #pad .dpad{left:10px;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
-  #pad .faces{right:10px;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
+  #pad .lcol{position:absolute;left:10px;bottom:10px;pointer-events:auto}
+  #pad .faces{position:absolute;right:10px;bottom:10px;pointer-events:auto;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
+  #pad .dpad{grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
+  #pad [data-k="p"]{width:56px;height:20px;font-size:6px}
   #pad button{font-size:8px}
   #resWrap{position:fixed;right:10px;top:50px;margin:0;max-width:none;z-index:6}
   #resBtn{width:64px;height:64px;font-size:6px;gap:3px}
@@ -94,14 +97,17 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
   </div>
 </div>
 <div id="resWrap"><button id="resBtn" type="button" disabled><span>RISERVA</span><canvas id="resIco" width="24" height="24"></canvas><b id="resN">0</b></button></div>
-<p class="hint">Frecce o A / D per muoverti, Spazio o W per saltare, GIÙ dopo il salto per il salto mortale, X per sparare, Z per correre, R per usare la riserva.</p>
+<p class="hint">Frecce o A / D per muoverti, Spazio o W per saltare, GIÙ dopo il salto per il salto mortale, X per sparare, Z per correre, R per usare la riserva, P per la pausa.</p>
 <div id="pad">
+  <div class="lcol">
+    <button type="button" data-k="p">PAUSA</button>
   <div class="cl dpad">
     <button type="button" data-k="u">&#9650;</button>
     <button type="button" data-k="l">&#9664;</button>
     <span class="ctr"></span>
     <button type="button" data-k="r">&#9654;</button>
     <button type="button" data-k="d">&#9660;</button>
+  </div>
   </div>
   <div class="cl faces">
     <button type="button" data-k="x">X</button>
@@ -933,7 +939,18 @@ function win(){
 }
 
 /* ---------- AGGIORNAMENTO ---------- */
+let pausedFrom=null;
+// pausa: ferma il gioco e mostra il pannello; Riprendi (o P/Esc) torna al punto preciso
+function togglePause(){
+  if(state==='pause'){ hideOverlay(); state=pausedFrom; pausedFrom=null; return; }
+  if(state!=='play' && state!=='banner') return;
+  pausedFrom=state; state='pause';
+  for(const k in hold) hold[k]=false;
+  for(const k in keys) keys[k]=false;
+  showOverlay('In pausa','Premi Riprendi per continuare.','Riprendi',togglePause);
+}
 function tick(){
+  if(state==='pause') return;
   if(state==='banner'){ bannerT--; if(bannerT<=0){ state='play'; updateHUD(); } return; } // riaccende la riserva
   if(state==='end'){ kissT++; return; }
   if(state!=='play') return;
@@ -1486,6 +1503,7 @@ addEventListener('keydown',e=>{
   if(JUMP_KEYS.includes(e.code)) jumpBuf=7;
   if(e.code==='Enter' && !document.getElementById('ov').hidden) document.getElementById('ovB').click();
   if(e.code==='KeyR') useReserve();
+  if(e.code==='KeyP'||e.code==='Escape') togglePause();
   if(e.code==='KeyX' && !e.repeat) fireReq=true;
   unlockAudio();
 });
@@ -1493,6 +1511,7 @@ addEventListener('keyup',e=>{ keys[e.code]=false; });
 let yArrow=false; // Y premuto con una freccia = corsa, non sparo
 document.querySelectorAll('#pad button').forEach(b=>{
   const k=b.dataset.k;
+  if(k==='p'){ b.addEventListener('pointerdown',e=>{ e.preventDefault(); togglePause(); }); return; }
   const on=e=>{ e.preventDefault(); hold[k]=true; if(k==='a'||k==='u') jumpBuf=7; if(k==='x') useReserve(); if(k==='y') yArrow=false; if((k==='l'||k==='r') && hold.y) yArrow=true; unlockAudio(); };
   // Y: un tocco senza frecce spara (al rilascio); con una freccia corre
   const off=e=>{ hold[k]=false; if(k==='y'){ if(e&&e.type==='pointerup'&&!yArrow) fireReq=true; yArrow=false; } };
