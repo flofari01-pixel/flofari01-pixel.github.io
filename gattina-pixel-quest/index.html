@@ -447,7 +447,8 @@ function genLayout(seed,coll,pw,len=170,split=90){
     halves.forEach(([lo,hi],hIdx)=>{
       const nf=Math.floor(nFind/H)+(hIdx===H-1?nFind%H:0);
       // in ordine lungo la metà: 2 barrette di cioccolato, poi gli oggetti da trovare
-      const seq=[['choc',false],['choc',false]];
+      const nch=H>1?(hIdx===0?2:1):1; // al massimo 3 cioccolati per livello
+      const seq=[]; for(let c=0;c<nch;c++) seq.push(['choc',false]);
       for(let j=0;j<nf;j++) seq.push([find[0],true]);
       placeSeq(lo,hi,seq);
       const nc=Math.ceil(Math.max(3,nFind)/H);
@@ -644,14 +645,39 @@ function loadLevel(i){
   for(let d=0;d<60&&!flag;d++) for(const tx of [mid+d,mid-d]){
     if(!flag && tiles.get(tx+',10')==='g' && !tiles.has(tx+',9')) flag={x:tx*T,y:10*T-16,reached:false};
   }
+  // oggetti da trovare (3): il primo dopo i primi due quinti, uno fisso alla bandierina a metà, uno un po' dopo
+  {
+    const fbs=boxes.filter(b=>b.find&&b.t!=='choc');
+    if(fbs.length){
+      const ft=fbs[0].t;
+      for(const b of fbs){ tiles.delete(b.x+','+b.y); tot[b.t]=(tot[b.t]||0)-1; }
+      boxes=boxes.filter(b=>!(b.find&&b.t!=='choc'));
+      const door=L.door;
+      const spot=(want)=>{
+        for(let d=0;d<60;d++) for(const x of [want+d,want-d]){
+          if(x<3||x>door-4||tiles.get(x+',10')!=='g') continue;
+          let free=true; for(let r=5;r<=9;r++) if(tiles.has(x+','+r)){ free=false; break; }
+          if(!free||boxes.some(b=>Math.abs(b.x-x)<=2)) continue;
+          return x;
+        }
+        return want;
+      };
+      const x1=spot(Math.round(door*0.42));
+      const x2=flag?spot(Math.floor(flag.x/T)):spot(Math.floor(L.w/2));
+      const x3=spot(x2+12);
+      const xs=[x1,x2,x3].slice(0,Math.min(3,fbs.length));
+      for(const x of xs){ boxes.push({x,y:6,t:ft,used:false,find:true}); tiles.set(x+',6','b'); tot[ft]=(tot[ft]||0)+1; }
+      levelFind=ft;
+    }
+  }
   // pipistrelli (nella zucca) e gabbiani (nei livelli di mare): volano da destra a sinistra, su e giù
   const fk=L.end==='pumpkin'?'bat':((TH[L.th]&&TH[L.th].deco==='sea')?'bird':null);
   if(fk){
     const R2=mulberry32((L.seed||(lvlIdx+1)*97)+555), n=fk==='bat'?6:4;
     for(let k=0;k<n;k++){
       // a volte volano all'altezza della testa della gattina quando è grande, altre volte più in alto
-      const base=R2()<0.4?130+R2()*4:96+R2()*24;
-      enemies.push({fly:fk,x:40+k*((L.door*T)-80)/n+R2()*30,y:base,base,t:R2()*6.28,spd:0.7+R2()*0.5,ft:0,w:12,h:10,vy:0,dir:-1,onG:false,dead:false});
+      const low=R2()<0.4; const base=low?122+R2()*2:96+R2()*24; // a volte bassi, sotto la testa della gattina piccola; altre volte più in alto
+      enemies.push({fly:fk,x:40+k*((L.door*T)-80)/n+R2()*30,y:base,base,amp:low?3:6,t:R2()*6.28,spd:0.7+R2()*0.5,ft:0,w:12,h:10,vy:0,dir:-1,onG:false,dead:false});
     }
   }
   updateHUD();
@@ -1213,7 +1239,7 @@ function tick(){
     if(e.dead) continue;
     if(e.fly){
       // pipistrelli e gabbiani: niente terreno, volano su e giù e tornano dall'altro lato
-      e.t+=0.09; e.ft++; e.x-=e.spd; e.y=e.base+Math.sin(e.t)*6;
+      e.t+=0.09; e.ft++; e.x-=e.spd; e.y=e.base+Math.sin(e.t)*e.amp;
       if(e.x<-24) e.x=L.w*T+24;
     } else {
       e.x+=e.dir*0.5;
@@ -1225,7 +1251,8 @@ function tick(){
         if(!tiles.has(ax+','+ay)) e.dir*=-1;
       }
     }
-    if(overlap(pl,e)){
+    // i volatili colpiscono solo la gattina grande (la faccia, anche con la sua altezza da grande); da piccola non la raggiungono mai
+    if(e.fly ? (big && overlap({x:pl.x,y:pl.y-(pl.crouch?8:16),w:pl.w,h:pl.h+(pl.crouch?8:16)},e)) : overlap(pl,e)){
       if(pl.vy>0 && pl.pb<=e.y+6){ e.dead=true; pl.vy=-5.2; pl.onG=false; sfx('stomp'); }
       else if(e.fly){ if(big && !pl.crouch) hurt(); } // i volatili raggiungono la faccia solo se sei grande e in piedi
       else hurt();
