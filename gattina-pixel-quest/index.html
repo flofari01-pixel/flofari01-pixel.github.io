@@ -1144,7 +1144,12 @@ function tick(){
   const run=!!(hold.y||keys.KeyZ); // Y (o Z) tenuto: corsa veloce
   const target=dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4);
   // Locorotondo: il ghiaccio fa scivolare un po' (la velocità arriva e si ferma piano)
-  if(L.ice){ pl.slide=(pl.slide||0)+(target-(pl.slide||0))*(pl.onG?0.08:0.03); pl.vx=pl.slide; } else { pl.vx=target; pl.slide=target; } // la pioggia non rallenta più la gattina // in aria si salta più in lungo
+  // scivola solo sul ghiaccio (il terreno 'g' di Locorotondo), non su mensole e caselle
+  if(L.ice){
+    if(pl.onG) pl.onIce=(tiles.get(Math.floor((pl.x+pl.w/2)/T)+','+Math.floor((pl.y+pl.h+1)/T))==='g');
+    const k=pl.onIce?(pl.onG?0.08:0.03):1; // in aria, dopo il ghiaccio, la spinta si spegne piano
+    pl.slide=(pl.slide||0)+(target-(pl.slide||0))*k; pl.vx=pl.slide;
+  } else { pl.vx=target; pl.slide=target; } // la pioggia non rallenta più la gattina // in aria si salta più in lungo
   if(pl.onG && pl.vx){ pl.walk=(pl.walk||0)+0.4; pl.wheel=(pl.wheel||0)+Math.abs(pl.vx); pl.stepT=(pl.stepT||0)+1; const every=run?9:18; if(pl.stepT%every===0) sfx(run?'run':'step'); } // fase della camminata e passi
   if(wet>0) wet--;
   if(jumpBuf>0 && (pl.onG||pl.coyote>0)){
