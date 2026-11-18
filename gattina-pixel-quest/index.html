@@ -58,7 +58,7 @@ button:focus-visible,#ov :focus,#menuBtn:focus{outline:3px solid var(--hud);outl
 @media (pointer:coarse){#pad{display:flex}}
 #resWrap{max-width:768px;margin:12px auto 0;display:flex;justify-content:flex-end}
 #resIco{width:26px;height:26px;image-rendering:pixelated}
-#resBtn{width:56px;height:56px;border-radius:50%;padding:0;font-size:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 0 var(--accent-d);touch-action:manipulation}
+#resBtn{position:relative;width:56px;height:56px;border-radius:50%;padding:0;font-size:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 0 var(--accent-d);touch-action:manipulation}
 #resBtn b{font-size:12px}
 #resBtn:disabled{opacity:.45;cursor:default}
 #shootTip{min-height:12px;max-width:768px;margin:8px auto 0;font:8px "Press Start 2P",monospace;color:var(--hud);text-align:left}
@@ -136,7 +136,7 @@ button:focus-visible,#ov :focus,#menuBtn:focus{outline:3px solid var(--hud);outl
   </div>
 </div>
 <div id="shootTip" style="visibility:hidden">ora puoi sparare con Y</div>
-<div id="resWrap"><button id="resBtn" type="button" disabled><span>RISERVA</span><canvas id="resIco" width="24" height="24"></canvas><b id="resN">0</b></button></div>
+<div id="resWrap"><button id="resBtn" type="button" disabled><svg viewBox="0 0 100 100" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"><defs><path id="resArc" d="M 14 50 A 36 36 0 0 1 86 50"/></defs><text font-family="Press Start 2P,monospace" font-size="13" fill="#1a0a14"><textPath href="#resArc" startOffset="50%" text-anchor="middle">RISERVA</textPath></text></svg><canvas id="resIco" width="24" height="24"></canvas><b id="resN">0</b></button></div>
 <p class="hint">Frecce o A / D per muoverti, Spazio o W per saltare, GIÙ dopo il salto per il salto mortale, X per sparare, Z per correre, R per usare la riserva, P per la pausa.</p>
 <div id="pad">
   <div class="lcol">
@@ -676,8 +676,8 @@ function loadLevel(i){
     const R2=mulberry32((L.seed||(lvlIdx+1)*97)+555), n=fk==='bat'?6:4;
     for(let k=0;k<n;k++){
       // a volte volano all'altezza della testa della gattina quando è grande, altre volte più in alto
-      const low=R2()<0.4; const base=low?122+R2()*2:96+R2()*24; // a volte bassi, sotto la testa della gattina piccola; altre volte più in alto
-      enemies.push({fly:fk,x:40+k*((L.door*T)-80)/n+R2()*30,y:base,base,amp:low?3:6,t:R2()*6.28,spd:0.7+R2()*0.5,ft:0,w:12,h:10,vy:0,dir:-1,onG:false,dead:false});
+      const low=R2()<0.4; const base=low?131+R2()*2:96+R2()*24; // a volte bassi, sotto la testa della gattina piccola; altre volte più in alto
+      enemies.push({fly:fk,x:40+k*((L.door*T)-80)/n+R2()*30,y:base,base,amp:low?2:6,t:R2()*6.28,spd:0.7+R2()*0.5,ft:0,w:12,h:10,vy:0,dir:-1,onG:false,dead:false});
     }
   }
   updateHUD();
@@ -705,7 +705,7 @@ function updateHUD(){
   if(tip){ const nm=POWER_NAMES[heldType]||(COLL[heldType]&&COLL[heldType].l)||''; tip.textContent=(nm?nm+': ':'')+'ora puoi sparare con Y'; tip.style.visibility=(shootOn&&(state==='play'||state==='pause'))?'visible':'hidden'; }
   // il pulsante SPARA sul touch è acceso solo quando si può sparare
   const rb=document.getElementById('resBtn');
-  if(rb){ rb.disabled=!(state==='play'&&!dropFx&&reserve.some(t=>t==='choc'?!big:!shootOn)); document.getElementById('resN').textContent=reserve.length; drawReserveIcon(); }
+  if(rb){ rb.disabled=!(state==='play'&&!dropFx&&reserve.length>0); document.getElementById('resN').textContent=reserve.length; drawReserveIcon(); }
 }
 
 /* ---------- OVERLAY E MENU ---------- */
@@ -1088,11 +1088,11 @@ function drawReserveIcon(){
   try{ drawItem({t:reserve[0],x:5,y:5,c:0,got:false}); } finally { g=old; }
 }
 // schiacciando la riserva l'oggetto cade sulla testa e la gattina torna grande
-// usa il primo oggetto della riserva utilizzabile: il cioccolato se si è piccole, un oggetto da trovare se non si ha il potere di sparare
+// usa sempre il primo oggetto della riserva, anche se non serve: se è un oggetto da trovare e si ha già il potere, si spreca
 function useReserve(){
   if(state!=='play'||dropFx) return;
-  const i=reserve.findIndex(t=>t==='choc'?!big:!shootOn);
-  if(i<0) return;
+  if(reserve.length===0) return;
+  const i=0;
   sfx('reserve');
   dropFx={t:reserve.splice(i,1)[0],y:pl.y-40,vy:0};
   updateHUD();
@@ -1155,7 +1155,7 @@ function tick(){
   // l'oggetto della riserva cade dall'alto; quando tocca la testa la gattina torna grande
   if(dropFx){
     dropFx.vy+=0.35; dropFx.y+=dropFx.vy;
-    if(dropFx.y>=pl.y-12){ sfx('power'); if(dropFx.t!=='choc') setFind(dropFx.t); big=true; dropFx=null; updateHUD(); }
+    if(dropFx.y>=pl.y-12){ sfx('power'); if(dropFx.t!=='choc' && !shootOn) setFind(dropFx.t); big=true; dropFx=null; updateHUD(); }
   }
   // le caselle del cioccolato spariscono finché si ha il potere di sparare, e tornano quando lo si perde
   for(const b of boxes){
