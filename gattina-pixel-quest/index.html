@@ -316,7 +316,7 @@ const TH={
  xmas:{deco:'snow',sky1:'#14284a',sky2:'#3d6496',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#b3262c'},
  teatro:{deco:'apollo',sky1:'#050818',sky2:'#18224f',gnd:'#2a2e3d',gndTop:'#6b7290',plat:'#3a2a1f',platTop:'#8a6a40',bld:'#d9cdb4'},
  cave:{deco:'cave',sky1:'#8a7a5c',sky2:'#d9c9a0',gnd:'#9c8a68',gndTop:'#e8d9b0',plat:'#7a6a4e',platTop:'#b29c70',bld:'#e8dcc0'},
- nardo:{deco:'city',sky1:'#f7b267',sky2:'#f4845f',gnd:'#b8a089',gndTop:'#e8d5b5',plat:'#8a6a50',platTop:'#c49a6c',bld:'#e8c9a0',win:'#7a4a2a'},
+ nardo:{deco:'city',stars:1,moon:[200,28],sky1:'#050818',sky2:'#1d2a55',gnd:'#5a5560',gndTop:'#9a9aa8',plat:'#4a3e34',platTop:'#8a7a6a',bld:'#2a2e4a',win:'#ffd87a'},
  seaN:{deco:'sea',stars:1,sky1:'#050818',sky2:'#1d3a6b',gnd:'#5a5560',gndTop:'#9a9aa8',plat:'#4a3e34',platTop:'#8a7a6a',bld:'#2d3f66',sea:'#1d4a7a'},
  hillsN:{deco:'hills',stars:1,sky1:'#050818',sky2:'#18224f',gnd:'#2e5a2e',gndTop:'#4f8a4f',plat:'#5a3e22',platTop:'#8a6a40',bld:'#0d1a10',hill:'#153a1c'},
  lecce:{deco:'city',sky1:'#7ec8ff',sky2:'#cfeeff',gnd:'#c9b29a',gndTop:'#eadcc4',plat:'#9a7a5a',platTop:'#c49a6c',bld:'#e8d7b8',win:'#3a4a6a'},
@@ -371,7 +371,7 @@ const GEN=[
 {n:'Pumpkin contest',p:'Paesaggio spettrale',th:'spooky',end:'pumpkin',coll:[['bone',10],['pumpkin',4]]},
 {n:'La spa',p:'Tra le piante',th:'spa',end:'building',sign:'LA CORTE DEI FIGULI',coll:[['heart',10],['bikini',4]]},
 {n:'Locorotondo',p:'Luci natalizie',th:'xmasN',end:'building',sign:'ROSTICCERIA',coll:[['ball',10],['bow',4]]},
-{n:'Quad',p:'Trulli di Alberobello',th:'trulli',end:'building',sign:'TRULLO',coll:[['star',10],['helmet',4]],vehicle:'quad'},
+{n:'Quad',p:'Trulli di Alberobello',th:'trulli',end:'trullo',sign:'TRULLO',coll:[['star',10],['helmet',4]],vehicle:'quad'},
 {n:'Pizzica estiva',p:'Luminarie di notte',th:'pizzica',end:'building',sign:'PALCO',coll:[['note',10],['tamb',4]]},
 {n:'Masseria Rauccio',p:'Piscina',th:'plants',end:'building',sign:'MASSERIA RAUCCIO',coll:[['heart',10],['bikini',4]]}
 ];
@@ -656,18 +656,22 @@ function loadLevel(i){
       for(const b of fbs){ tiles.delete(b.x+','+b.y); tot[b.t]=(tot[b.t]||0)-1; }
       boxes=boxes.filter(b=>!(b.find&&b.t!=='choc'));
       const door=L.door;
-      const spot=(want)=>{
+      const spot=(want,ok2=()=>true)=>{
         for(let d=0;d<60;d++) for(const x of [want+d,want-d]){
           if(x<3||x>door-4||tiles.get(x+',10')!=='g') continue;
           let free=true; for(let r=5;r<=9;r++) if(tiles.has(x+','+r)){ free=false; break; }
-          if(!free||boxes.some(b=>Math.abs(b.x-x)<=2)) continue;
+          if(!free||boxes.some(b=>Math.abs(b.x-x)<=2)||!ok2(x)) continue;
           return x;
         }
         return want;
       };
-      const x1=spot(Math.round(door*0.42));
-      const x2=flag?spot(Math.floor(flag.x/T)):spot(Math.floor(L.w/2));
-      const x3=spot(x2+12);
+      // tra due oggetti da trovare ci sono almeno 3 tratti: mai due caselle consecutive
+      const taken=[];
+      const far=(x)=>taken.every(t=>Math.abs(t-x)>=3);
+      const spot2=(want)=>{ const x=spot(want,far); taken.push(x); return x; };
+      const x1=spot2(Math.round(door*0.42));
+      const x2=flag?spot2(Math.floor(flag.x/T)):spot2(Math.floor(L.w/2));
+      const x3=spot2(x2+12);
       const xs=[x1,x2,x3].slice(0,Math.min(3,fbs.length));
       for(const x of xs){ boxes.push({x,y:6,t:ft,used:false,find:true}); tiles.set(x+',6','b'); tot[ft]=(tot[ft]||0)+1; }
       levelFind=ft;
@@ -691,7 +695,7 @@ function loadLevel(i){
     const R2=mulberry32((L.seed||(lvlIdx+1)*97)+555), n=fk==='bat'?6:4;
     for(let k=0;k<n;k++){
       // a volte volano all'altezza della testa della gattina quando è grande, altre volte più in alto
-      const low=R2()<0.4; const base=low?131+R2()*2:96+R2()*24; // a volte bassi, sotto la testa della gattina piccola; altre volte più in alto
+      const low=k===1||R2()<0.4; const base=low?131+R2()*2:96+R2()*24; // almeno un volatile basso per livello, all'altezza della faccia da grande // a volte bassi, sotto la testa della gattina piccola; altre volte più in alto
       enemies.push({fly:fk,x:40+k*((L.door*T)-80)/n+R2()*30,y:base,base,amp:low?2:6,t:R2()*6.28,spd:0.7+R2()*0.5,ft:0,w:12,h:10,vy:0,dir:-1,onG:false,dead:false});
     }
   }
@@ -1478,6 +1482,7 @@ function drawDeco(th){
   const d=th.deco, off=cam, wrap=(v)=>((v%W)+W)%W;
   // cielo notturno o di sera: le stelle stanno dietro a tutto il resto (non nel Pumpkin contest)
   if(th.stars){ g.fillStyle='#fff'; for(const s of stars){ g.fillRect(wrap(s.x-off*0.3),s.y|0,s.s,s.s); } }
+  if(th.moon){ g.fillStyle='#fff6d6'; g.beginPath(); g.arc(th.moon[0],th.moon[1],9,0,Math.PI*2); g.fill(); }
   if(d==='space'){
     g.fillStyle='#fff';
     for(const s of stars){ g.fillRect(wrap(s.x-off*0.3),s.y|0,s.s,s.s); }
@@ -1636,6 +1641,20 @@ function drawEnd(th){
       g.fillStyle='#6b3e22'; g.fillRect(x-1,base-6,3,6);
       g.fillStyle='#2f8a48'; g.beginPath(); g.moveTo(x,base-24); g.lineTo(x-8,base-6); g.lineTo(x+8,base-6); g.fill();
     }
+    return;
+  }
+  if(e==='trullo'){
+    // trullo: muro bianco, tetto conico di pietre a file sovrapposte, pinnacolo e porta
+    const cx=dx+bw/2;
+    g.fillStyle='#f5f0e6'; g.fillRect(cx-22,base-30,44,30);
+    g.fillStyle='#d9d2c2'; g.fillRect(cx+12,base-30,10,30);
+    for(let i=0;i<7;i++){
+      const y=base-30-i*5, half=(bw/2-8)*(1-i/7)+3;
+      g.fillStyle=i%2?'#8a8a94':'#9a9aa6'; g.fillRect(cx-half,y-5,half*2,5);
+    }
+    g.fillStyle='#f5f0e6'; g.fillRect(cx-2,base-69,4,4);
+    g.fillStyle='#3a2a1f'; g.fillRect(cx-5,base-18,10,18); g.beginPath(); g.arc(cx,base-18,5,Math.PI,0); g.fill();
+    g.fillStyle='#3a3a44'; g.fillRect(cx-16,base-22,4,4); g.fillRect(cx+12,base-22,4,4);
     return;
   }
   if(e==='pumpkin'){
