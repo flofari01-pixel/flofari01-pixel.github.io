@@ -1314,12 +1314,15 @@ function tick(){
 
 
 /* ---------- DISEGNO: SPRITE E OGGETTI ---------- */
+// quando la gattina è grande il disegno è ingrandito di 1,5: ogni pixel si allarga un poco per non lasciare bordi grigi
+let SP_PAD=0;
 function drawSprite(rows,x,y){
+  const e=SP_PAD;
   for(let j=0;j<rows.length;j++){
     const row=rows[j];
     for(let i=0;i<row.length;i++){
       const c=row[i]; if(c==='.') continue;
-      g.fillStyle=PAL[c]; g.fillRect(x+i,y+j,1,1);
+      g.fillStyle=PAL[c]; g.fillRect(x+i-e,y+j-e,1+2*e,1+2*e);
     }
   }
 }
@@ -1365,7 +1368,7 @@ function drawBoyKitten(){
   if(!L) return;
   const arrived=(state==='won'||state==='end');
   const s=(arrived?boyBig:big)?1.5:1;
-  drawScaled(L.door*T-24+7,160,s,false,0,()=>drawSprite(KBOY,-7,-16));
+  g.save(); g.translate(L.door*T-24+7,160); g.scale(s,s); drawSprite(KBOY,-7,-16); g.restore();
 }
 // cuoricino sparato (piccolo, rosa)
 function drawShot(s){
@@ -1671,18 +1674,12 @@ function drawRideHands(front){
     arm(0,-8,6+w,-8+dy); hand(6+w,-9+dy);
   }
 }
-// disegna lo sprite ingrandito passando da un'immagine a pixel interi: niente bordi grigi tra i pixel
-const BIG_C=document.createElement('canvas'); BIG_C.width=64; BIG_C.height=64;
-function drawScaled(ox,oy,s,flipX,rot,fn){
-  if(s===1){ g.save(); g.translate(ox,oy); if(flipX) g.scale(-1,1); if(rot) g.rotate(rot); fn(); g.restore(); return; }
-  const og=BIG_C.getContext('2d'); og.setTransform(1,0,0,1,0,0); og.clearRect(0,0,64,64);
-  const main=g; g=og;
-  try{ g.save(); g.translate(32,40); if(flipX) g.scale(-1,1); if(rot) g.rotate(rot); fn(); g.restore(); }
-  finally{ g=main; }
-  g.save(); g.imageSmoothingEnabled=false; g.drawImage(BIG_C,ox-32*s,oy-40*s,64*s,64*s); g.restore();
-}
 function drawPlayer(){
   if(hitCool>0 && Math.floor(hitCool/4)%2) return;
+  SP_PAD=big?0.35:0;
+  try{ drawPlayerInner(); } finally { SP_PAD=0; }
+}
+function drawPlayerInner(){
   // da ferma la gattina è di fronte; quando si muove (o è in aria) è di profilo
   // (a terra vale anche il "coyote time": evita lo scambio di vista frame per frame da fermi)
   const still=(pl.onG||pl.coyote>0) && pl.vx===0;
@@ -1694,16 +1691,17 @@ function drawPlayer(){
   const s=big?1.5:1;
   if(pl.flipT>0){
     const cx=Math.round(pl.x+pl.w/2), cy=Math.round(pl.y+pl.h/2);
-    drawScaled(cx,cy,s,false,pl.face*(pl.flipT/32)*Math.PI*2,()=>{
-      if(front) drawSprite(front,-7,-8); else drawProfile(-7,-8);
-      if(helmet) drawSprite(HELM_FULL,-7,-8);
-      if(santaOn()) drawSprite(SANTA_HAT,-7,-14);
-      drawPixelPoints(BOW,front?-7:-9,-8,PAL.r);
-    });
+    g.save(); g.translate(cx,cy); g.rotate(pl.face*(pl.flipT/32)*Math.PI*2); g.scale(s,s);
+    if(front) drawSprite(front,-7,-8); else drawProfile(-7,-8);
+    if(helmet) drawSprite(HELM_FULL,-7,-8);
+    if(santaOn()) drawSprite(SANTA_HAT,-7,-14);
+    drawPixelPoints(BOW,front?-7:-9,-8,PAL.r);
+    g.restore();
     return;
   }
   const ox=Math.round(pl.x+pl.w/2), oy=Math.round(pl.y+pl.h);
-  drawScaled(ox,oy,s,pl.face<0,0,()=>{
+  g.save();
+  g.translate(ox,oy); g.scale(pl.face<0?-s:s,s);
   const quad=L.vehicle==='quad';
   if(quad){ drawSprite(front?QUAD_FRONT:QUAD_SPIN[Math.floor((pl.wheel||0)/6)%2],-14,-14); g.translate(0,-6); } // il quad sta sotto, la gattina è seduta sulla sella
   if(pl.crouch){ // accovacciata: la vista di fronte con una riga su due, pixel interi (niente sfumature)
@@ -1712,7 +1710,7 @@ function drawPlayer(){
   else if(front){ drawSprite(front,-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-7,-16,PAL.r); }
   else { drawProfile(-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-9,-16,PAL.r); }
   if(quad) drawRideHands(!!front);
-  });
+  g.restore();
 }
 
 // bandierina segnaposto: grigia finché non è stata raggiunta, gialla dopo
