@@ -11,7 +11,10 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 Inter,system-ui,sans-serif;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1{font:12px "Press Start 2P",monospace;color:var(--accent);margin:0 auto 12px;max-width:768px;line-height:1.6;text-align:center}
-#hud{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:space-between;align-items:center;font:8px "Press Start 2P",monospace;color:var(--hud);max-width:768px;margin:0 auto 10px;min-height:44px}
+#hud{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"lvl lives menu" "items prog prog";gap:6px 14px;align-items:center;font:8px "Press Start 2P",monospace;color:var(--hud);max-width:768px;margin:0 auto 10px;min-height:44px}
+#hLvl{grid-area:lvl;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hLives{grid-area:lives;white-space:nowrap}
+#hItems{grid-area:items;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #stage{position:relative;max-width:768px;margin:0 auto;aspect-ratio:4/3;background:#000;border:3px solid var(--line);border-radius:4px;overflow:hidden}
 canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
 .ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow-y:auto;background:rgba(8,4,18,.8);padding:12px}
@@ -62,9 +65,9 @@ button:focus-visible,#ov :focus,#menuBtn:focus{outline:3px solid var(--hud);outl
 #resBtn b{font-size:12px}
 #resBtn:disabled{opacity:.45;cursor:default}
 #shootTip{min-height:12px;max-width:768px;margin:8px auto 0;font:8px "Press Start 2P",monospace;color:var(--hud);text-align:left}
-#prog{position:relative;width:120px;height:8px;background:var(--line);border:2px solid var(--accent);margin:4px 12px 4px auto;flex:0 0 auto;order:2}
+#prog{position:relative;grid-area:prog;justify-self:end;width:120px;height:8px;background:var(--line);border:2px solid var(--accent);margin:4px 12px 4px auto;order:2}
 #hItems{order:1}
-#menuBtn{order:3}
+#menuBtn{grid-area:menu;order:3}
 #progFill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent)}
 #progMe{position:absolute;top:-5px;width:4px;height:14px;background:#fff;transform:translateX(-50%)}
 #progFlag{position:absolute;top:-5px;width:4px;height:14px;background:var(--hud);transform:translateX(-50%);display:none}
@@ -77,7 +80,7 @@ button:focus-visible,#ov :focus,#menuBtn:focus{outline:3px solid var(--hud);outl
   #shootTip{display:none!important}
   #stage{position:fixed;inset:0;max-width:none;margin:0;aspect-ratio:auto;border:0;border-radius:0;display:flex;align-items:center;justify-content:center;background:#000;z-index:1}
   canvas{width:auto;height:100vh;height:100dvh;max-width:100%;aspect-ratio:4/3}
-  #hud{position:fixed;left:8px;top:6px;z-index:6;width:150px;max-width:none;margin:0;flex-direction:column;align-items:flex-start;gap:4px;font-size:6px}
+  #hud{position:fixed;left:8px;top:6px;z-index:6;width:150px;max-width:none;margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-size:6px}
   #prog{margin:4px 0}
   #pad{display:flex;position:fixed;inset:0;margin:0;max-width:none;pointer-events:none;z-index:6}
   #pad .lcol{position:absolute;left:10px;bottom:24px;pointer-events:auto}
@@ -311,22 +314,22 @@ const TH={
  space:{deco:'space',sky1:'#07041f',sky2:'#24124a',gnd:'#40457a',gndTop:'#9aa3f0',plat:'#2a2358',platTop:'#7d86d9',bld:'#2a2358'},
  xmasSea:{deco:'sea',sky1:'#58c4ff',sky2:'#d8f4ff',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#b3262c',sea:'#2a9dd6'},
  xmas:{deco:'snow',sky1:'#14284a',sky2:'#3d6496',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#b3262c'},
- teatro:{deco:'apollo',sky1:'#050818',sky2:'#18224f',gnd:'#2a2e3d',gndTop:'#6b7290',plat:'#3a2a1f',platTop:'#8a6a40',bld:'#d9cdb4'},
+ teatro:{deco:'apollo',stars:1,sky1:'#050818',sky2:'#18224f',gnd:'#2a2e3d',gndTop:'#6b7290',plat:'#3a2a1f',platTop:'#8a6a40',bld:'#d9cdb4'},
  cave:{deco:'cave',sky1:'#8a7a5c',sky2:'#d9c9a0',gnd:'#9c8a68',gndTop:'#e8d9b0',plat:'#7a6a4e',platTop:'#b29c70',bld:'#e8dcc0'},
  nardo:{deco:'city',sky1:'#f7b267',sky2:'#f4845f',gnd:'#b8a089',gndTop:'#e8d5b5',plat:'#8a6a50',platTop:'#c49a6c',bld:'#e8c9a0',win:'#7a4a2a'},
- seaN:{deco:'sea',sky1:'#050818',sky2:'#1d3a6b',gnd:'#5a5560',gndTop:'#9a9aa8',plat:'#4a3e34',platTop:'#8a7a6a',bld:'#2d3f66',sea:'#1d4a7a'},
- hillsN:{deco:'hills',sky1:'#050818',sky2:'#18224f',gnd:'#2e5a2e',gndTop:'#4f8a4f',plat:'#5a3e22',platTop:'#8a6a40',bld:'#0d1a10',hill:'#153a1c'},
+ seaN:{deco:'sea',stars:1,sky1:'#050818',sky2:'#1d3a6b',gnd:'#5a5560',gndTop:'#9a9aa8',plat:'#4a3e34',platTop:'#8a7a6a',bld:'#2d3f66',sea:'#1d4a7a'},
+ hillsN:{deco:'hills',stars:1,sky1:'#050818',sky2:'#18224f',gnd:'#2e5a2e',gndTop:'#4f8a4f',plat:'#5a3e22',platTop:'#8a6a40',bld:'#0d1a10',hill:'#153a1c'},
  lecce:{deco:'city',sky1:'#7ec8ff',sky2:'#cfeeff',gnd:'#c9b29a',gndTop:'#eadcc4',plat:'#9a7a5a',platTop:'#c49a6c',bld:'#e8d7b8',win:'#3a4a6a'},
  beach:{deco:'sea',sky1:'#58c4ff',sky2:'#d8f4ff',gnd:'#e8d59a',gndTop:'#f6e7b8',plat:'#b58a5a',platTop:'#d9b07a',bld:'#f2e4c4',sea:'#2a9dd6'},
- festa:{deco:'lights',sky1:'#1a0a2e',sky2:'#3a1a4a',gnd:'#4a3a4a',gndTop:'#7a6a7a',plat:'#5a2e3e',platTop:'#8a4e5e',bld:'#5a3a4a'},
- otranto:{deco:'city',sky1:'#0a1030',sky2:'#24366b',gnd:'#4b4f63',gndTop:'#8a90b0',plat:'#3a2e3a',platTop:'#7a6a80',bld:'#1d2550',win:'#ffd87a'},
+ festa:{deco:'lights',stars:1,sky1:'#1a0a2e',sky2:'#3a1a4a',gnd:'#4a3a4a',gndTop:'#7a6a7a',plat:'#5a2e3e',platTop:'#8a4e5e',bld:'#5a3a4a'},
+ otranto:{deco:'city',stars:1,sky1:'#0a1030',sky2:'#24366b',gnd:'#4b4f63',gndTop:'#8a90b0',plat:'#3a2e3a',platTop:'#7a6a80',bld:'#1d2550',win:'#ffd87a'},
  ship:{deco:'sea',sky1:'#7ec8ff',sky2:'#e8f7ff',gnd:'#e9e2d0',gndTop:'#ffffff',plat:'#8a6a4a',platTop:'#c49a6c',bld:'#ffffff',sea:'#1f7fb8'},
  spooky:{deco:'spooky',sky1:'#120a1e',sky2:'#3a2a4a',gnd:'#3a3040',gndTop:'#6a5a70',plat:'#3a2a20',platTop:'#7a5a30',bld:'#2a2030'},
  plants:{deco:'plants',sky1:'#7ed6ff',sky2:'#dff7ff',gnd:'#8fc16a',gndTop:'#b8e08a',plat:'#6b4a2a',platTop:'#3f8a3f',bld:'#e8d7b8'},
  spa:{deco:'spa',sky1:'#8a7a5c',sky2:'#d9c9a0',gnd:'#8fc16a',gndTop:'#b8e08a',plat:'#6b4a2a',platTop:'#3f8a3f',bld:'#e8d7b8'},
- xmasN:{deco:'lights',sky1:'#14284a',sky2:'#3d6496',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#c8b89a'},
+ xmasN:{deco:'lights',stars:1,sky1:'#14284a',sky2:'#3d6496',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#c8b89a'},
  trulli:{deco:'trulli',sky1:'#79c7ff',sky2:'#e6f6ff',gnd:'#d8c7a0',gndTop:'#f3e6c4',plat:'#8a6a4a',platTop:'#b8925a',bld:'#f5f0e6'},
- pizzica:{deco:'lights',sky1:'#1a0820',sky2:'#4a1a2a',gnd:'#3a2a30',gndTop:'#7a4a50',plat:'#5a2a20',platTop:'#9a5a30',bld:'#6a2a2a'}
+ pizzica:{deco:'lights',stars:1,sky1:'#1a0820',sky2:'#4a1a2a',gnd:'#3a2a30',gndTop:'#7a4a50',plat:'#5a2a20',platTop:'#9a5a30',bld:'#6a2a2a'}
 };
 
 /* ---------- LIVELLI FATTI A MANO (1, 2, 4) ---------- */
@@ -1461,6 +1464,8 @@ function drawSkyStrip(bc,wc,off){
 }
 function drawDeco(th){
   const d=th.deco, off=cam, wrap=(v)=>((v%W)+W)%W;
+  // cielo notturno o di sera: le stelle stanno dietro a tutto il resto (non nel Pumpkin contest)
+  if(th.stars){ g.fillStyle='#fff'; for(const s of stars){ g.fillRect(wrap(s.x-off*0.3),s.y|0,s.s,s.s); } }
   if(d==='space'){
     g.fillStyle='#fff';
     for(const s of stars){ g.fillRect(wrap(s.x-off*0.3),s.y|0,s.s,s.s); }
