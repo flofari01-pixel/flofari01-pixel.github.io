@@ -10,7 +10,7 @@
 :root{--bg:#0d0817;--fg:#f4f1ea;--accent:#ff7fb0;--accent-d:#a33a64;--hud:#ffd23f;--line:#2b1d4a;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 Inter,system-ui,sans-serif;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h1{font:12px "Press Start 2P",monospace;color:var(--accent);margin:0 auto 12px;max-width:768px;line-height:1.6}
+h1{font:12px "Press Start 2P",monospace;color:var(--accent);margin:0 auto 12px;max-width:768px;line-height:1.6;text-align:center}
 #hud{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:space-between;align-items:center;font:8px "Press Start 2P",monospace;color:var(--hud);max-width:768px;margin:0 auto 10px}
 #stage{position:relative;max-width:768px;margin:0 auto;aspect-ratio:4/3;background:#000;border:3px solid var(--line);border-radius:4px;overflow:hidden}
 canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
@@ -319,6 +319,7 @@ const TH={
  ship:{deco:'sea',sky1:'#7ec8ff',sky2:'#e8f7ff',gnd:'#e9e2d0',gndTop:'#ffffff',plat:'#8a6a4a',platTop:'#c49a6c',bld:'#ffffff',sea:'#1f7fb8'},
  spooky:{deco:'spooky',sky1:'#120a1e',sky2:'#3a2a4a',gnd:'#3a3040',gndTop:'#6a5a70',plat:'#3a2a20',platTop:'#7a5a30',bld:'#2a2030'},
  plants:{deco:'plants',sky1:'#7ed6ff',sky2:'#dff7ff',gnd:'#8fc16a',gndTop:'#b8e08a',plat:'#6b4a2a',platTop:'#3f8a3f',bld:'#e8d7b8'},
+ spa:{deco:'spa',sky1:'#8a7a5c',sky2:'#d9c9a0',gnd:'#8fc16a',gndTop:'#b8e08a',plat:'#6b4a2a',platTop:'#3f8a3f',bld:'#e8d7b8'},
  xmasN:{deco:'lights',sky1:'#14284a',sky2:'#3d6496',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#c8b89a'},
  trulli:{deco:'trulli',sky1:'#79c7ff',sky2:'#e6f6ff',gnd:'#d8c7a0',gndTop:'#f3e6c4',plat:'#8a6a4a',platTop:'#b8925a',bld:'#f5f0e6'},
  pizzica:{deco:'lights',sky1:'#1a0820',sky2:'#4a1a2a',gnd:'#3a2a30',gndTop:'#7a4a50',plat:'#5a2a20',platTop:'#9a5a30',bld:'#6a2a2a'}
@@ -356,12 +357,12 @@ const GEN=[
 {n:'San Valentino',p:'Lecce di giorno',th:'lecce',end:'building',sign:'ER POLPETTA',coll:[['meat',10],['letter',4]]},
 {n:'Giornata al mare',p:'Spiaggia',th:'beach',end:'tree',coll:[['shell',10],['pizza',4]]},
 {n:'Aria Caddhipulina',p:'Spiaggia di giorno',th:'beach',end:'building',sign:'MARTINUCCI',coll:[['heart',10],['gelato',4]]},
-{n:'San Vito',p:'Luminarie della festa patronale',th:'festa',end:'building',sign:'LUNAPARK',coll:[['heart',10],['flower',4]]},
+{n:'San Vito',p:'Luminarie della festa patronale',th:'festa',end:'wheel',sign:'LUNAPARK',coll:[['heart',10],['flower',4]]},
 {n:'Casa al mare',p:'Spiaggia',th:'beach',end:'bed',coll:[['biro',10],['heart',4]]},
 {n:'Crociera',p:'Crociera nel mare',th:'ship',end:'building',sign:'SBARCO',coll:[['heart',10],['thermo',4]]},
 {n:'Otranto',p:'Vie di Otranto di notte',th:'otranto',end:'building',sign:'LA POLPERIA',coll:[['heart',10],['octo',4]]},
 {n:'Pumpkin contest',p:'Paesaggio spettrale',th:'spooky',end:'pumpkin',coll:[['bone',10],['pumpkin',4]]},
-{n:'La spa',p:'Tra le piante',th:'plants',end:'building',sign:'LA CORTE DEI FIGULI',coll:[['heart',10],['bikini',4]]},
+{n:'La spa',p:'Tra le piante',th:'spa',end:'building',sign:'LA CORTE DEI FIGULI',coll:[['heart',10],['bikini',4]]},
 {n:'Locorotondo',p:'Luci natalizie',th:'xmasN',end:'building',sign:'ROSTICCERIA',coll:[['ball',10],['bow',4]]},
 {n:'Quad',p:'Trulli di Alberobello',th:'trulli',end:'building',sign:'TRULLO',coll:[['star',10],['helmet',4]],vehicle:'quad'},
 {n:'Pizzica estiva',p:'Luminarie di notte',th:'pizzica',end:'building',sign:'PALCO',coll:[['note',10],['tamb',4]]},
@@ -369,7 +370,7 @@ const GEN=[
 ];
 const FIND=new Set(POWER.concat(GEN.map(c=>c.coll[c.coll.length-1][0])));
 const GEN_LV=GEN.map((c,i)=>({name:c.n,place:c.p,sign:c.sign||'',th:c.th,end:c.end,hud:c.coll.map(x=>x[0]),door:176,w:182,
- gen:true,seed:c.seed||(i+7)*131,vehicle:c.vehicle,coll:c.coll,pw:[c.coll[c.coll.length-1][0]],ecol:'#b9b3c9'}));
+ gen:true,seed:c.seed||(i+7)*131,vehicle:c.vehicle,coll:c.coll,pw:[c.coll[c.coll.length-1][0]],ecol:'#b9b3c9',ice:c.n==='Locorotondo'}));
 LV.splice(2,0,GEN_LV[0]);          // Il Parco delle Cave diventa il livello 3
 LV.push(...GEN_LV.slice(1));       // Nardò ... Masseria Rauccio
 // i livelli fatti a mano vengono allungati con un tratto generato in coda (dopo x=96)
@@ -639,6 +640,15 @@ function loadLevel(i){
   for(let d=0;d<60&&!flag;d++) for(const tx of [mid+d,mid-d]){
     if(!flag && tiles.get(tx+',10')==='g' && !tiles.has(tx+',9')) flag={x:tx*T,y:10*T-16,reached:false};
   }
+  // pipistrelli (nella zucca) e gabbiani (nei livelli di mare): volano da destra a sinistra, su e giù
+  const fk=L.end==='pumpkin'?'bat':((TH[L.th]&&TH[L.th].deco==='sea')?'bird':null);
+  if(fk){
+    const R2=mulberry32((L.seed||(lvlIdx+1)*97)+555), n=fk==='bat'?6:4;
+    for(let k=0;k<n;k++){
+      const base=72+R2()*50;
+      enemies.push({fly:fk,x:40+k*((L.door*T)-80)/n+R2()*30,y:base,base,t:R2()*6.28,spd:0.7+R2()*0.5,ft:0,w:12,h:10,vy:0,dir:-1,onG:false,dead:false});
+    }
+  }
   updateHUD();
 }
 
@@ -658,7 +668,6 @@ function updateHUD(){
   document.getElementById('hLvl').textContent=(lvlIdx+1)+' '+L.name.toUpperCase();
   document.getElementById('hLives').textContent='VITE '+Math.max(0,lives);
   let s=L.hud.map(t=>COLL[t].l+' '+(cnt[t]||0)+'/'+(tot[t]||0)).join('  ');
-  if(big) s+='  GRANDE';
   if(powered) s+='  ORSETTO';
   if(shootOn) s+='  SPARO (X)';
   document.getElementById('hItems').textContent=s;
@@ -676,6 +685,7 @@ function showOverlay(t,p,b,fn){
   btn.textContent=b; btn.onclick=()=>{ sfx('click'); if(fn) fn(); };
   document.getElementById('lvlBtns').hidden=(t!=='Syria Kitty Bros');
   btn.hidden=false; document.getElementById('ovT').hidden=false; document.getElementById('ovP').hidden=false; document.getElementById('plBtn').hidden=(t!=='Syria Kitty Bros'); document.getElementById('plPanel').hidden=true; document.getElementById('plPlayer').hidden=true;
+  setLevelHud(t!=='Syria Kitty Bros'); // nel menu niente scritte del livello
   document.getElementById('ov').hidden=false;
   // nel menu iniziale nessun pulsante è selezionato: la prima freccia giù seleziona la playlist (primo pulsante)
   if(t==='Syria Kitty Bros'){ if(document.activeElement){ intentionalBlur=true; document.activeElement.blur(); intentionalBlur=false; } lastMenuFocus=null; }
@@ -794,7 +804,9 @@ function hidePlaylist(){
   plStopSrc(); plOff=0;
   showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 }
+function setLevelHud(show){ for(const id of ['hLvl','hLives','prog','hItems']){ const el=document.getElementById(id); if(el) el.hidden=!show; } }
 function hideOverlay(){
+  setLevelHud(true);
   document.getElementById('ov').hidden=true;
   document.getElementById('lvlBtns').hidden=true;
 }
@@ -1130,7 +1142,9 @@ function tick(){
   // al cambio di direzione la vista frontale compare per qualche istante (vedi drawPlayer)
   if(dir){ if(dir!==pl.face) pl.turnT=12; pl.face=dir; }
   const run=!!(hold.y||keys.KeyZ); // Y (o Z) tenuto: corsa veloce
-  pl.vx=dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4); // la pioggia non rallenta più la gattina // in aria si salta più in lungo
+  const target=dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4);
+  // Locorotondo: il ghiaccio fa scivolare un po' (la velocità arriva e si ferma piano)
+  if(L.ice){ pl.slide=(pl.slide||0)+(target-(pl.slide||0))*(pl.onG?0.08:0.03); pl.vx=pl.slide; } else { pl.vx=target; pl.slide=target; } // la pioggia non rallenta più la gattina // in aria si salta più in lungo
   if(pl.onG && pl.vx){ pl.walk=(pl.walk||0)+0.4; pl.wheel=(pl.wheel||0)+Math.abs(pl.vx); pl.stepT=(pl.stepT||0)+1; const every=run?9:18; if(pl.stepT%every===0) sfx(run?'run':'step'); } // fase della camminata e passi
   if(wet>0) wet--;
   if(jumpBuf>0 && (pl.onG||pl.coyote>0)){
@@ -1175,13 +1189,19 @@ function tick(){
 
   for(const e of enemies){
     if(e.dead) continue;
-    e.x+=e.dir*0.5;
-    if(resolveX(e,e.dir)) e.dir*=-1;
-    e.vy=Math.min(e.vy+G,MAXFALL); e.onG=false;
-    e.y+=e.vy; resolveY(e);
-    if(e.onG){
-      const ax=Math.floor((e.dir>0?e.x+e.w+1:e.x-1)/T), ay=Math.floor((e.y+e.h+1)/T);
-      if(!tiles.has(ax+','+ay)) e.dir*=-1;
+    if(e.fly){
+      // pipistrelli e gabbiani: niente terreno, volano su e giù e tornano dall'altro lato
+      e.t+=0.09; e.ft++; e.x-=e.spd; e.y=e.base+Math.sin(e.t)*10;
+      if(e.x<-24) e.x=L.w*T+24;
+    } else {
+      e.x+=e.dir*0.5;
+      if(resolveX(e,e.dir)) e.dir*=-1;
+      e.vy=Math.min(e.vy+G,MAXFALL); e.onG=false;
+      e.y+=e.vy; resolveY(e);
+      if(e.onG){
+        const ax=Math.floor((e.dir>0?e.x+e.w+1:e.x-1)/T), ay=Math.floor((e.y+e.h+1)/T);
+        if(!tiles.has(ax+','+ay)) e.dir*=-1;
+      }
     }
     if(overlap(pl,e)){
       if(pl.vy>0 && pl.pb<=e.y+6){ e.dead=true; pl.vy=-5.2; pl.onG=false; sfx('stomp'); }
@@ -1303,7 +1323,18 @@ function drawShot(s){
   for(let j=0;j<HEART.length;j++) for(let i=0;i<HEART[j].length;i++)
     if(HEART[j][i]==='x') g.fillRect(Math.round(s.x)+i-1,Math.round(s.y)+j-1,1,1);
 }
+// pipistrello e gabbiano: due fotogrammi (ali alzate e abbassate)
+const BAT_A=["v.........v","vv..vvv..vv","vvvvvvvvvvv","vvyvvvvvyvv",".VVvvvvvVV.","..VV.V.VV.."];
+const BAT_B=["...........","vvvvvvvvvvv","VVvvvvvvvVV","vvyvvvvvyvv",".VVvvvvvVV.","..VV.V.VV.."];
+const BIRD_A=["ww.....ww","wwwwwwwww","..wkwwwo.",".........","...wwww.."];
+const BIRD_B=["...www...","..wkwwwo.","wwwwwwwww","...wwww..","...."];
+function drawFlyer(e){
+  const up=Math.floor(e.ft/5)%2;
+  const rows=e.fly==='bat'?(up?BAT_A:BAT_B):(up?BIRD_A:BIRD_B);
+  drawSprite(rows,Math.round(e.x+6-rows[0].length/2),Math.round(e.y+5-rows.length/2));
+}
 function drawEnemy(e){
+  if(e.fly){ drawFlyer(e); return; }
   if(L.th==='space'){
     g.fillStyle='#7cfc9a'; g.beginPath(); g.ellipse(e.x+7,e.y+7,7,6,0,0,Math.PI*2); g.fill();
     g.fillStyle='#140a0c'; g.fillRect(e.x+4,e.y+5,2,2); g.fillRect(e.x+9,e.y+5,2,2);
@@ -1400,6 +1431,24 @@ function drawDeco(th){
     g.fillStyle='#3f8a3f';
     for(let i=0;i<7;i++){ g.beginPath(); g.arc(wrap(i*44-off*0.35),176,18,0,Math.PI*2); g.fill(); }
   }
+  else if(d==='spa'){
+    // come il Parco delle Cave, ma con le piante
+    for(let i=0;i<8;i++){ g.fillStyle=i%2?'#b8a57e':'#a8966e'; g.fillRect(0,20+i*18,W,9); }
+    g.fillStyle='#7a6a4e';
+    for(let i=0;i<6;i++){ g.fillRect(wrap(i*52-off*0.4),40+(i%3)*30,20,6); }
+    // piante in alto (foglie che scendono) e cespugli in basso
+    for(let i=0;i<8;i++){
+      const x=wrap(i*36-off*0.25);
+      g.fillStyle='#2f7a3a'; g.fillRect(x,0,1,12+(i%3)*4);
+      g.fillStyle='#4fae55'; g.beginPath(); g.ellipse(x-2,12+(i%3)*4,4,2,-0.5,0,Math.PI*2); g.fill();
+      g.beginPath(); g.ellipse(x+2,10+(i%3)*4,4,2,0.5,0,Math.PI*2); g.fill();
+    }
+    for(let i=0;i<7;i++){
+      const x=wrap(i*44-off*0.35);
+      g.fillStyle='#2f7a3a'; g.beginPath(); g.arc(x,170,10,0,Math.PI*2); g.fill();
+      g.fillStyle='#4fae55'; g.beginPath(); g.arc(x+3,166,5,0,Math.PI*2); g.fill();
+    }
+  }
   else if(d==='trulli'){
     const c=stripFor('trulli',256,()=>{
       for(let i=0;i<6;i++) for(const x of [(i*48)%256, (i*48)%256-256]){
@@ -1418,9 +1467,9 @@ function drawTiles(th){
     const k=tiles.get(tx+','+ty); if(!k) continue;
     const X=tx*T, Y=ty*T, above=!tiles.has(tx+','+(ty-1));
     if(k==='g'){
-      g.fillStyle=th.gnd; g.fillRect(X,Y,T,T);
+      g.fillStyle=L.ice?'#bfe8ff':th.gnd; g.fillRect(X,Y,T,T);
       g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X,Y+7,T,1); g.fillRect(X+(ty%2?4:11),Y+(ty%2?0:8),1,8);
-      if(above){ g.fillStyle=th.gndTop; g.fillRect(X,Y,T,3); }
+      if(above){ g.fillStyle=L.ice?'#f4fdff':th.gndTop; g.fillRect(X,Y,T,3); }
     } else if(k==='p'){
       g.fillStyle=th.plat; g.fillRect(X,Y,T,T);
       g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(X,Y+8,T,1);
@@ -1496,8 +1545,31 @@ function drawEnd(th){
     return;
   }
   if(e==='pumpkin'){
-    g.fillStyle='#ff7b00'; g.beginPath(); g.arc(dx+bw/2,base-22,20,0,Math.PI*2); g.fill();
-    g.fillStyle='#2f8a48'; g.fillRect(dx+bw/2-1,base-44,2,6);
+    // zucca vera: tre spicchi larghi, solchi, picciolo e faccia intagliata
+    const cx=dx+bw/2, cy=base-24;
+    g.fillStyle='#ff7b00';
+    for(const ox of [-10,0,10]){ g.beginPath(); g.ellipse(cx+ox,cy,11,15,0,0,Math.PI*2); g.fill(); }
+    g.fillStyle='#c46a00'; for(const ox of [-5,5]) g.fillRect(cx+ox,cy-12,1,24);
+    g.fillStyle='#2f8a48'; g.fillRect(cx-1,cy-21,3,7);
+    g.beginPath(); g.ellipse(cx+5,cy-17,4,2,0.4,0,Math.PI*2); g.fill();
+    g.fillStyle='#140a0c'; g.fillRect(cx-7,cy-5,3,3); g.fillRect(cx+4,cy-5,3,3);
+    g.fillRect(cx-6,cy+3,12,2); g.fillRect(cx-4,cy+1,2,2); g.fillRect(cx+2,cy+1,2,2);
+    return;
+  }
+  if(e==='wheel'){
+    // ruota panoramica: sostegno a A, cerchio con raggi e cabine che ruotano
+    const cx=dx+bw/2, cy=base-46, R=32, rot=performance.now()/1400;
+    g.fillStyle='#8a8a9a';
+    g.beginPath(); g.moveTo(cx-14,base); g.lineTo(cx-2,cy+10); g.lineTo(cx+2,cy+10); g.lineTo(cx+14,base); g.lineTo(cx+10,base); g.lineTo(cx,cy+16); g.lineTo(cx-10,base); g.fill();
+    g.strokeStyle='#e8e8f0'; g.lineWidth=1.5; g.beginPath(); g.arc(cx,cy,R,0,Math.PI*2); g.stroke();
+    g.lineWidth=1; g.beginPath();
+    for(let i=0;i<8;i++){ const a=rot+i*Math.PI/4; g.moveTo(cx,cy); g.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R); }
+    g.stroke();
+    for(let i=0;i<8;i++){
+      const a=rot+i*Math.PI/4, x=cx+Math.cos(a)*R, y=cy+Math.sin(a)*R;
+      g.fillStyle=i%2?'#ff4f8b':'#4cc9f0'; g.fillRect(x-2,y-2,4,4);
+    }
+    g.fillStyle='#ffd23f'; g.beginPath(); g.arc(cx,cy,3,0,Math.PI*2); g.fill();
     return;
   }
   // edificio generico con insegna e cartello di stato
