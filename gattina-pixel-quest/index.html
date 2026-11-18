@@ -47,7 +47,7 @@ button:focus-visible,#ov :focus,#menuBtn:focus{outline:3px solid var(--hud);outl
 #pad .cl{display:grid;gap:6px}
 #pad .dpad{grid-template-areas:". u ." "l c r" ". d .";grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px);gap:0}
 #pad .faces{grid-template-areas:". x ." "y . a" ". b .";grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px)}
-#pad button{padding:0;font-size:9px;touch-action:none;user-select:none;box-shadow:0 3px 0 #1b1424}
+#pad button{padding:0;font-size:9px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 0 #1b1424}
 #pad .dpad{filter:drop-shadow(0 3px 0 #1b1424)}
 #pad .dpad button,#pad .ctr{background:#3a2d4d;color:#f4e9ff;box-shadow:none}
 #pad .dpad [data-k="u"]{border-radius:6px 6px 0 0}#pad .dpad [data-k="d"]{border-radius:0 0 6px 6px}#pad .dpad [data-k="l"]{border-radius:6px 0 0 6px}#pad .dpad [data-k="r"]{border-radius:0 6px 6px 0}
@@ -2065,6 +2065,10 @@ document.querySelectorAll('#pad button').forEach(b=>{
 // toccare un punto che non è un pulsante non deve far perdere la selezione del menu
 document.addEventListener('mousedown',e=>{ if(!document.getElementById('ov').hidden && !e.target.closest('button, input, a')) e.preventDefault(); },true);
 document.addEventListener('focusin',e=>{ if(e.target.closest && e.target.closest('#ov') && e.target.matches('button, input')) lastMenuFocus=e.target; });
+// iPhone/iPad: tenere premuto un tasto non deve selezionare testo né aprire il menu del sistema (il gioco si bloccava)
+document.addEventListener('selectstart',e=>{ if(e.target.closest && e.target.closest('#pad, #stage, #hud, button')) e.preventDefault(); });
+document.addEventListener('contextmenu',e=>{ if(e.target.closest && e.target.closest('#pad, #stage, #hud, button')) e.preventDefault(); });
+document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('focusout',e=>{
   if(intentionalBlur || e.relatedTarget || document.getElementById('ov').hidden || !lastMenuFocus) return;
   const lf=lastMenuFocus;
