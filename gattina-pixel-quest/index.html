@@ -1245,8 +1245,9 @@ function freezeEnemy(e){
   e.held=false; e.thrown=false; sfx('freeze');
 }
 function throwIce(e){
-  e.held=false; e.thrown=true; e.vx=3.3*pl.face; e.vy=-3.6; // arco disegnato: sale di circa 15 px e atterra circa 55 px più avanti
-  e.x=pl.face>0?pl.x+pl.w:pl.x-e.w; e.y=pl.y+pl.h-e.h; sfx('throw');
+  // parte dalla testa della gattina: sale, ricade e al primo atterraggio fa un piccolo rimbalzo (e.bounce)
+  e.held=false; e.thrown=true; e.bounce=1; e.vx=3.1*pl.face; e.vy=-3.2;
+  e.x=pl.x+pl.w/2-e.w/2; e.y=pl.y-e.h-2; sfx('throw');
 }
 // Y: se si tiene un mostro congelato lo lancia; se se ne è vicini lo raccoglie; altrimenti spara
 function snowAction(){
@@ -1263,6 +1264,7 @@ function iceStep(e){
     e.x+=e.vx;
     if(resolveX(e,e.vx)){ e.dead=true; sfx('impact'); return; } // contro un muro si rompe
     e.vy=Math.min((e.vy||0)+G,MAXFALL); e.onG=false; e.y+=e.vy; resolveY(e);
+    if(e.onG && e.bounce>0){ e.bounce--; e.vy=-2.2; e.onG=false; e.vx*=0.5; sfx('impact'); } // primo atterraggio: piccolo rimbalzo
     if(e.y>H){ e.dead=true; return; } // è caduto in un burrone
     for(const o of enemies){
       if(o===e||o.dead||!overlap(e,o)) continue;
