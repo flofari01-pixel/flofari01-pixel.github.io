@@ -802,9 +802,7 @@ function plCtx(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext
 let plEl=null, plMsd=null;
 function plSetup(){
   try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
-  if(plMsd||!AC||!AC.createMediaStreamDestination) return;
-  try{ plMsd=AC.createMediaStreamDestination(); plEl=new Audio(); plEl.srcObject=plMsd.stream; plEl.setAttribute('playsinline',''); plEl.preload='auto'; }
-  catch(e){ plMsd=null; plEl=null; }
+  // ponte audio verso l'elemento <audio> disattivato: in auto dava scatti e cambi di tono (plMsd resta null, si suona su AC.destination)
 }
 function plOut(){ return plMsd? plMsd : AC.destination; }
 function plFocus(on){ if(!plEl) return; if(on){ const p=plEl.play(); if(p&&p.catch) p.catch(()=>{}); } else plEl.pause(); }
