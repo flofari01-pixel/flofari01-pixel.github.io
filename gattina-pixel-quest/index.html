@@ -796,7 +796,30 @@ const plPrev=[]; // anteprime dei livelli (screen del livello)
 const plBufs=[]; // canzoni decodificate (si può saltare in qualsiasi punto)
 const plOrder=[];
 let plCur=0, plBuf=null, plTrim=0, plSrc=null, plOff=0, plT0=0, plLoopOn=false;
-function plCtx(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state!=='running') AC.resume().catch(()=>{}); return AC; }
+function plCtx(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state!=='running') AC.resume().catch(()=>{}); plSetup(); return AC; }
+// iPhone: con l'interruttore silenzioso la musica non si sentiva; "playback" la fa suonare anche così
+// Android: la musica della playlist passa da un elemento audio, così il telefono dà il focus audio e Spotify si ferma
+let plEl=null, plMsd=null;
+function plSetup(){
+  try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+  if(plMsd||!AC||!AC.createMediaStreamDestination) return;
+  try{ plMsd=AC.createMediaStreamDestination(); plEl=new Audio(); plEl.srcObject=plMsd.stream; plEl.setAttribute('playsinline',''); plEl.preload='auto'; }
+  catch(e){ plMsd=null; plEl=null; }
+}
+function plOut(){ return plMsd? plMsd : AC.destination; }
+function plFocus(on){ if(!plEl) return; if(on){ const p=plEl.play(); if(p&&p.catch) p.catch(()=>{}); } else plEl.pause(); }
+// schermo dell'auto / lock screen / tasti del volante: titolo e comandi della canzone
+function plMeta(){
+  if(!('mediaSession' in navigator)||typeof MediaMetadata==='undefined') return;
+  const s=SONGS[plCur]||''; const k=s.split(' - ');
+  try{
+    navigator.mediaSession.metadata=new MediaMetadata({title:k[0]||s, artist:k[1]||'Syria Kitty Bros', album:'Playlist delle colonne sonore', artwork:[{src:'icons/icon-512.png',sizes:'512x512',type:'image/png'}]});
+    navigator.mediaSession.playbackState=plSrc?'playing':'paused';
+    const h=(a,f)=>{ try{ navigator.mediaSession.setActionHandler(a,f); }catch(e){} };
+    h('play',()=>{ if(!plSrc) plPlayPause(); }); h('pause',()=>{ if(plSrc) plPlayPause(); });
+    h('previoustrack',()=>plGo(-1)); h('nexttrack',()=>plGo(1));
+  }catch(e){}
+}
 // screen del livello: disegna il livello in una tela nascosta, poi ripristina il menu
 function levelShot(i){
   if(plPrev[i]!==undefined) return plPrev[i];
@@ -832,15 +855,16 @@ function plPos(){
   if(d>0) t = plLoopOn ? t%d : Math.min(t,d);
   return t;
 }
-function plStopSrc(){
+function plStopSrc(keep){
   if(plSrc){ const s=plSrc; plSrc=null; s.onended=null; try{ s.stop(); }catch(e){} }
+  if(!keep) plFocus(false);
 }
 function plStartAt(t){
-  plStopSrc();
+  plStopSrc(true);
   const src=plCtx().createBufferSource();
-  src.buffer=plBuf; src.loop=plLoopOn; src.loopStart=plTrim; src.loopEnd=plBuf.duration; src.connect(AC.destination);
-  src.onended=()=>{ if(plSrc===src){ plSrc=null; plOff=0; if(plCur<SONGS.length-1) plGo(1); else updatePlUI(); } }; // a fine canzone parte la successiva
-  src.start(0,plTrim+t); plSrc=src; plT0=AC.currentTime-t; updatePlUI();
+  src.buffer=plBuf; src.loop=plLoopOn; src.loopStart=plTrim; src.loopEnd=plBuf.duration; src.connect(plOut());
+  src.onended=()=>{ if(plSrc===src){ plSrc=null; plOff=0; if(plCur<SONGS.length-1) plGo(1); else { plFocus(false); updatePlUI(); } } }; // a fine canzone parte la successiva
+  src.start(0,plTrim+t); plSrc=src; plT0=AC.currentTime-t; plFocus(true); plMeta(); updatePlUI();
 }
 function fmtT(s){ s=Math.floor(s||0); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
 function updatePlUI(){
@@ -862,7 +886,7 @@ async function plLoad(i,play){
   plBuf=buf; plTrim=trim;
   if(play) plStartAt(0); else updatePlUI();
 }
-function plPlayPause(){ if(plSrc){ plOff=plPos(); plStopSrc(); updatePlUI(); } else if(plBuf) plStartAt(plOff); }
+function plPlayPause(){ if(plSrc){ plOff=plPos(); plStopSrc(); plMeta(); updatePlUI(); } else if(plBuf) plStartAt(plOff); }
 function plStop(){ plStopSrc(); plOff=0; updatePlUI(); }
 function plGo(d){ const n=Math.max(0,Math.min(SONGS.length-1,plCur+d)); plLoad(n,true); }
 function plSeekTo(s){
