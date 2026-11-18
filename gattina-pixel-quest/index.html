@@ -1401,7 +1401,7 @@ function tick(){
     // i volatili colpiscono solo la gattina grande (la faccia, anche con la sua altezza da grande); da piccola non la raggiungono mai
     if(e.fly ? (big && overlap({x:pl.x,y:pl.y-(pl.crouch?8:16),w:pl.w,h:pl.h+(pl.crouch?8:16)},e)) : overlap(pl,e)){
       if(pl.vy>0 && pl.pb<=e.y+6){ e.dead=true; pl.vy=-5.2; pl.onG=false; sfx('stomp'); }
-      else if(e.fly){ if(big && !pl.crouch) hurt(); } // i volatili raggiungono la faccia solo se sei grande e in piedi
+      else if(e.fly){ if(big && !pl.crouch && !pl.flipT) hurt(); } // i volatili raggiungono la faccia solo se sei grande e in piedi; durante la capriola non fanno male
       else hurt();
     }
   }
