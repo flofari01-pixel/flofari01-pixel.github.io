@@ -72,6 +72,7 @@ button:focus-visible,#ov :focus,#menuBtn:focus{outline:3px solid var(--hud);outl
 #progMe{position:absolute;top:-5px;width:4px;height:14px;background:#fff;transform:translateX(-50%)}
 #progFlag{position:absolute;top:-5px;width:4px;height:14px;background:var(--hud);transform:translateX(-50%);display:none}
 #progEnd{position:absolute;right:-6px;top:-5px;width:4px;height:14px;background:#9aff9a}
+@media (display-mode:standalone) and (orientation:portrait){ body{padding-top:max(48px,env(safe-area-inset-top,0px))} }
 /* telefono in orizzontale: gioco a tutto schermo al centro, comandi sulle due barre laterali */
 @media (pointer:coarse) and (orientation:landscape) and (max-height:600px){
   html,body{height:100%;overflow:hidden}
