@@ -21,7 +21,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
 .card p{margin:0 0 18px;color:#e8e2ff}
 button{font:9px "Press Start 2P",monospace;background:var(--accent);color:#1a0a14;border:0;padding:12px 16px;cursor:pointer;box-shadow:0 4px 0 var(--accent-d)}
 button:active{transform:translateY(2px);box-shadow:0 2px 0 var(--accent-d)}
-button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
+button:focus-visible,#ov :focus,#menuBtn:focus{outline:3px solid var(--hud);outline-offset:3px}
 #menuBtn{font-size:8px;padding:6px 8px;box-shadow:0 3px 0 var(--accent-d)}
 .lvls{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:14px auto 0;width:240px;max-width:100%}
 .lvls[hidden]{display:none!important}
@@ -49,8 +49,8 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
 #pad .dpad button,#pad .ctr{background:#3a2d4d;color:#f4e9ff;box-shadow:none}
 #pad .dpad [data-k="u"]{border-radius:6px 6px 0 0}#pad .dpad [data-k="d"]{border-radius:0 0 6px 6px}#pad .dpad [data-k="l"]{border-radius:6px 0 0 6px}#pad .dpad [data-k="r"]{border-radius:0 6px 6px 0}
 #pad .ctr{grid-area:c}
-#pad .lcol{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
-#pad [data-k="p"]{width:64px;height:24px;font-size:7px;padding:0;background:#3a2d4d;color:#f4e9ff;box-shadow:0 3px 0 #1b1424;border-radius:6px}
+#pad .lcol{position:relative;display:flex;flex-direction:column;align-items:flex-start}
+#pad [data-k="p"]{position:absolute;bottom:100%;margin-bottom:20px;left:0;width:64px;height:24px;font-size:7px;padding:0;background:#3a2d4d;color:#f4e9ff;box-shadow:0 3px 0 #1b1424;border-radius:6px}
 #pad .faces button{background:var(--accent);color:#1a0a14;border-radius:50%}
 #pad [data-k="u"]{grid-area:u}#pad [data-k="l"]{grid-area:l}#pad [data-k="r"]{grid-area:r}#pad [data-k="d"]{grid-area:d}
 #pad [data-k="x"]{grid-area:x}#pad [data-k="y"]{grid-area:y}#pad [data-k="a"]{grid-area:a}#pad [data-k="b"]{grid-area:b}
@@ -81,7 +81,7 @@ button:focus-visible{outline:3px solid var(--hud);outline-offset:3px}
   #prog{margin:4px 0}
   #pad{display:flex;position:fixed;inset:0;margin:0;max-width:none;pointer-events:none;z-index:6}
   #pad .lcol{position:absolute;left:10px;bottom:24px;pointer-events:auto}
-  #pad .faces{position:absolute;right:10px;bottom:24px;pointer-events:auto;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
+  #pad .faces{position:absolute;right:10px;bottom:18px;pointer-events:auto;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
   #pad .dpad{grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
   #pad [data-k="p"]{width:56px;height:20px;font-size:6px}
   #pad button{font-size:8px}
@@ -648,7 +648,7 @@ function loadLevel(i){
   if(fk){
     const R2=mulberry32((L.seed||(lvlIdx+1)*97)+555), n=fk==='bat'?6:4;
     for(let k=0;k<n;k++){
-      const base=72+R2()*50;
+      const base=130+R2()*4; // all'altezza della testa della gattina quando è grande
       enemies.push({fly:fk,x:40+k*((L.door*T)-80)/n+R2()*30,y:base,base,t:R2()*6.28,spd:0.7+R2()*0.5,ft:0,w:12,h:10,vy:0,dir:-1,onG:false,dead:false});
     }
   }
@@ -673,7 +673,8 @@ function updateHUD(){
   let s=L.hud.map(t=>COLL[t].l+' '+(cnt[t]||0)+'/'+(tot[t]||0)).join('  ');
   if(powered) s+='  ORSETTO';
   document.getElementById('hItems').textContent=s;
-  const tip=document.getElementById('shootTip'); if(tip) tip.hidden=!(shootOn&&(state==='play'||state==='pause'));
+  const tip=document.getElementById('shootTip');
+  if(tip){ const nm=POWER_NAMES[heldType]||(COLL[heldType]&&COLL[heldType].l)||''; tip.textContent=(nm?nm+': ':'')+'ora puoi sparare con Y'; tip.hidden=!(shootOn&&(state==='play'||state==='pause')); }
   // il pulsante SPARA sul touch è acceso solo quando si può sparare
   const rb=document.getElementById('resBtn');
   if(rb){ rb.disabled=!(state==='play'&&!dropFx&&reserve.some(t=>t==='choc'?!big:!shootOn)); document.getElementById('resN').textContent=reserve.length; drawReserveIcon(); }
@@ -807,6 +808,7 @@ function hidePlaylist(){
   plStopSrc(); plOff=0;
   showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 }
+const POWER_NAMES={bear:'ORSETTO',umbrella:'OMBRELLO',tree:'ALBERO'}; // nomi degli oggetti che danno il potere
 function setLevelHud(show){ for(const id of ['hLvl','hLives','prog','hItems']){ const el=document.getElementById(id); if(el) el.hidden=!show; } const tip=document.getElementById('shootTip'); if(tip) tip.hidden=!(show&&shootOn); }
 function hideOverlay(){
   setLevelHud(true);
@@ -1145,7 +1147,7 @@ function tick(){
   // al cambio di direzione la vista frontale compare per qualche istante (vedi drawPlayer)
   if(dir){ if(dir!==pl.face) pl.turnT=12; pl.face=dir; }
   const run=!!(hold.y||keys.KeyZ); // Y (o Z) tenuto: corsa veloce
-  const target=dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4);
+  const target=pl.crouch?0:dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4); // accovacciata non cammina
   // Locorotondo: il ghiaccio fa scivolare un po' (la velocità arriva e si ferma piano)
   // scivola solo sul ghiaccio (il terreno 'g' di Locorotondo), non su mensole e caselle
   if(L.ice){
@@ -1167,6 +1169,11 @@ function tick(){
   if(!pl.onG && !pl.flipUsed && pl.flipT===0 && down){ pl.flipT=1; pl.flipUsed=true; pl.pending=pl.jbox; pl.jbox=null; }
   if(pl.flipT>0){ pl.flipT++; if(pl.flipT>32) pl.flipT=0; }
 
+  // GIÙ da fermi a terra: la gattina si accovaccia (più bassa, schiva i pipistrelli e gli uccelli)
+  const cw=pl.onG && down && jumpBuf===0;
+  const headFree=()=>{ const tx0=Math.floor(pl.x/T), tx1=Math.floor((pl.x+pl.w-1)/T); for(let ty=Math.floor((pl.y-7)/T);ty<=Math.floor((pl.y-1)/T);ty++) for(let tx=tx0;tx<=tx1;tx++) if(tiles.has(tx+','+ty)) return false; return true; };
+  if(cw && !pl.crouch){ pl.crouch=true; pl.y+=7; pl.h=9; }
+  else if(!cw && pl.crouch && headFree()){ pl.crouch=false; pl.y-=7; pl.h=16; }
   pl.vy=Math.min(pl.vy+G,MAXFALL);
   pl.onG=false;
   pl.x+=pl.vx; if(pl.vx) resolveX(pl,pl.vx);
@@ -1199,7 +1206,7 @@ function tick(){
     if(e.dead) continue;
     if(e.fly){
       // pipistrelli e gabbiani: niente terreno, volano su e giù e tornano dall'altro lato
-      e.t+=0.09; e.ft++; e.x-=e.spd; e.y=e.base+Math.sin(e.t)*10;
+      e.t+=0.09; e.ft++; e.x-=e.spd; e.y=e.base+Math.sin(e.t)*6;
       if(e.x<-24) e.x=L.w*T+24;
     } else {
       e.x+=e.dir*0.5;
@@ -1651,7 +1658,7 @@ function drawPlayer(){
   }
   const ox=Math.round(pl.x+pl.w/2), oy=Math.round(pl.y+pl.h);
   g.save();
-  g.translate(ox,oy); g.scale(pl.face<0?-s:s,s);
+  g.translate(ox,oy); g.scale(pl.face<0?-s:s,s); if(pl.crouch) g.scale(1,0.62); // accovacciata: più bassa
   const quad=L.vehicle==='quad';
   if(quad){ drawSprite(front?QUAD_FRONT:QUAD_SPIN[Math.floor((pl.wheel||0)/6)%2],-14,-14); g.translate(0,-6); } // il quad sta sotto, la gattina è seduta sulla sella
   if(front){ drawSprite(front,-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-7,-16,PAL.r); }
@@ -1733,6 +1740,8 @@ function menuBtns(){ const ov=document.getElementById('ov'); if(ov.hidden) retur
 function menuMove(dx,dy){
   const ae=document.activeElement;
   const bs=menuBtns(); if(!bs.length) return;
+  // se il focus si è perso (tocco fuori dai pulsanti), la croce riporta il cursore sull'ultima scelta
+  if(!ae||ae===document.body||!ae.closest('#ov, #menuBtn')){ const f=(lastMenuFocus&&bs.includes(lastMenuFocus))?lastMenuFocus:bs[0]; f.focus({preventScroll:true}); return; }
   // il pulsante MENU selezionato con X: la croce riporta sui pulsanti del menu
   if(document.activeElement===document.getElementById('menuBtn')){ bs[0].focus({preventScroll:true}); return; }
   // schermata di ascolto: destra/sinistra seguono l'ordine dei tasti (◀◀ ▶ ■ ▶▶ LOOP, poi -10, barra, +10, INDIETRO)
