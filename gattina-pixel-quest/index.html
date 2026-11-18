@@ -1171,7 +1171,8 @@ function tick(){
   if(pl.flipT>0){ pl.flipT++; if(pl.flipT>32) pl.flipT=0; }
 
   // GIÙ da fermi a terra: la gattina si accovaccia (più bassa, schiva i pipistrelli e gli uccelli)
-  const cw=pl.onG && down && jumpBuf===0;
+  // (usa anche il 'coyote': il contatto col terreno a volte manca per un frame e non deve far alternare la posa)
+  const cw=(pl.onG||pl.coyote>0) && down && jumpBuf===0;
   const headFree=()=>{ const tx0=Math.floor(pl.x/T), tx1=Math.floor((pl.x+pl.w-1)/T); for(let ty=Math.floor((pl.y-7)/T);ty<=Math.floor((pl.y-1)/T);ty++) for(let tx=tx0;tx<=tx1;tx++) if(tiles.has(tx+','+ty)) return false; return true; };
   if(cw && !pl.crouch){ pl.crouch=true; pl.y+=8; pl.h=8; } // si abbassa della metà
   else if(!cw && pl.crouch && headFree()){ pl.crouch=false; pl.y-=8; pl.h=16; }
@@ -1221,6 +1222,7 @@ function tick(){
     }
     if(overlap(pl,e)){
       if(pl.vy>0 && pl.pb<=e.y+6){ e.dead=true; pl.vy=-5.2; pl.onG=false; sfx('stomp'); }
+      else if(e.fly){ if(big && !pl.crouch) hurt(); } // i volatili raggiungono la faccia solo se sei grande e in piedi
       else hurt();
     }
   }
