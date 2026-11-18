@@ -507,7 +507,7 @@ const PLACE_FIX={
  "Pizzica estiva": "Luminarie di notte",
  "Masseria Rauccio": "Piscina di Masseria Rauccio"
 };
-LV.forEach(l=>{ if(PLACE_FIX[l.name]) l.place=PLACE_FIX[l.name]; if(l.name==='Locorotondo') l.snow=true; }); // Locorotondo: fiocchi di neve che congelano i mostri
+LV.forEach(l=>{ if(PLACE_FIX[l.name]) l.place=PLACE_FIX[l.name]; if(l.name==='Locorotondo'||l.name==='Gallipoli e il negozio di Natale'){ l.snow=true; l.ice=true; } }); // Locorotondo: fiocchi di neve che congelano i mostri
 
 /* ---------- COLORI AGGIUNTIVI E DISEGNI DEGLI OGGETTI ---------- */
 Object.assign(PAL,{g:'#2f8a48',G:'#1d5a30',o:'#ff9f1c',O:'#c46a00',P:'#ff4f8b',c:'#f5e6c8',s:'#e8c880',
