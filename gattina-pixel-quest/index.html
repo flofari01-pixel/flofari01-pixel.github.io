@@ -981,6 +981,29 @@ function unlockAudio(){
     if(AC.state==='suspended') AC.resume();
   }catch(e){}
 }
+// messaggi mostrati a fine livello (indice = livello, 0-based); l'ultimo livello usa il messaggio finale
+const ENDMSG=[
+ "Complimenti, sei giunta al \"Cinema The Space\"! Hai finito \"Interstellar\". Prossima tappa: Gallipoli e il negozio di Natale. Lof è così fiero di te!",
+ "Complimenti, sei giunta al \"Negozio di Natale\"! Hai finito \"Gallipoli e il negozio di Natale\". Prossima tappa: Il Parco delle Cave. Lof è così fiero di te!",
+ "Complimenti, sei giunta al \"Cancello del Parco\"! Hai finito \"Il Parco delle Cave\". Prossima tappa: Il Teatro. Lof è così fiero di te!",
+ "Complimenti, sei giunta al \"Teatro Apollo\"! Hai finito \"Il Teatro\". Prossima tappa: Nardò. Tu e Lof vi siete dati il primo bacetto! congratulazioni!",
+ "Complimenti, sei giunta alla \"Panchina di Nardò\"! Hai finito \"Nardò\". Prossima tappa: Santa Caterina. Lof è così fiero di te!",
+ "Complimenti, sei giunta sotto l'“Insegna di Santa Caterina”! Hai finito \"Santa Caterina\". Prossima tappa: Il Superbingo. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta alla \"Macchina\"! Hai finito \"Il Superbingo\". Prossima tappa: La campagna notturna. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta a \"La Macchina nella Campagna\"! Hai finito \"La campagna notturna\". Prossima tappa: San Valentino. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta a \"Er Polpetta\"! Hai finito \"San Valentino\". Prossima tappa: Giornata al mare. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta alla “Passerella delle Dune”! Hai finito \"Giornata al mare\". Prossima tappa: Aria Caddhipulina. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta a \"Martinucci\"! Hai finito \"Aria Caddhipulina\". Prossima tappa: San Vito. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta alle \"Giostre\"! Hai finito \"San Vito\". Prossima tappa: Casa al mare. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta a \"Casa al Mare\"! Hai finito \"Casa al mare\". Prossima tappa: Crociera. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta al \"Porto\"! Hai finito \"Crociera\". Prossima tappa: Otranto. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta a \"La Polperia\"! Hai finito \"Otranto\". Prossima tappa: Pumpkin contest. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta a \"La Zucca Gigante\"! Hai finito \"Pumpkin contest\". Prossima tappa: La spa. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta a \"La Corte dei Figuli\"! Hai finito \"La spa\". Prossima tappa: Locorotondo. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta alla \"Rosticceria\"! Hai finito \"Locorotondo\". Prossima tappa: Quad. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta al \"Trullo\"! Hai finito \"Quad\". Prossima tappa: Pizzica estiva. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei giunta al \"Palco\"! Hai finito \"Pizzica estiva\". Prossima tappa: Masseria Rauccio. Il tuo fidanzatino è molto fiero di te!"
+];
 function sfx(k){
   try{
     unlockAudio();
@@ -1125,7 +1148,7 @@ function win(){
   if(lvlIdx<LV.length-1){
     state='won';
     const n=lvlIdx+1;
-    showOverlay('Livello completato!','Complimenti, sei giunta a "'+ARRIVAL[lvlIdx]+'"! Hai finito "'+L.name+'". Prossima tappa: '+LV[n].name+'. '+msg,'Avanti',()=>nextLevel(n));
+    showOverlay('Livello completato!',ENDMSG[lvlIdx],'Avanti',()=>nextLevel(n));
   } else {
     state='end'; kissT=0;
     showOverlay('Hai finito tutti i livelli!',fid,'Gioca ancora',startGame);
