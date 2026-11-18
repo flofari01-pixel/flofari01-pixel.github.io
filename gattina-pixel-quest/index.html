@@ -683,7 +683,8 @@ function loadLevel(i){
       boxes=boxes.filter(b=>!(b.find&&b.t!=='choc'));
       const door=L.door;
       const spot=(want,ok2=()=>true)=>{
-        for(let d=0;d<60;d++) for(const x of [want+d,want-d]){
+        // cerca vicino a 'want' su tutto il livello (prima le posizioni più vicine)
+        for(let d=0;d<=door;d++) for(const x of [want+d,want-d]){
           if(x<3||x>door-4||tiles.get(x+',10')!=='g') continue;
           let free=true; for(let r=5;r<=9;r++) if(tiles.has(x+','+r)){ free=false; break; }
           if(!free||boxes.some(b=>Math.abs(b.x-x)<=2)||!ok2(x)) continue;
@@ -693,7 +694,13 @@ function loadLevel(i){
       };
       // tra due oggetti da trovare ci sono almeno 3 tratti: mai due caselle consecutive
       const taken=[];
-      const far=(x)=>taken.every(t=>Math.abs(t-x)>=3);
+      // tra due oggetti che danno poteri ci devono essere almeno 2 caselle (di qualsiasi tipo): mai due caselle di potere di fila
+      const far=(x)=>{
+        const M=[...boxes.map(b=>({x:b.x,p:false})),...taken.map(t=>({x:t,p:true})),{x,p:true}].sort((a,b)=>a.x-b.x);
+        let last=-1;
+        for(let i=0;i<M.length;i++){ if(!M[i].p) continue; if(last>=0&&i-last-1<2) return false; last=i; }
+        return true;
+      };
       const spot2=(want)=>{ const x=spot(want,far); taken.push(x); return x; };
       const x1=spot2(Math.round(door*0.42));
       const x2=flag?spot2(Math.floor(flag.x/T)):spot2(Math.floor(L.w/2));
@@ -1499,16 +1506,18 @@ function drawBoyKitten(){
 }
 // cuoricino sparato (piccolo, rosa)
 function drawShot(s){
+  // quando tocca terra il colpo saltella leggermente
+  const hop=s.grounded?Math.round(Math.abs(Math.sin(s.life*0.45))*2.5):0;
   if(s.snow){ // fiocco di neve
     g.fillStyle='#e8f8ff';
-    const x=Math.round(s.x)+3, y=Math.round(s.y)+3;
+    const x=Math.round(s.x)+3, y=Math.round(s.y)+3-hop;
     g.fillRect(x-3,y,7,1); g.fillRect(x,y-3,1,7);
     g.fillRect(x-2,y-2,1,1); g.fillRect(x+2,y-2,1,1); g.fillRect(x-2,y+2,1,1); g.fillRect(x+2,y+2,1,1);
     return;
   }
   g.fillStyle=PAL.p;
   for(let j=0;j<HEART.length;j++) for(let i=0;i<HEART[j].length;i++)
-    if(HEART[j][i]==='x') g.fillRect(Math.round(s.x)+i-1,Math.round(s.y)+j-1,1,1);
+    if(HEART[j][i]==='x') g.fillRect(Math.round(s.x)+i-1,Math.round(s.y)+j-1-hop,1,1);
 }
 // pipistrello e gabbiano: due fotogrammi (ali alzate e abbassate)
 const BAT_A=["v.........v","vv..vvv..vv","vvvvvvvvvvv","vvyvvvvvyvv",".VVvvvvvVV.","..VV.V.VV.."];
