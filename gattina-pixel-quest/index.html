@@ -1368,7 +1368,7 @@ function drawBoyKitten(){
   if(!L) return;
   const arrived=(state==='won'||state==='end');
   const s=(arrived?boyBig:big)?1.5:1;
-  g.save(); g.translate(L.door*T-24+7,160); g.scale(s,s); drawSprite(KBOY,-7,-16); g.restore();
+  g.save(); g.translate(L.door*T-24+7,160); g.scale(s,s); SP_PAD=s>1?0.35:0; drawSprite(KBOY,-7,-16); SP_PAD=0; g.restore();
 }
 // cuoricino sparato (piccolo, rosa)
 function drawShot(s){
@@ -1676,7 +1676,7 @@ function drawRideHands(front){
 }
 function drawPlayer(){
   if(hitCool>0 && Math.floor(hitCool/4)%2) return;
-  SP_PAD=0; // scala intera (2x): niente bordi da compensare
+  SP_PAD=big?0.35:0; // scala 1,5: ogni pixel si allarga un poco per non lasciare bordi grigi
   try{ drawPlayerInner(); } finally { SP_PAD=0; }
 }
 function drawPlayerInner(){
@@ -1688,7 +1688,7 @@ function drawPlayerInner(){
   // accovacciata: si vede solo la vista di fronte schiacciata (un solo disegno, niente frame sovrapposti)
   const showFront=onQuad ? (pl.turnT>0) : (still||!!pl.crouch);
   const front=showFront ? frontNow() : null;
-  const s=big?2:1;
+  const s=big?1.5:1; // stessa taglia del gattino maschio che aspetta alla fine
   if(pl.flipT>0){
     const cx=Math.round(pl.x+pl.w/2), cy=Math.round(pl.y+pl.h/2);
     g.save(); g.translate(cx,cy); g.rotate(pl.face*(pl.flipT/32)*Math.PI*2); g.scale(s,s);
