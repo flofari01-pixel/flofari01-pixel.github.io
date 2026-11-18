@@ -468,6 +468,32 @@ function genLayout(seed,coll,pw,len=170,split=90){
   return {ground,plats,boxes,items,enemies};
 }
 
+// frasi mostrate sotto il nome del livello all'inizio (testi corretti)
+const PLACE_FIX={
+ "Interstellar": "Parcheggi del Cinema \"The Space\"",
+ "Gallipoli e il negozio di Natale": "Centro storico di Gallipoli",
+ "Il Parco delle Cave": "Parco delle Cave",
+ "Il Teatro": "Centro storico di Lecce",
+ "Nardò": "Centro storico di Nardò",
+ "Santa Caterina": "Santa Caterina di Notte",
+ "Il superbingo": "Primo mese insieme",
+ "La campagna notturna": "Campagna di Lof",
+ "San Valentino": "Centro storico di Lecce",
+ "Giornata al mare": "Spiaggia delle Dune",
+ "Aria Caddhipulina": "Spiaggia di Gallipoli",
+ "San Vito": "Luminarie della festa patronale",
+ "Casa al mare": "Spiaggia",
+ "Crociera": "Crociera MSC",
+ "Otranto": "Vicoli di Otranto",
+ "Pumpkin contest": "Paesaggio spettrale",
+ "La spa": "Corridoio della corte pieno di piante",
+ "Locorotondo": "Centro storico di Locorotondo addobbato",
+ "Quad": "Trulli di Alberobello",
+ "Pizzica estiva": "Luminarie di notte",
+ "Masseria Rauccio": "Piscina di Masseria Rauccio"
+};
+LV.forEach(l=>{ if(PLACE_FIX[l.name]) l.place=PLACE_FIX[l.name]; });
+
 /* ---------- COLORI AGGIUNTIVI E DISEGNI DEGLI OGGETTI ---------- */
 Object.assign(PAL,{g:'#2f8a48',G:'#1d5a30',o:'#ff9f1c',O:'#c46a00',P:'#ff4f8b',c:'#f5e6c8',s:'#e8c880',
  S:'#9a9aa8',L:'#4cc9f0',l:'#1f5f9a',v:'#9d4edd',V:'#5a1f8a',e:'#f1faee',t:'#7a7a7a',z:'#2a9d8f',
@@ -1828,6 +1854,7 @@ function draw(){
     g.fillStyle='#ffffff'; g.font='8px "Press Start 2P",monospace';
     g.fillText(L.name.toUpperCase(),W/2,104);
     g.font='7px "Press Start 2P",monospace'; g.fillStyle='#c9bfe8';
+    if(g.measureText(L.place).width>244) g.font='5px "Press Start 2P",monospace'; // frasi lunghe: un po' più piccole per restare nello schermo
     g.fillText(L.place,W/2,116);
     g.textAlign='left';
   }
