@@ -492,7 +492,7 @@ const PLACE_FIX={
  "Pizzica estiva": "Luminarie di notte",
  "Masseria Rauccio": "Piscina di Masseria Rauccio"
 };
-LV.forEach(l=>{ if(PLACE_FIX[l.name]) l.place=PLACE_FIX[l.name]; });
+LV.forEach(l=>{ if(PLACE_FIX[l.name]) l.place=PLACE_FIX[l.name]; if(l.name==='Locorotondo') l.snow=true; }); // Locorotondo: fiocchi di neve che congelano i mostri
 
 /* ---------- COLORI AGGIUNTIVI E DISEGNI DEGLI OGGETTI ---------- */
 Object.assign(PAL,{g:'#2f8a48',G:'#1d5a30',o:'#ff9f1c',O:'#c46a00',P:'#ff4f8b',c:'#f5e6c8',s:'#e8c880',
@@ -1002,7 +1002,11 @@ const SFX={
   flip:[[500,0.08,'triangle'],[700,0.08,'triangle'],[900,0.12,'triangle']], // salto mortale
   land:[[160,0.05,'triangle',90]],                                 // atterraggio
   stomp:[[440,0.06],[660,0.1]],                                    // schiacciato un mostro
-  kill:[[1200,0.04,'square',400]],                                 // mostro ucciso dallo sparo
+  kill:[[1200,0.04,'square',400]],
+  freeze:[[1500,0.05,'sine'],[1100,0.12,'sine']],                 // mostro congelato dal fiocco di neve
+  pick:[[660,0.05],[990,0.09]],                                    // mostro congelato raccolto
+  throw:[[330,0.1,'sawtooth',220]],                                // mostro congelato lanciato
+  impact:[[180,0.14,'square',90]],                                 // il mostro lanciato colpisce qualcosa                                 // mostro ucciso dallo sparo
   hurt:[[620,0.09,'triangle',440],[440,0.12,'triangle',330]],     // colpita da un mostro: un 'ahi' morbido
   die:[[600,0.15,'square',300],[300,0.15,'square',150],[150,0.4,'square',60]], // vita persa
   gameover:[[400,0.2],[330,0.2],[262,0.2],[196,0.5]],              // game over
@@ -1212,6 +1216,56 @@ function togglePause(){
   for(const k in keys) keys[k]=false;
   showOverlay('In pausa','Premi Riprendi per continuare.','Riprendi',togglePause);
 }
+// ---- Locorotondo: fiocchi di neve che congelano i mostri ----
+// un mostro congelato non fa male e blocca il passaggio; si raccoglie con Y e si lancia con Y
+function freezeEnemy(e){
+  e.ice=true; e.fz=600; e.fly=undefined; e.w=e.w||12; e.h=e.h||12; e.dir=e.dir||1; e.vy=0;
+  e.held=false; e.thrown=false; sfx('freeze');
+}
+function throwIce(e){
+  e.held=false; e.thrown=true; e.vx=3.2*pl.face; e.vy=0;
+  e.x=pl.face>0?pl.x+pl.w:pl.x-e.w; e.y=pl.y+pl.h-e.h; sfx('throw');
+}
+// Y: se si tiene un mostro congelato lo lancia; se se ne è vicini lo raccoglie; altrimenti spara
+function snowAction(){
+  const held=enemies.find(x=>x.held);
+  if(held){ throwIce(held); return true; }
+  const near=enemies.find(x=>x.ice&&!x.thrown&&Math.abs((x.x+x.w/2)-(pl.x+pl.w/2))<=18&&x.y<pl.y+pl.h+4&&x.y+x.h>pl.y-6);
+  if(near){ near.held=true; near.fz=undefined; sfx('pick'); return true; }
+  return false;
+}
+// il mostro congelato: sta sul terreno (cade se non c'è più), si scongela dopo 10 secondi se non viene preso
+function iceStep(e){
+  if(e.held){ e.x=pl.x+pl.w/2-e.w/2; e.y=pl.y-e.h-2; e.vy=0; return; }
+  if(e.thrown){
+    e.x+=e.vx;
+    if(resolveX(e,e.vx)){ e.dead=true; sfx('impact'); return; } // contro un muro si rompe
+    e.vy=Math.min((e.vy||0)+G,MAXFALL); e.onG=false; e.y+=e.vy; resolveY(e);
+    if(e.y>H){ e.dead=true; return; } // è caduto in un burrone
+    for(const o of enemies){
+      if(o===e||o.dead||!overlap(e,o)) continue;
+      // il mostro colpito diventa un oggetto da raccogliere, quello lanciato sparisce
+      o.dead=true; e.dead=true; sfx('impact');
+      const ct=(L.hud&&L.hud[0])||'pop';
+      items.push({t:ct,x:o.x,y:o.y,got:false,c:items.length%5,find:false});
+      tot[ct]=(tot[ct]||0)+1;
+      return;
+    }
+    return;
+  }
+  if(e.fz!==undefined){ e.fz--; if(e.fz<=0){ e.ice=false; e.fz=undefined; } } // scongelamento
+  e.vy=Math.min((e.vy||0)+G,MAXFALL); e.onG=false; e.y+=e.vy; resolveY(e);
+}
+// il mostro congelato blocca la gattina: non le fa male, ma non si passa; si può salire sopra saltando
+function iceBlock(){
+  for(const e of enemies){
+    if(!e.ice||e.held||e.thrown||e.dead||!overlap(pl,e)) continue;
+    if(pl.vy>=0 && pl.pb<=e.y+6){ pl.y=e.y-pl.h; pl.vy=0; pl.onG=true; pl.coyote=6; pl.flipT=0; pl.flipUsed=false; }
+    else if(pl.vx>0){ pl.x=e.x-pl.w; pl.vx=0; pl.slide=0; }
+    else if(pl.vx<0){ pl.x=e.x+e.w; pl.vx=0; pl.slide=0; }
+  }
+}
+
 function tick(){
   if(state==='pause') return;
   if(state==='banner'){ bannerT--; if(bannerT<=0){ state='play'; updateHUD(); } return; } // riaccende la riserva
@@ -1290,6 +1344,7 @@ function tick(){
     if(hitV>1.5 && pl.flipUsed && !onBox) sfx('thud');
     pl.pending=null; pl.coyote=6; pl.flipT=0; pl.flipUsed=false;
   } else if(pl.coyote>0) pl.coyote--;
+  iceBlock();
   if(pl.y>H){ die(); return; }
 
   cam=Math.max(0,Math.min(L.w*T-W,pl.x+pl.w/2-W/2));
@@ -1306,6 +1361,7 @@ function tick(){
 
   for(const e of enemies){
     if(e.dead) continue;
+    if(e.ice){ iceStep(e); continue; }
     if(e.fly){
       // pipistrelli e gabbiani: niente terreno, volano su e giù e tornano dall'altro lato
       e.t+=0.09; e.ft++; e.x-=e.spd; e.y=e.base+Math.sin(e.t)*e.amp;
@@ -1329,8 +1385,9 @@ function tick(){
   }
   // sparo: il cuoricino vola dritto e uccide il primo mostro che colpisce
   if(shotCool>0) shotCool--;
-  if(fireReq && shootOn && shotCool===0 && state==='play'){
-    shots.push({x:pl.face>0?pl.x+pl.w:pl.x-8,y:pl.y+4,vx:3*pl.face,vy:0,grounded:false,life:200});
+  if(fireReq && state==='play' && L.snow && snowAction()){ /* presa o lancio del mostro congelato: niente sparo */ }
+  else if(fireReq && shootOn && shotCool===0 && state==='play'){
+    shots.push({x:pl.face>0?pl.x+pl.w:pl.x-8,y:pl.y+4,vx:3*pl.face,vy:0,grounded:false,life:200,snow:!!L.snow});
     shotCool=18; sfx('fire');
   }
   fireReq=false;
@@ -1352,6 +1409,7 @@ function tick(){
     if(s.y>H) s.life=0;
     for(const e of enemies){
       if(!e.dead && s.x<e.x+e.w && s.x+8>e.x && s.y<e.y+e.h && s.y+7>e.y){
+        if(L.snow){ s.life=0; if(!e.ice) freezeEnemy(e); break; } // il fiocco di neve congela il mostro
         // il mostro colpito diventa un oggetto da raccogliere
         e.dead=true; s.life=0; sfx('kill');
         const ct=(L.hud&&L.hud[0])||'pop';
@@ -1441,6 +1499,13 @@ function drawBoyKitten(){
 }
 // cuoricino sparato (piccolo, rosa)
 function drawShot(s){
+  if(s.snow){ // fiocco di neve
+    g.fillStyle='#e8f8ff';
+    const x=Math.round(s.x)+3, y=Math.round(s.y)+3;
+    g.fillRect(x-3,y,7,1); g.fillRect(x,y-3,1,7);
+    g.fillRect(x-2,y-2,1,1); g.fillRect(x+2,y-2,1,1); g.fillRect(x-2,y+2,1,1); g.fillRect(x+2,y+2,1,1);
+    return;
+  }
   g.fillStyle=PAL.p;
   for(let j=0;j<HEART.length;j++) for(let i=0;i<HEART[j].length;i++)
     if(HEART[j][i]==='x') g.fillRect(Math.round(s.x)+i-1,Math.round(s.y)+j-1,1,1);
@@ -1456,6 +1521,14 @@ function drawFlyer(e){
   drawSprite(rows,Math.round(e.x+6-rows[0].length/2),Math.round(e.y+5-rows.length/2));
 }
 function drawEnemy(e){
+  if(e.ice){ // mostro congelato: blocco di ghiaccio (lampeggia poco prima di scongelarsi)
+    if(e.fz!==undefined && e.fz<150 && Math.floor(e.fz/8)%2) return;
+    const x=Math.round(e.x), y=Math.round(e.y);
+    g.fillStyle='rgba(140,215,255,0.85)'; g.fillRect(x,y,e.w,e.h);
+    g.fillStyle='#e8f8ff'; g.fillRect(x+2,y+2,2,2); g.fillRect(x+e.w-4,y+2,2,2);
+    g.fillStyle='#ffffff'; g.fillRect(x,y,e.w,1);
+    return;
+  }
   if(e.fly){ drawFlyer(e); return; }
   if(L.th==='space'){
     g.fillStyle='#7cfc9a'; g.beginPath(); g.ellipse(e.x+7,e.y+7,7,6,0,0,Math.PI*2); g.fill();
