@@ -1245,7 +1245,7 @@ function freezeEnemy(e){
   e.held=false; e.thrown=false; sfx('freeze');
 }
 function throwIce(e){
-  e.held=false; e.thrown=true; e.vx=3.2*pl.face; e.vy=0;
+  e.held=false; e.thrown=true; e.vx=3.2*pl.face; e.vy=-3.2; // piccolo arco prima di atterrare
   e.x=pl.face>0?pl.x+pl.w:pl.x-e.w; e.y=pl.y+pl.h-e.h; sfx('throw');
 }
 // Y: se si tiene un mostro congelato lo lancia; se se ne è vicini lo raccoglie; altrimenti spara
