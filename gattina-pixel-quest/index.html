@@ -314,7 +314,7 @@ const TH={
  space:{deco:'space',sky1:'#07041f',sky2:'#24124a',gnd:'#40457a',gndTop:'#9aa3f0',plat:'#2a2358',platTop:'#7d86d9',bld:'#2a2358'},
  xmasSea:{deco:'sea',sky1:'#58c4ff',sky2:'#d8f4ff',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#b3262c',sea:'#2a9dd6'},
  xmas:{deco:'snow',sky1:'#14284a',sky2:'#3d6496',gnd:'#dfeeff',gndTop:'#ffffff',plat:'#6b3e22',platTop:'#2f8a48',bld:'#b3262c'},
- teatro:{deco:'apollo',stars:1,sky1:'#050818',sky2:'#18224f',gnd:'#2a2e3d',gndTop:'#6b7290',plat:'#3a2a1f',platTop:'#8a6a40',bld:'#d9cdb4'},
+ teatro:{deco:'apollo',sky1:'#050818',sky2:'#18224f',gnd:'#2a2e3d',gndTop:'#6b7290',plat:'#3a2a1f',platTop:'#8a6a40',bld:'#d9cdb4'},
  cave:{deco:'cave',sky1:'#8a7a5c',sky2:'#d9c9a0',gnd:'#9c8a68',gndTop:'#e8d9b0',plat:'#7a6a4e',platTop:'#b29c70',bld:'#e8dcc0'},
  nardo:{deco:'city',sky1:'#f7b267',sky2:'#f4845f',gnd:'#b8a089',gndTop:'#e8d5b5',plat:'#8a6a50',platTop:'#c49a6c',bld:'#e8c9a0',win:'#7a4a2a'},
  seaN:{deco:'sea',stars:1,sky1:'#050818',sky2:'#1d3a6b',gnd:'#5a5560',gndTop:'#9a9aa8',plat:'#4a3e34',platTop:'#8a7a6a',bld:'#2d3f66',sea:'#1d4a7a'},
@@ -671,6 +671,18 @@ function loadLevel(i){
       const xs=[x1,x2,x3].slice(0,Math.min(3,fbs.length));
       for(const x of xs){ boxes.push({x,y:6,t:ft,used:false,find:true}); tiles.set(x+',6','b'); tot[ft]=(tot[ft]||0)+1; }
       levelFind=ft;
+    }
+  }
+  // nessun oggetto da raccogliere dentro o sotto una casella (dopo lo spostamento degli oggetti da trovare):
+  // se capita, lo si sposta di qualche tratto; se non c'è spazio, non compare
+  {
+    const boxAt=(tx,ty)=>tiles.get(tx+','+ty)==='b'||boxes.some(b=>b.x===tx&&Math.abs(b.y-ty)<=1);
+    for(let n=items.length-1;n>=0;n--){
+      const it=items[n]; const ty=Math.round((it.y-3)/T); let tx=Math.round((it.x-3)/T);
+      if(!boxAt(tx,ty)) continue;
+      let ok=false;
+      for(let d=2;d<=12&&!ok;d+=1){ for(const c of [tx+d,tx-d]){ if(!boxAt(c,ty)&&tiles.get(c+',10')==='g'){ it.x=c*T+3; ok=true; break; } } }
+      if(!ok){ items.splice(n,1); tot[it.t]=(tot[it.t]||0)-1; }
     }
   }
   // pipistrelli (nella zucca) e gabbiani (nei livelli di mare): volano da destra a sinistra, su e giù
