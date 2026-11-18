@@ -962,7 +962,8 @@ const SFX={
   die:[[600,0.15,'square',300],[300,0.15,'square',150],[150,0.4,'square',60]], // vita persa
   gameover:[[400,0.2],[330,0.2],[262,0.2],[196,0.5]],              // game over
   bump:[[200,0.04,'square',120]],                                  // colpo alla casella
-  reserve:[[660,0.05],[880,0.05],[1100,0.12]],                     // uso della riserva
+  reserve:[[660,0.05],[880,0.05],[1100,0.12]],
+  menu:[[1000,0.03,'triangle']],                                   // spostamento tra i comandi dei menu (frecce)                     // uso della riserva
   checkpoint:[[784,0.1],[988,0.1],[1175,0.1],[1568,0.3]],          // bandierina raggiunta
   win:[[523,0.1],[659,0.1],[784,0.1],[1047,0.1],[784,0.08],[1047,0.3]], // livello completato
   oneup:[[659,0.07],[784,0.07],[1319,0.07],[1047,0.07],[1175,0.07],[1568,0.2]], // vita extra
@@ -1783,7 +1784,13 @@ function loop(now){
 }
 // navigazione dei menu con la croce (frecce) e A per scegliere
 function menuBtns(){ const ov=document.getElementById('ov'); if(ov.hidden) return []; return [...ov.querySelectorAll('button, input[type=range]')].filter(b=>b.offsetParent!==null&&!b.disabled); }
+// le frecce dei menu suonano solo quando il pulsante selezionato cambia
 function menuMove(dx,dy){
+  const before=document.activeElement;
+  menuMoveInner(dx,dy);
+  if(document.activeElement!==before) sfx('menu');
+}
+function menuMoveInner(dx,dy){
   const ae=document.activeElement;
   const bs=menuBtns(); if(!bs.length) return;
   // se il focus si è perso (tocco fuori dai pulsanti), la croce riporta il cursore sull'ultima scelta
