@@ -1676,7 +1676,7 @@ function drawRideHands(front){
 }
 function drawPlayer(){
   if(hitCool>0 && Math.floor(hitCool/4)%2) return;
-  SP_PAD=big?0.35:0;
+  SP_PAD=0; // scala intera (2x): niente bordi da compensare
   try{ drawPlayerInner(); } finally { SP_PAD=0; }
 }
 function drawPlayerInner(){
@@ -1688,7 +1688,7 @@ function drawPlayerInner(){
   // accovacciata: si vede solo la vista di fronte schiacciata (un solo disegno, niente frame sovrapposti)
   const showFront=onQuad ? (pl.turnT>0) : (still||!!pl.crouch);
   const front=showFront ? frontNow() : null;
-  const s=big?1.5:1;
+  const s=big?2:1;
   if(pl.flipT>0){
     const cx=Math.round(pl.x+pl.w/2), cy=Math.round(pl.y+pl.h/2);
     g.save(); g.translate(cx,cy); g.rotate(pl.face*(pl.flipT/32)*Math.PI*2); g.scale(s,s);
