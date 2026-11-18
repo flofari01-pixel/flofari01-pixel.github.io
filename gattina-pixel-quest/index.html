@@ -1097,10 +1097,13 @@ const ENDMSG=[
  "Complimenti, sei giunta al \"Trullo\"! Hai finito \"Quad\". Prossima tappa: Pizzica estiva. Il tuo fidanzatino è molto fiero di te!",
  "Complimenti, sei giunta al \"Palco\"! Hai finito \"Pizzica estiva\". Prossima tappa: Masseria Rauccio. Il tuo fidanzatino è molto fiero di te!"
 ];
+let sfxWait=false;
 function sfx(k){
   try{
     unlockAudio();
-    if(!AC||AC.state!=='running') return;
+    if(!AC) return;
+    // il contesto audio all'inizio del menu si sta ancora avviando: il primo "tic" veniva perso, ora aspetta e poi suona
+    if(AC.state!=='running'){ if(!sfxWait){ sfxWait=true; AC.resume().then(()=>{ sfxWait=false; if(AC.state==='running') sfx(k); }).catch(()=>{ sfxWait=false; }); } return; }
     let t=AC.currentTime;
     musicDuck();
     for(const [f,d,ty,f2] of SFX[k]){
