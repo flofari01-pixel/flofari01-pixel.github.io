@@ -18,6 +18,7 @@ h1{font:12px "Press Start 2P",monospace;color:var(--accent);margin:0 auto 12px;m
 #stage{position:relative;max-width:768px;margin:0 auto;aspect-ratio:4/3;background:#000;border:3px solid var(--line);border-radius:4px;overflow:hidden}
 canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
 .ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow-y:auto;background:rgba(8,4,18,.8);padding:12px}
+#lvlBtns button:disabled{opacity:.35}
 .ov[hidden]{display:none!important}
 .card{text-align:center;max-width:460px;margin:auto}
 .card h2{font:12px "Press Start 2P",monospace;color:var(--hud);margin:0 0 14px;line-height:1.7}
@@ -785,6 +786,7 @@ function showOverlay(t,p,b,fn){
   document.getElementById('lvlBtns').hidden=(t!=='Syria Kitty Bros');
   btn.hidden=false; document.getElementById('ovT').hidden=false; document.getElementById('ovP').hidden=false; document.getElementById('plBtn').hidden=(t!=='Syria Kitty Bros'); document.getElementById('plPanel').hidden=true; document.getElementById('plPlayer').hidden=true;
   setLevelHud(t!=='Syria Kitty Bros'); // nel menu niente scritte del livello
+  if(t==='Syria Kitty Bros') refreshLvlBtns();
   document.getElementById('ov').hidden=false;
   // nel menu iniziale nessun pulsante è selezionato: la prima freccia giù seleziona la playlist (primo pulsante)
   if(t==='Syria Kitty Bros'){ if(document.activeElement){ intentionalBlur=true; document.activeElement.blur(); intentionalBlur=false; } lastMenuFocus=null; }
@@ -940,17 +942,50 @@ function buildMenu(){
     box.appendChild(b);
   });
 }
+// ---- progressi: livelli sbloccati in ordine e salvataggio del punto di gioco (nel browser del telefono) ----
+let prog={unlocked:0,save:null};
+const SAVE_KEY='kittyBros.progressi.v1';
+function loadProg(){ try{ const j=JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); if(j&&typeof j.unlocked==='number') prog=j; }catch(e){} }
+function storeProg(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(prog)); }catch(e){} }
+// salva il punto in cui si è arrivati (in gioco, in pausa o uscendo al menu)
+function saveNow(){
+  if(!L||!pl||(state!=='play'&&state!=='pause'&&state!=='banner')) return;
+  prog.save={lvl:lvlIdx,x:Math.round(pl.x),y:Math.round(pl.y),lives,big:!!big,heldType,reserve:reserve.slice(),powered,umbrella,helmet,redDress,shootOn,findLeft,ck:ckpt?{x:ckpt.x,y:ckpt.y}:null};
+  storeProg();
+}
+// riprende il livello interrotto dallo stesso punto
+function resumeSave(){
+  const s=prog.save; if(!s) return;
+  sfx('select'); musicAllowed=true; hideOverlay(); lives=s.lives||7;
+  loadLevel(s.lvl);
+  pl.x=s.x; pl.y=s.y; pl.vx=0; pl.vy=0; pl.onG=false;
+  big=!!s.big; heldType=s.heldType||null; reserve=(s.reserve||[]).slice();
+  powered=!!s.powered; umbrella=!!s.umbrella; helmet=!!s.helmet; redDress=!!s.redDress; shootOn=!!s.shootOn; findLeft=(typeof s.findLeft==='number')?s.findLeft:findLeft;
+  if(s.ck){ ckpt={x:s.ck.x,y:s.ck.y}; if(flag) flag.reached=true; } else ckpt=null;
+  state='banner'; bannerT=110; updateHUD();
+}
+// nel menu: i livelli non ancora sbloccati sono spenti; quello interrotto è segnato
+function refreshLvlBtns(){
+  [...document.getElementById('lvlBtns').children].forEach((b,i)=>{
+    b.disabled=i>prog.unlocked;
+    const sv=!!(prog.save&&prog.save.lvl===i);
+    b.textContent=(i+1)+' '+LV[i].name+(sv?' - riprendi':'');
+  });
+}
 function startGame(){
   sfx('start'); musicAllowed=true;
   lives=7;
   hideOverlay(); ckpt=null; loadLevel(0); state='banner'; bannerT=110; updateHUD();
 }
 function pickLevel(n){
+  if(n>prog.unlocked) return; // i livelli successivi si sbloccano completando quello prima
+  if(prog.save&&prog.save.lvl===n){ resumeSave(); return; }
   sfx('select'); musicAllowed=true;
   hideOverlay(); lives=7; ckpt=null;
   loadLevel(n); state='banner'; bannerT=110; updateHUD();
 }
 function goMenu(){
+  saveNow();
   sfx('menu'); musicAllowed=false; musicStop(); plStopSrc(); plOff=0; // ferma anche la playlist
   state='title';
   showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
@@ -1220,7 +1255,7 @@ function useReserve(){
 function die(){
   sfx('die'); lives--; big=false; updateHUD();
   if(lives<=0){
-    state='over'; musicStop(); sfx('gameover');
+    state='over'; musicStop(); sfx('gameover'); prog.save=null; storeProg();
     showOverlay('Game over','Le vite sono finite. Riprova dal Livello 1.','Ricomincia',startGame);
     return;
   }
@@ -1240,6 +1275,7 @@ function win(){
   const kissMsg="Tu e Lof vi siete dati il primo bacetto! congratulazioni!";
   const msg=(lvlIdx===LV.findIndex(l=>l.name==='Il Teatro'))?kissMsg:fid;
   lives++; // completare un livello fa guadagnare una vita
+  prog.unlocked=Math.max(prog.unlocked,Math.min(LV.length-1,lvlIdx+1)); prog.save=null; storeProg();
   updateHUD();
   if(lvlIdx<LV.length-1){
     state='won';
@@ -1257,7 +1293,7 @@ let pausedFrom=null;
 function togglePause(){
   if(state==='pause'){ hideOverlay(); state=pausedFrom; pausedFrom=null; try{ if(AC.state==='suspended') AC.resume(); }catch(e){} return; }
   if(state!=='play' && state!=='banner') return;
-  pausedFrom=state; state='pause';
+  pausedFrom=state; state='pause'; saveNow();
   try{ if(AC.state==='running') AC.suspend(); }catch(e){} // ferma la musica (e i suoni) finché non si riprende
   for(const k in hold) hold[k]=false;
   for(const k in keys) keys[k]=false;
@@ -2128,6 +2164,9 @@ document.getElementById('resBtn').addEventListener('click',useReserve);
 
 /* ---------- AVVIO ---------- */
 initBg();
+loadProg(); setInterval(saveNow,4000);
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) saveNow(); });
+addEventListener('pagehide',saveNow);
 loadLevel(0);
 buildMenu();
 state='title';
