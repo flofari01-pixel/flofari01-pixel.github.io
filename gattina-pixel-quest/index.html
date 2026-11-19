@@ -657,6 +657,12 @@ let levelFind='bear'; // oggetto da trovare del livello (esce dalle caselle del 
 let findLeft=3; // oggetti da trovare ancora disponibili nel livello (3 in tutto)
 let boyBig=false; // il fidanzatino è grande se la gattina arriva al traguardo grande
 let hitCool=0,jumpBuf=0,bannerT=0,wet=0,kissT=0,cam=0;
+let introT=0,lvlT=0,lastSec=0; // schermata delle vite, tempo del livello (frame di gioco), ultimo secondo segnalato
+const LV_TIME=300*60, ALARM_LEFT=900, BONUS_LIMIT=1800; // 5 minuti; allarme e musica più veloce negli ultimi 15 s; vita extra entro 30 s
+// prima di ogni partita (anche dopo una morte): schermo nero con la gattina e le vite
+function startIntro(){ state='lives'; introT=120; lvlT=0; lastSec=0; updateHUD(); }
+// tempo scaduto: si riparte dall'inizio del livello, senza perdere una vita
+function timeUp(){ sfx('die'); const keep=reserve; ckpt=null; loadLevel(lvlIdx); reserve=keep; startIntro(); }
 let L=null,tiles,boxes,items,enemies,rain=[],cnt={},tot={},pl,collTot=0;
 let stars=[],flakes=[];
 const keys={},hold={};
@@ -964,7 +970,7 @@ function resumeSave(){
   big=!!s.big; heldType=s.heldType||null; reserve=(s.reserve||[]).slice();
   powered=!!s.powered; umbrella=!!s.umbrella; helmet=!!s.helmet; redDress=!!s.redDress; shootOn=!!s.shootOn; findLeft=(typeof s.findLeft==='number')?s.findLeft:findLeft;
   if(s.ck){ ckpt={x:s.ck.x,y:s.ck.y}; if(flag) flag.reached=true; } else ckpt=null;
-  state='banner'; bannerT=110; updateHUD();
+  startIntro();
 }
 // nel menu: i livelli non ancora sbloccati sono spenti; quello interrotto è segnato
 function refreshLvlBtns(){
@@ -977,7 +983,7 @@ function refreshLvlBtns(){
 function startGame(){
   plStopSrc(); sfx('start'); musicAllowed=true;
   lives=7;
-  hideOverlay(); ckpt=null; loadLevel(0); state='banner'; bannerT=110; updateHUD();
+  hideOverlay(); ckpt=null; loadLevel(0); startIntro();
 }
 function pickLevel(n){
   if(n>prog.unlocked) return; // i livelli successivi si sbloccano completando quello prima
@@ -988,7 +994,7 @@ function startLevelFresh(n){
   plStopSrc(); sfx('select'); musicAllowed=true;
   hideOverlay(); lives=7; ckpt=null;
   if(prog.save&&prog.save.lvl===n){ prog.save=null; storeProg(); }
-  loadLevel(n); state='banner'; bannerT=110; updateHUD();
+  loadLevel(n); startIntro();
 }
 // livello con un salvataggio: sceglie se riprendere o ricominciare
 function askResume(n){
@@ -1013,7 +1019,7 @@ function askSaveExit(){
 function nextLevel(n){
   plStopSrc(); musicAllowed=true; hideOverlay(); ckpt=null;
   loadLevel(n);
-  state='banner'; bannerT=110; updateHUD();
+  startIntro();
 }
 
 /* ---------- COLLISIONI ---------- */
@@ -1108,7 +1114,9 @@ const SFX={
   impact:[[180,0.14,'square',90]],                                 // il mostro lanciato colpisce qualcosa                                 // mostro ucciso dallo sparo
   hurt:[[620,0.09,'triangle',440],[440,0.12,'triangle',330]],     // colpita da un mostro: un 'ahi' morbido
   die:[[600,0.15,'square',300],[300,0.15,'square',150],[150,0.4,'square',60]], // vita persa
-  gameover:[[400,0.2],[330,0.2],[262,0.2],[196,0.5]],              // game over
+  gameover:[[400,0.2],[330,0.2],[262,0.2],[196,0.5]],
+  alarm:[[880,0.1,'square'],[660,0.1,'square']],                  // allarme ultimi 15 secondi
+  party:[[523,0.09],[659,0.09],[784,0.09],[1047,0.09],[784,0.07],[1047,0.3]], // festa: vita extra              // game over
   bump:[[200,0.04,'square',120]],                                  // colpo alla casella
   reserve:[[660,0.05],[880,0.05],[1100,0.12]],
   menu:[[1000,0.03,'triangle']],                                   // spostamento tra i comandi dei menu (frecce)                     // uso della riserva
@@ -1275,8 +1283,9 @@ function useReserve(){
 function die(){
   sfx('die'); lives--; big=false; updateHUD();
   if(lives<=0){
-    state='over'; musicStop(); sfx('gameover'); prog.save=null; storeProg();
-    showOverlay('Game over','Le vite sono finite. Riprova dal Livello 1.','Ricomincia',startGame);
+    state='over'; musicStop(); sfx('gameover');
+    const sv=!!prog.save; // con un salvataggio si riparte da lì, altrimenti dal Livello 1
+    showOverlay('Game over', sv?'Riprendi dall\'ultimo salvataggio.':'Riparti dal Livello 1.', sv?'Riprendi':'Ricomincia', ()=>{ if(prog.save) resumeSave(); else startLevelFresh(0); });
     return;
   }
   // tornando alla bandierina la riserva rimane piena e si può usare
@@ -1284,7 +1293,7 @@ function die(){
   reserve=keep; // la riserva resta anche se si ricomincia senza checkpoint
   if(c){ ckpt=c; pl.x=c.x; pl.y=c.y; if(flag) flag.reached=true; }
   updateHUD();
-  state='banner'; bannerT=90; updateHUD();
+  startIntro();
 }
 function win(){
   sfx('win');
@@ -1294,13 +1303,14 @@ function win(){
   // al Teatro arriva il primo bacetto: messaggio speciale al posto della frase abituale
   const kissMsg="Tu e Lof vi siete dati il primo bacetto! congratulazioni!";
   const msg=(lvlIdx===LV.findIndex(l=>l.name==='Il Teatro'))?kissMsg:fid;
-  lives++; // completare un livello fa guadagnare una vita
+  const bonus=lvlT<=BONUS_LIMIT; // entro 30 secondi: vita extra e festa
+  if(bonus){ lives++; sfx('party'); }
   prog.unlocked=Math.max(prog.unlocked,Math.min(LV.length-1,lvlIdx+1)); prog.save=null; storeProg();
   updateHUD();
   if(lvlIdx<LV.length-1){
     state='won';
     const n=lvlIdx+1;
-    showOverlay('Livello completato!',ENDMSG[lvlIdx],'Avanti',()=>nextLevel(n));
+    showOverlay('Livello completato!',ENDMSG[lvlIdx]+(bonus?' Vita extra!':''),'Avanti',()=>nextLevel(n));
   } else {
     state='end'; kissT=0;
     showOverlay('Hai finito tutti i livelli!',fid,'Gioca ancora',startGame);
@@ -1373,9 +1383,14 @@ function iceBlock(){
 
 function tick(){
   if(state==='pause') return;
+  if(state==='lives'){ introT--; if(introT<=0){ state='banner'; bannerT=110; updateHUD(); } return; }
   if(state==='banner'){ bannerT--; if(bannerT<=0){ state='play'; musicPlay(lvlIdx); updateHUD(); } return; } // riaccende la riserva
   if(state==='end'){ kissT++; return; }
   if(state!=='play') return;
+  lvlT++;
+  const tl=LV_TIME-lvlT;
+  if(tl<=ALARM_LEFT&&tl>0){ const sec=Math.ceil(tl/60); if(sec!==lastSec){ lastSec=sec; sfx('alarm'); } if(musSrc&&musSrc.playbackRate.value!==1.12) musSrc.playbackRate.value=1.12; }
+  if(lvlT>=LV_TIME){ timeUp(); return; }
 
   pl.pb=pl.y+pl.h; // posizione dei piedi all'inizio del frame (per lo "schiacciamento")
   if(hitCool>0) hitCool--;
@@ -2026,6 +2041,16 @@ function draw(){
   }
   g.restore();
 
+  if(state==='lives'){ // schermata prima della partita: nero, gattina al centro, vite a destra
+    g.fillStyle='#000'; g.fillRect(0,0,W,H);
+    drawSprite(KITTY,Math.round(W/2-7),Math.round(H/2-KITTY.length/2));
+    g.font='8px "Press Start 2P",monospace'; g.fillStyle='#ffd84d'; g.textAlign='left'; g.textBaseline='middle';
+    g.fillText('x '+lives,Math.round(W/2+14),Math.round(H/2));
+  }
+  if(state==='play'&&LV_TIME-lvlT<=ALARM_LEFT){ // conto alla rovescia in rosso in alto
+    g.font='16px "Press Start 2P",monospace'; g.fillStyle='#ff2d2d'; g.textAlign='center'; g.textBaseline='top';
+    g.fillText(String(Math.ceil((LV_TIME-lvlT)/60)),W/2,4); g.textAlign='left';
+  }
   if(state==='banner'){
     // frasi lunghe: spezzate in due righe, con la fascia del banner più alta
     g.font='7px "Press Start 2P",monospace';
