@@ -958,7 +958,7 @@ function saveNow(){
 // riprende il livello interrotto dallo stesso punto
 function resumeSave(){
   const s=prog.save; if(!s) return;
-  sfx('select'); musicAllowed=true; hideOverlay(); lives=s.lives||7;
+  plStopSrc(); sfx('select'); musicAllowed=true; hideOverlay(); lives=s.lives||7;
   loadLevel(s.lvl);
   pl.x=s.x; pl.y=s.y; pl.vx=0; pl.vy=0; pl.onG=false;
   big=!!s.big; heldType=s.heldType||null; reserve=(s.reserve||[]).slice();
@@ -975,7 +975,7 @@ function refreshLvlBtns(){
   });
 }
 function startGame(){
-  sfx('start'); musicAllowed=true;
+  plStopSrc(); sfx('start'); musicAllowed=true;
   lives=7;
   hideOverlay(); ckpt=null; loadLevel(0); state='banner'; bannerT=110; updateHUD();
 }
@@ -985,7 +985,7 @@ function pickLevel(n){
   startLevelFresh(n);
 }
 function startLevelFresh(n){
-  sfx('select'); musicAllowed=true;
+  plStopSrc(); sfx('select'); musicAllowed=true;
   hideOverlay(); lives=7; ckpt=null;
   if(prog.save&&prog.save.lvl===n){ prog.save=null; storeProg(); }
   loadLevel(n); state='banner'; bannerT=110; updateHUD();
@@ -1010,7 +1010,7 @@ function askSaveExit(){
   const no=document.getElementById('ovNo'); no.textContent='No'; no.hidden=false; no.onclick=()=>{ sfx('click'); goMenuNow(); };
 }
 function nextLevel(n){
-  musicAllowed=true; hideOverlay(); ckpt=null;
+  plStopSrc(); musicAllowed=true; hideOverlay(); ckpt=null;
   loadLevel(n);
   state='banner'; bannerT=110; updateHUD();
 }
@@ -1695,7 +1695,7 @@ function drawDeco(th){
   else if(d==='snow'){
     g.fillStyle='rgba(255,255,255,.85)';
     for(const f of flakes){
-      f.y+=f.v; f.x+=Math.sin(f.y/9)*0.3;
+      if(state!=='banner'&&state!=='pause'){ f.y+=f.v; f.x+=Math.sin(f.y/9)*0.3; } // la neve si ferma durante il banner e in pausa
       if(f.y>H){ f.y=-2; f.x=Math.random()*W; }
       const s=f.v>1?2:1; g.fillRect(f.x|0,f.y|0,s,s);
     }
