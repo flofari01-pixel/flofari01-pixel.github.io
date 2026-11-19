@@ -659,6 +659,7 @@ let levelFind='bear'; // oggetto da trovare del livello (esce dalle caselle del 
 let findLeft=3; // oggetti da trovare ancora disponibili nel livello (3 in tutto)
 let boyBig=false; // il fidanzatino è grande se la gattina arriva al traguardo grande
 let hitCool=0,jumpBuf=0,bannerT=0,wet=0,kissT=0,cam=0;
+let wing=null; // scatola con le ali: a caso a inizio livello; colpita di testa rilascia un oggetto
 let introT=0,lvlT=0,lastSec=0; // schermata delle vite, tempo del livello (frame di gioco), ultimo secondo segnalato
 const LV_TIME=300*60, ALARM_LEFT=900, BONUS_LIMIT=1800; // 5 minuti; allarme e musica più veloce negli ultimi 15 s; vita extra entro 30 s
 // prima di ogni partita (anche dopo una morte): schermo nero con la gattina e le vite
@@ -694,6 +695,7 @@ function loadLevel(i){
   for(const [t,x,y] of lay.items){ items.push({t,x:x*T+3,y:y*T+3,got:false,c:items.length%5}); tot[t]=(tot[t]||0)+1; }
   for(const x of lay.enemies) enemies.push({x:x*T,y:146,w:14,h:14,vy:0,dir:-1,onG:false,dead:false});
   pl={x:32,y:144,w:12,h:16,vx:0,vy:0,onG:false,face:1,coyote:0,flipT:0,flipUsed:false};
+  spawnWing();
   // bandierina a metà livello: se si muore si riparte da lì
   flag=null; const mid=Math.floor(L.w/2);
   for(let d=0;d<60&&!flag;d++) for(const tx of [mid+d,mid-d]){
@@ -1228,6 +1230,9 @@ async function musicPlay(i){
   }catch(e){}
 }
 function pickItem(t,find){
+  if(t==='vheart'){ sfx('oneup'); lives++; updateHUD(); return; }
+  if(t==='turtle'){ sfx('power'); pl.tshell=true; updateHUD(); return; }
+  if(t==='rstar'){ sfx('party'); pl.rainbowT=600; updateHUD(); return; } // 10 secondi
   sfx(t==='choc'||find?'power':'coin');
   if(COLL[t]||FIND.has(t)) cnt[t]=(cnt[t]||0)+1;
   if(t==='choc'){
@@ -1246,10 +1251,71 @@ function pickItem(t,find){
   }
   updateHUD();
 }
+// ---------- SCATOLA CON LE ALI (a caso a inizio livello) ----------
+// sbatte la testa sotto la scatola: si ferma, perde le ali e fa uscire a caso
+// un cuore verde, un guscio di tartaruga, una stella arcobaleno oppure niente
+const RB=['#ffd23f','#ff8c1a','#e02424','#ff4fa3','#9b5de5','#3a86ff','#2ec46d'];
+const SHELL_ROWS=[
+"....kkkkkk....",
+"..kkGGGGGGkk..",
+".kGggggggggGk.",
+"kGgyygggyygGgk",
+"kGgggyyggggGgk",
+"kGgyygggyygGgk",
+"kGggggggggggGk",
+".kGggggggggGk.",
+"..kkkkkkkkkk.."];
+const SHELL_COL={k:'#140a0c',G:'#7cc66b',g:'#2e8b57',y:'#d9b54a'};
+function drawShellSprite(x,y){
+  for(let j=0;j<SHELL_ROWS.length;j++){ const row=SHELL_ROWS[j];
+    for(let i=0;i<row.length;i++){ const c=row[i]; if(c==='.') continue; g.fillStyle=SHELL_COL[c]; g.fillRect(x+i,y+j,1,1); } }
+}
+function drawRainbowStar(x,y){
+  g.fillStyle=RB[Math.floor(performance.now()/90)%RB.length];
+  for(let j=0;j<STAR.length;j++) for(let i=0;i<STAR[j].length;i++) if(STAR[j][i]==='y') g.fillRect(x+2*i,y+2*j,2,2);
+}
+// la scatola alata compare solo ogni tanto, in un punto libero sul terreno
+function spawnWing(){
+  wing=null;
+  if(Math.random()>=0.45) return;
+  for(let k=0;k<60&&!wing;k++){
+    const tx=10+Math.floor(Math.random()*Math.max(1,L.w-22));
+    let ok=tiles.get(tx+',10')==='g'&&tiles.get((tx+1)+',10')==='g';
+    for(let dx=0;dx<2&&ok;dx++) for(let ty=5;ty<=8;ty++) if(tiles.has((tx+dx)+','+ty)) ok=false;
+    if(ok) wing={x:tx*T,y0:6*T,y:6*T,t:0,w:16,h:16,hit:false};
+  }
+}
+// la testa contro la scatola: si ferma, perde le ali e fa uscire l'oggetto (se c'è)
+function hitWing(){
+  wing.hit=true; wing.y=wing.y0; sfx('bump');
+  const t=['vheart','turtle','rstar',null][Math.floor(Math.random()*4)];
+  if(!t) return;
+  const tx=Math.floor((wing.x+8)/T); let ty2=7;
+  while(ty2<12 && !tiles.has(tx+','+ty2)) ty2++;
+  items.push({t,x:wing.x+3,y:wing.y+wing.h-4,got:false,c:0,find:false,vy:-2.6,tgt:(ty2-1)*T+3});
+}
+function drawCrate(x,y){
+  g.fillStyle='#4a2412'; g.fillRect(x,y,16,16);
+  g.fillStyle='#c9854a'; g.fillRect(x+1,y+1,14,14);
+  g.fillStyle='#8a4b22'; g.fillRect(x+3,y+3,10,1); g.fillRect(x+3,y+12,10,1); g.fillRect(x+3,y+3,1,10); g.fillRect(x+12,y+3,1,10);
+}
+function drawWing(){
+  if(!wing) return;
+  const x=Math.round(wing.x), y=Math.round(wing.y);
+  if(!wing.hit){ // due fotogrammi: ali alzate e abbassate
+    const d=Math.floor(wing.t*2.2)%2===0?-6:-2;
+    g.fillStyle='#ffffff';
+    g.beginPath(); g.moveTo(x,y+7); g.lineTo(x-8,y+d+7); g.lineTo(x-1,y+12); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(x+16,y+7); g.lineTo(x+24,y+d+7); g.lineTo(x+17,y+12); g.closePath(); g.fill();
+  }
+  drawCrate(x,y);
+}
 function hurt(){
+  if(pl.hidden || pl.rainbowT>0) return; // guscio chiuso o arcobaleno: nessun danno
   sfx('hurt');
   if(hitCool>0) return;
   hitCool=70;
+  if(pl.tshell){ pl.tshell=false; return; } // il guscio assorbe il primo colpo e sparisce
   // un contatto con un mostro la rimpicciolisce; la riserva resta e si usa solo a mano
   // primo colpo: perde il potere di sparare ma resta grande; il colpo dopo la rimpicciolisce; poi muore
   if(shootOn){ clearHeld(); updateHUD(); return; }
@@ -1396,6 +1462,7 @@ function tick(){
 
   pl.pb=pl.y+pl.h; // posizione dei piedi all'inizio del frame (per lo "schiacciamento")
   if(hitCool>0) hitCool--;
+  if(pl.rainbowT>0) pl.rainbowT--;
   if(pl.turnT>0) pl.turnT--;
   // l'oggetto della riserva cade dall'alto; quando tocca la testa la gattina torna grande
   if(dropFx){
@@ -1409,6 +1476,7 @@ function tick(){
     if(shootOn){ if(tiles.has(k)) tiles.delete(k); }
     else if(!tiles.has(k)) tiles.set(k,'b');
   }
+  if(wing&&!wing.hit){ wing.t+=0.09; wing.y=wing.y0+Math.sin(wing.t)*3; } // ali: su e giù
   if(jumpBuf>0) jumpBuf--;
   const down=!!(keys.ArrowDown||keys.KeyS||hold.d);
   const left=keys.ArrowLeft||keys.KeyA||hold.l;
@@ -1417,7 +1485,8 @@ function tick(){
   // al cambio di direzione la vista frontale compare per qualche istante (vedi drawPlayer)
   if(dir){ if(dir!==pl.face) pl.turnT=12; pl.face=dir; }
   const run=!!(hold.y||keys.KeyZ); // Y (o Z) tenuto: corsa veloce
-  const target=pl.crouch?0:dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4); // accovacciata non cammina
+  pl.rolling=!!(pl.tshell&&run&&dir&&pl.onG); // guscio che corre (o scivola con GIÙ): uccide i mostri
+  const target=(pl.crouch&&!pl.rolling)?0:dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4); // accovacciata non cammina
   // Locorotondo: il ghiaccio fa scivolare un po' (la velocità arriva e si ferma piano)
   // scivola solo sul ghiaccio (il terreno 'g' di Locorotondo), non su mensole e caselle
   if(L.ice){
@@ -1451,13 +1520,16 @@ function tick(){
   const headFree=()=>{ const tx0=Math.floor(pl.x/T), tx1=Math.floor((pl.x+pl.w-1)/T); for(let ty=Math.floor((pl.y-7)/T);ty<=Math.floor((pl.y-1)/T);ty++) for(let tx=tx0;tx<=tx1;tx++) if(tiles.has(tx+','+ty)) return false; return true; };
   if(cw && !pl.crouch){ pl.crouch=true; pl.y+=8; pl.h=8; } // si abbassa della metà
   else if(!cw && pl.crouch && headFree()){ pl.crouch=false; pl.y-=8; pl.h=16; }
+  pl.hidden=!!(pl.tshell&&pl.crouch&&!run); // guscio chiuso: la gattina sta dentro, ferma sul terreno
   pl.vy=Math.min(pl.vy+G,MAXFALL);
   pl.onG=false;
   if(pl.wallT>0) pl.wallT--;
   pl.x+=pl.vx; if(pl.vx && resolveX(pl,pl.vx)){ pl.wallT=8; pl.wallSide=pl.vx>0?1:-1; } // ricorda il muro appena sbattuto
   pl.x=Math.max(0,Math.min(L.w*T-pl.w,pl.x));
   const hitV=pl.vy; // velocità di caduta prima del contatto col terreno
+  const yBefore=pl.y;
   pl.y+=pl.vy; resolveY(pl);
+  if(wing&&!wing.hit&&hitV<0&&yBefore>=wing.y+wing.h-1&&pl.y<wing.y+wing.h&&pl.x<wing.x+wing.w&&pl.x+pl.w>wing.x) hitWing(); // testa contro la scatola alata
   // la casella si apre solo quando ci atterri sopra
   if(pl.onG){
     let onBox=false;
@@ -1499,6 +1571,10 @@ function tick(){
       }
     }
     // i volatili colpiscono solo la gattina grande (la faccia, anche con la sua altezza da grande); da piccola non la raggiungono mai
+    // arcobaleno o guscio che corre: il mostro al contatto muore, senza danni
+    if((pl.rainbowT>0||pl.rolling)&&overlap(pl,e)){ e.dead=true; sfx('kill'); continue; }
+    // guscio chiuso: il mostro che lo tocca torna indietro senza far danni
+    if(pl.hidden&&overlap(pl,e)){ if(!e.fly){ e.dir*=-1; e.x+=e.dir*2; } continue; }
     if(e.fly ? (big && overlap({x:pl.x,y:pl.y-(pl.crouch?8:16),w:pl.w,h:pl.h+(pl.crouch?8:16)},e)) : overlap(pl,e)){
       if(pl.vy>0 && pl.pb<=e.y+6){ e.dead=true; pl.vy=-5.2; pl.onG=false; sfx('stomp'); }
       else if(e.fly){ if(big && !pl.crouch && !pl.flipT) hurt(); } // i volatili raggiungono la faccia solo se sei grande e in piedi; durante la capriola non fanno male
@@ -1606,6 +1682,9 @@ function drawItem(it){
   }
   else if(t==='heart') drawHeart(x+5,y+4,1,COLL.heart.c);
   else if(t==='star') drawSprite(STAR,x,y);
+  else if(t==='vheart') drawHeart(x+5,y+4,1,'#2ec46d');
+  else if(t==='turtle') drawShellSprite(x-2,y+1);
+  else if(t==='rstar') drawRainbowStar(x,y);
   else {
     g.fillStyle=COLL[t].c; g.beginPath(); g.arc(x+5,y+5,4,0,Math.PI*2); g.fill();
     g.fillStyle='#fff'; g.fillRect(x+3,y+3,1,1);
@@ -1959,10 +2038,20 @@ function drawRideHands(front){
 }
 function drawPlayer(){
   if(hitCool>0 && Math.floor(hitCool/4)%2) return;
+  if(pl.hidden){ // guscio chiuso sul terreno: la gattina è dentro
+    const s=big?1.5:1; g.save(); g.translate(Math.round(pl.x+pl.w/2),Math.round(pl.y+pl.h)); g.scale(s,s); drawShellSprite(-7,-9); g.restore(); return;
+  }
+  // arcobaleno: tutto il corpo cambia colore a rotazione, i contorni restano neri
+  const saved=pl.rainbowT>0?Object.assign({},PAL):null;
+  if(saved){ const c=RB[Math.floor(pl.rainbowT/4)%RB.length]; for(const k in PAL) if(k!=='k') PAL[k]=c; }
   SP_PAD=big?0.35:0; // scala 1,5: ogni pixel si allarga un poco per non lasciare bordi grigi
-  try{ drawPlayerInner(); } finally { SP_PAD=0; }
+  try{ drawPlayerInner(); } finally { SP_PAD=0; if(saved) Object.assign(PAL,saved); }
 }
 function drawPlayerInner(){
+  if(pl.tshell){ // il guscio è il corpo
+    const s=big?1.5:1, ox=Math.round(pl.x+pl.w/2), oy=Math.round(pl.y+pl.h);
+    g.save(); g.translate(ox,oy); g.scale(pl.face<0?-s:s,s); drawShellSprite(-7,-9); g.restore(); return;
+  }
   // da ferma la gattina è di fronte; quando si muove (o è in aria) è di profilo
   // (a terra vale anche il "coyote time": evita lo scambio di vista frame per frame da fermi)
   const still=(pl.onG||pl.coyote>0) && pl.vx===0;
@@ -2023,6 +2112,7 @@ function draw(){
   drawEnd(th);
   drawBoyKitten();
   for(const it of items) drawItem(it);
+  drawWing();
   for(const e of enemies) drawEnemy(e);
   for(const s of shots) drawShot(s);
   updateProgress();
