@@ -659,7 +659,8 @@ let levelFind='bear'; // oggetto da trovare del livello (esce dalle caselle del 
 let findLeft=3; // oggetti da trovare ancora disponibili nel livello (3 in tutto)
 let boyBig=false; // il fidanzatino è grande se la gattina arriva al traguardo grande
 let hitCool=0,jumpBuf=0,bannerT=0,wet=0,kissT=0,cam=0;
-let wing=null; // scatola con le ali: a caso a inizio livello; colpita di testa rilascia un oggetto
+let wing=null; // scatola con le ali: a caso a inizio livello; colpita di testa diventa una casella normale
+let wingMsg='', wingMsgT=0, carryShell=false; // messaggio di ciò che si è trovato; il guscio passa al livello dopo
 let introT=0,lvlT=0,lastSec=0; // schermata delle vite, tempo del livello (frame di gioco), ultimo secondo segnalato
 const LV_TIME=300*60, ALARM_LEFT=900, BONUS_LIMIT=1800; // 5 minuti; allarme e musica più veloce negli ultimi 15 s; vita extra entro 30 s
 // prima di ogni partita (anche dopo una morte): schermo nero con la gattina e le vite
@@ -696,6 +697,7 @@ function loadLevel(i){
   for(const x of lay.enemies) enemies.push({x:x*T,y:146,w:14,h:14,vy:0,dir:-1,onG:false,dead:false});
   pl={x:32,y:144,w:12,h:16,vx:0,vy:0,onG:false,face:1,coyote:0,flipT:0,flipUsed:false};
   spawnWing();
+  if(carryShell){ pl.tshell=true; carryShell=false; }
   // bandierina a metà livello: se si muore si riparte da lì
   flag=null; const mid=Math.floor(L.w/2);
   for(let d=0;d<60&&!flag;d++) for(const tx of [mid+d,mid-d]){
@@ -781,7 +783,8 @@ function updateHUD(){
   if(powered) s+='  ORSETTO';
   document.getElementById('hItems').textContent=s;
   const tip=document.getElementById('shootTip');
-  if(tip){ const nm=POWER_NAMES[heldType]||(COLL[heldType]&&COLL[heldType].l)||''; tip.textContent=(nm?nm+': ':'')+'ora puoi sparare con Y'; tip.style.visibility=(shootOn&&(state==='play'||state==='pause'))?'visible':'hidden'; }
+  if(tip&&wingMsgT>0){ tip.textContent=wingMsg; tip.style.visibility=(state==='play'||state==='pause')?'visible':'hidden'; }
+  else if(tip){ const nm=POWER_NAMES[heldType]||(COLL[heldType]&&COLL[heldType].l)||''; tip.textContent=(nm?nm+': ':'')+'ora puoi sparare con Y'; tip.style.visibility=(shootOn&&(state==='play'||state==='pause'))?'visible':'hidden'; }
   // il pulsante SPARA sul touch è acceso solo quando si può sparare
   const rb=document.getElementById('resBtn');
   if(rb){ rb.disabled=!(state==='play'&&!dropFx&&reserve.length>0); document.getElementById('resN').textContent=reserve.length; drawReserveIcon(); }
@@ -1014,7 +1017,7 @@ function goMenu(){
   goMenuNow();
 }
 function goMenuNow(){
-  sfx('menu'); musicAllowed=false; musicStop(); plStopSrc(); plOff=0; // ferma anche la playlist
+  carryShell=false; sfx('menu'); musicAllowed=false; musicStop(); plStopSrc(); plOff=0; // ferma anche la playlist
   pausedFrom=null; state='title';
   showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 }
@@ -1234,9 +1237,9 @@ async function musicPlay(i){
   }catch(e){}
 }
 function pickItem(t,find){
-  if(t==='vheart'){ sfx('oneup'); lives++; updateHUD(); return; }
-  if(t==='turtle'){ sfx('power'); pl.tshell=true; updateHUD(); return; }
-  if(t==='rstar'){ sfx('party'); pl.rainbowT=600; updateHUD(); return; } // 10 secondi
+  if(t==='vheart'){ sfx('oneup'); lives++; setWingMsg('Hai trovato un CUORE VERDE: ti dà una vita in più. Nessun tasto da premere.'); return; }
+  if(t==='turtle'){ sfx('power'); pl.tshell=true; big=true; setWingMsg('Hai trovato il GUSCIO: ti fa crescere e sostituisce il tuo corpo. GIÙ = nascondi · DESTRA+Y = corri e travolgi i mostri · GIÙ di corsa = scivola'); return; }
+  if(t==='rstar'){ sfx('party'); pl.rainbowT=600; setWingMsg('Hai trovato la STELLA ARCOBALENO: per 10 secondi sei immune e i mostri che tocchi muoiono. Nessun tasto da premere.'); return; }
   sfx(t==='choc'||find?'power':'coin');
   if(COLL[t]||FIND.has(t)) cnt[t]=(cnt[t]||0)+1;
   if(t==='choc'){
@@ -1280,7 +1283,7 @@ function drawRainbowStar(x,y){
 }
 // la scatola alata compare solo ogni tanto, in un punto libero sul terreno
 function spawnWing(){
-  wing=null;
+  wing=null; wingMsgT=0;
   if(Math.random()>=0.45) return;
   for(let k=0;k<60&&!wing;k++){
     const tx=10+Math.floor(Math.random()*Math.max(1,L.w-22));
@@ -1291,13 +1294,15 @@ function spawnWing(){
 }
 // la testa contro la scatola: si ferma, perde le ali e fa uscire l'oggetto (se c'è)
 function hitWing(){
-  wing.hit=true; wing.y=wing.y0; sfx('bump');
+  // ora è una casella normale: solida, si colpisce da sotto e l'oggetto esce sopra (come hitBox)
+  const tx=Math.floor(wing.x/T); wing=null;
+  tiles.set(tx+',6','u'); sfx('bump');
   const t=['vheart','turtle','rstar',null][Math.floor(Math.random()*4)];
-  if(!t) return;
-  const tx=Math.floor((wing.x+8)/T); let ty2=7;
-  while(ty2<12 && !tiles.has(tx+','+ty2)) ty2++;
-  items.push({t,x:wing.x+3,y:wing.y+wing.h-4,got:false,c:0,find:false,vy:-2.6,tgt:(ty2-1)*T+3});
+  if(!t){ setWingMsg('La scatola alata era vuota.'); return; }
+  items.push({t,x:tx*T+3,y:5*T+3,got:false,c:0,find:false});
 }
+// messaggio giallo sotto l'area di gioco: cosa si è trovato, che potere dà e quali tasti usare
+function setWingMsg(s){ wingMsg=s; wingMsgT=480; updateHUD(); }
 function drawCrate(x,y){
   g.fillStyle='#4a2412'; g.fillRect(x,y,16,16);
   g.fillStyle='#c9854a'; g.fillRect(x+1,y+1,14,14);
@@ -1377,6 +1382,7 @@ function win(){
   const msg=(lvlIdx===LV.findIndex(l=>l.name==='Il Teatro'))?kissMsg:fid;
   const bonus=lvlT<=BONUS_LIMIT; // entro 30 secondi: vita extra e festa
   if(bonus){ lives++; sfx('party'); }
+  carryShell=!!(pl&&pl.tshell); // il guscio, se lo hai, passa al livello dopo
   prog.unlocked=Math.max(prog.unlocked,Math.min(LV.length-1,lvlIdx+1)); prog.save=null; storeProg();
   updateHUD();
   if(lvlIdx<LV.length-1){
@@ -1467,6 +1473,7 @@ function tick(){
   pl.pb=pl.y+pl.h; // posizione dei piedi all'inizio del frame (per lo "schiacciamento")
   if(hitCool>0) hitCool--;
   if(pl.rainbowT>0) pl.rainbowT--;
+  if(wingMsgT>0 && --wingMsgT===0) updateHUD();
   if(pl.turnT>0) pl.turnT--;
   // l'oggetto della riserva cade dall'alto; quando tocca la testa la gattina torna grande
   if(dropFx){
@@ -2040,6 +2047,12 @@ function drawRideHands(front){
     arm(0,-8,6+w,-8+dy); hand(6+w,-9+dy);
   }
 }
+// guscio verticale sul torso: la testa e le zampe bianche sbucano sopra e sotto
+function drawShellBody(cy){
+  g.fillStyle='#140a0c'; g.beginPath(); g.ellipse(0,cy,6,5.5,0,0,Math.PI*2); g.fill();
+  g.fillStyle='#2e8b57'; g.beginPath(); g.ellipse(0,cy,5,4.5,0,0,Math.PI*2); g.fill();
+  g.fillStyle='#d9b54a'; g.fillRect(-2,cy-2,2,2); g.fillRect(1,cy+1,2,2); g.fillRect(-1,cy+2,1,1);
+}
 function drawPlayer(){
   if(hitCool>0 && Math.floor(hitCool/4)%2) return;
   if(pl.hidden){ // guscio chiuso sul terreno: la gattina è dentro
@@ -2052,10 +2065,6 @@ function drawPlayer(){
   try{ drawPlayerInner(); } finally { SP_PAD=0; if(saved) Object.assign(PAL,saved); }
 }
 function drawPlayerInner(){
-  if(pl.tshell){ // il guscio è il corpo
-    const s=big?1.5:1, ox=Math.round(pl.x+pl.w/2), oy=Math.round(pl.y+pl.h);
-    g.save(); g.translate(ox,oy); g.scale(pl.face<0?-s:s,s); drawShellSprite(-7,-9); g.restore(); return;
-  }
   // da ferma la gattina è di fronte; quando si muove (o è in aria) è di profilo
   // (a terra vale anche il "coyote time": evita lo scambio di vista frame per frame da fermi)
   const still=(pl.onG||pl.coyote>0) && pl.vx===0;
@@ -2072,6 +2081,7 @@ function drawPlayerInner(){
     if(helmet) drawSprite(HELM_FULL,-7,-8);
     if(santaOn()) drawSprite(SANTA_HAT,-7,-14);
     drawPixelPoints(BOW,front?-7:-9,-8,PAL.r);
+    if(pl.tshell) drawShellBody(-6);
     g.restore();
     return;
   }
@@ -2086,6 +2096,7 @@ function drawPlayerInner(){
   else if(front){ drawSprite(front,-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-7,-16,PAL.r); }
   else { drawProfile(-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-9,-16,PAL.r); }
   if(quad) drawRideHands(!!front);
+  if(pl.tshell) drawShellBody(pl.crouch?-3:-6);
   g.restore();
 }
 
