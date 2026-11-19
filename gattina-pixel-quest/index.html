@@ -2054,7 +2054,51 @@ function draw(){
 
 /* ---------- CICLO E COMANDI ---------- */
 let acc=0,last=performance.now();
+// ---- joystick (Xbox e compatibili): croce e stick = frecce; A→b, B→a, X→y, Y→x (come da richiesta); Start = pausa ----
+const PADKEY={0:'b',1:'a',2:'y',3:'x'};
+const gpPrev={}, gpRep={};
+function pollPad(){
+  const gps=(navigator.getGamepads&&navigator.getGamepads())||[];
+  let gp=null; for(const x of gps){ if(x&&x.connected){ gp=x; break; } }
+  if(!gp) return;
+  const btn=i=>!!(gp.buttons[i]&&gp.buttons[i].pressed);
+  const ax=gp.axes||[0,0];
+  const now={u:btn(12)||ax[1]<-0.5, d:btn(13)||ax[1]>0.5, l:btn(14)||ax[0]<-0.5, r:btn(15)||ax[0]>0.5};
+  const t=performance.now();
+  const menuOn=!document.getElementById('ov').hidden;
+  if(menuOn){
+    for(const k in hold) hold[k]=false;
+    const md={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]};
+    for(const k of ['u','d','l','r']){
+      if(!now[k]){ gpRep[k]=0; continue; }
+      if(!gpPrev[k]){ menuMove(md[k][0],md[k][1]); gpRep[k]=t+420; }
+      else if(t>=gpRep[k]){ menuMove(md[k][0],md[k][1]); gpRep[k]=t+130; }
+    }
+    if(btn(0)&&!gpPrev[0]) menuPress();                       // A sceglie
+    if(btn(2)&&!gpPrev[2]) document.getElementById('menuBtn').focus({preventScroll:true}); // X seleziona MENU
+  } else {
+    // croce e stick: tengono premuto come le frecce
+    for(const k of ['u','d','l','r']) if(now[k]!==!!gpPrev[k]) hold[k]=now[k];
+    if(now.u&&!gpPrev.u){ jumpBuf=7; }
+    if((now.l&&!gpPrev.l||now.r&&!gpPrev.r)&&hold.y) yArrow=true;
+    for(const i of [0,1,2,3]){
+      const k=PADKEY[i], v=btn(i);
+      if(v&&!gpPrev[i]){ // pressione
+        hold[k]=true;
+        if(k==='a'&&document.activeElement===document.getElementById('menuBtn')){ goMenu(); unlockAudio(); }
+        else { if(k==='a') jumpBuf=7; if(k==='x') document.getElementById('menuBtn').focus({preventScroll:true}); if(k==='b') useReserve(); if(k==='y') yArrow=false; if((hold.l||hold.r)&&hold.y) yArrow=true; unlockAudio(); }
+      } else if(!v&&gpPrev[i]){ // rilascio
+        hold[k]=false;
+        if(k==='y'){ if(!yArrow) fireReq=true; yArrow=false; }
+      }
+    }
+    if(btn(9)&&!gpPrev[9]) togglePause();                      // Start = pausa
+  }
+  for(const k of ['u','d','l','r']) gpPrev[k]=now[k];
+  for(const i of [0,1,2,3,9]) gpPrev[i]=btn(i);
+}
 function loop(now){
+  pollPad();
   acc+=Math.min(100,now-last); last=now;
   while(acc>=1000/60){ tick(); acc-=1000/60; }
   draw();
