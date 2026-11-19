@@ -128,6 +128,7 @@ if('serviceWorker' in navigator){
       <p id="ovP"></p>
       <button id="plBtn" type="button" hidden>PLAYLIST DELLE COLONNE SONORE</button>
       <button id="ovB" type="button"></button>
+      <button id="ovNo" type="button" hidden>No</button>
       <div id="lvlBtns" class="lvls" hidden></div>
       <div id="plPanel" hidden>
         <div id="plList" class="pl"></div>
@@ -779,6 +780,7 @@ function updateHUD(){
 /* ---------- OVERLAY E MENU ---------- */
 let intentionalBlur=false, lastMenuFocus=null; // il cursore del menu non si perde toccando lo schermo
 function showOverlay(t,p,b,fn){
+  document.getElementById('ovNo').hidden=true;
   document.getElementById('ovT').textContent=t;
   document.getElementById('ovP').textContent=p;
   const btn=document.getElementById('ovB');
@@ -985,10 +987,18 @@ function pickLevel(n){
   loadLevel(n); state='banner'; bannerT=110; updateHUD();
 }
 function goMenu(){
-  saveNow();
+  // dentro un livello chiede se salvare i progressi prima di tornare al menu (nessun salvataggio automatico)
+  if(state==='play'||state==='pause'||state==='banner'){ askSaveExit(); return; }
+  goMenuNow();
+}
+function goMenuNow(){
   sfx('menu'); musicAllowed=false; musicStop(); plStopSrc(); plOff=0; // ferma anche la playlist
-  state='title';
+  pausedFrom=null; state='title';
   showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
+}
+function askSaveExit(){
+  showOverlay('Vuoi salvare i progressi?','Se salvi, la prossima volta riprendi questo livello dallo stesso punto.','Sì',()=>{ saveNow(); goMenuNow(); });
+  const no=document.getElementById('ovNo'); no.hidden=false; no.onclick=()=>{ sfx('click'); goMenuNow(); };
 }
 function nextLevel(n){
   musicAllowed=true; hideOverlay(); ckpt=null;
@@ -1293,7 +1303,7 @@ let pausedFrom=null;
 function togglePause(){
   if(state==='pause'){ hideOverlay(); state=pausedFrom; pausedFrom=null; try{ if(AC.state==='suspended') AC.resume(); }catch(e){} return; }
   if(state!=='play' && state!=='banner') return;
-  pausedFrom=state; state='pause'; saveNow();
+  pausedFrom=state; state='pause';
   try{ if(AC.state==='running') AC.suspend(); }catch(e){} // ferma la musica (e i suoni) finché non si riprende
   for(const k in hold) hold[k]=false;
   for(const k in keys) keys[k]=false;
@@ -2164,9 +2174,7 @@ document.getElementById('resBtn').addEventListener('click',useReserve);
 
 /* ---------- AVVIO ---------- */
 initBg();
-loadProg(); setInterval(saveNow,4000);
-document.addEventListener('visibilitychange',()=>{ if(document.hidden) saveNow(); });
-addEventListener('pagehide',saveNow);
+loadProg();
 loadLevel(0);
 buildMenu();
 state='title';
