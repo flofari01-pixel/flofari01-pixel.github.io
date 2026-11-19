@@ -1007,7 +1007,10 @@ function askResume(n){
 }
 function goMenu(){
   // dentro un livello chiede se salvare i progressi prima di tornare al menu (nessun salvataggio automatico)
-  if(state==='play'||state==='pause'||state==='banner'){ askSaveExit(); return; }
+  if(state==='play'||state==='pause'||state==='banner'){
+    if(lvlIdx<prog.unlocked){ goMenuNow(); return; } // livello già completato: niente domanda sul salvataggio
+    askSaveExit(); return;
+  }
   goMenuNow();
 }
 function goMenuNow(){
@@ -1018,7 +1021,8 @@ function goMenuNow(){
 function askSaveExit(){
   pausedFrom=state; state='pause'; musicStop(); for(const k in hold) hold[k]=false; for(const k in keys) keys[k]=false; // il gioco si ferma mentre chiede
   showOverlay('Vuoi salvare i progressi?','Se salvi, la prossima volta riprendi questo livello dallo stesso punto.','Sì',()=>{ saveNow(); goMenuNow(); });
-  const no=document.getElementById('ovNo'); no.textContent='No'; no.hidden=false; no.onclick=()=>{ sfx('click'); goMenuNow(); };
+  // No: il livello non viene salvato e, se c'era un salvataggio di questo livello, la prossima volta si riparte dall'inizio
+  const no=document.getElementById('ovNo'); no.textContent='No'; no.hidden=false; no.onclick=()=>{ sfx('click'); if(prog.save&&prog.save.lvl===lvlIdx){ prog.save=null; storeProg(); } goMenuNow(); };
 }
 function nextLevel(n){
   plStopSrc(); musicAllowed=true; hideOverlay(); ckpt=null;
