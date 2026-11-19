@@ -1006,6 +1006,7 @@ function goMenuNow(){
   showOverlay('Syria Kitty Bros','Scegli un livello, oppure premi Gioca per ricominciare dal Livello 1.','Gioca',startGame);
 }
 function askSaveExit(){
+  pausedFrom=state; state='pause'; musicStop(); for(const k in hold) hold[k]=false; for(const k in keys) keys[k]=false; // il gioco si ferma mentre chiede
   showOverlay('Vuoi salvare i progressi?','Se salvi, la prossima volta riprendi questo livello dallo stesso punto.','Sì',()=>{ saveNow(); goMenuNow(); });
   const no=document.getElementById('ovNo'); no.textContent='No'; no.hidden=false; no.onclick=()=>{ sfx('click'); goMenuNow(); };
 }
