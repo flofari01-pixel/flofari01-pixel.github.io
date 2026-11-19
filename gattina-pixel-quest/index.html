@@ -30,6 +30,9 @@ button:focus-visible,#ov :focus,#menuBtn:focus{outline:3px solid var(--hud);outl
 .lvls{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:14px auto 0;width:240px;max-width:100%}
 .lvls[hidden]{display:none!important}
 #plBtn{display:block;margin:14px auto 12px;font-size:7px;padding:10px 10px}
+.ovbtns{display:flex;flex-direction:column;align-items:center;gap:12px;margin:12px auto}
+.ovbtns button{margin:0;max-width:100%}
+[hidden]{display:none!important}
 #plPanel{margin-top:12px}
 #plList{width:260px;max-width:100%;margin:0 auto;text-align:left}
 #plList button{display:block;width:100%;margin:0 0 6px;text-align:left;font:12px/1.3 Inter,system-ui,sans-serif;padding:9px 10px;box-shadow:0 3px 0 var(--accent-d)}
@@ -127,8 +130,7 @@ if('serviceWorker' in navigator){
       <h2 id="ovT"></h2>
       <p id="ovP"></p>
       <button id="plBtn" type="button" hidden>PLAYLIST DELLE COLONNE SONORE</button>
-      <button id="ovB" type="button"></button>
-      <button id="ovNo" type="button" hidden>No</button>
+      <div id="ovBtns" class="ovbtns"><button id="ovB" type="button"></button><button id="ovNo" type="button" hidden>No</button></div>
       <div id="lvlBtns" class="lvls" hidden></div>
       <div id="plPanel" hidden>
         <div id="plList" class="pl"></div>
