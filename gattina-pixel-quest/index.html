@@ -2051,6 +2051,11 @@ function draw(){
     g.font='16px "Press Start 2P",monospace'; g.fillStyle='#ff2d2d'; g.textAlign='center'; g.textBaseline='top';
     g.fillText(String(Math.ceil((LV_TIME-lvlT)/60)),W/2,4); g.textAlign='left';
   }
+  if(state==='play'||state==='pause'){ // tempo rimasto del livello (5 minuti), in alto a destra
+    const sec=Math.max(0,Math.ceil((LV_TIME-lvlT)/60));
+    g.font='8px "Press Start 2P",monospace'; g.fillStyle='#ffd84d'; g.textAlign='right'; g.textBaseline='top';
+    g.fillText(Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'),W-4,5); g.textAlign='left';
+  }
   if(state==='banner'){
     // frasi lunghe: spezzate in due righe, con la fascia del banner più alta
     g.font='7px "Press Start 2P",monospace';
