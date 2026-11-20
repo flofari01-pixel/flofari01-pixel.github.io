@@ -2245,7 +2245,7 @@ function pollPad(){
       if(v&&!gpPrev[i]){ // pressione
         hold[k]=true;
         if(k==='a'&&document.activeElement===document.getElementById('menuBtn')){ goMenu(); unlockAudio(); }
-        else { if(k==='a') jumpBuf=7; if(k==='x') document.getElementById('menuBtn').focus({preventScroll:true}); if(k==='b') useReserve(); if(k==='y') yArrow=false; if((hold.l||hold.r)&&hold.y) yArrow=true; unlockAudio(); }
+        else { if(k==='a') jumpBuf=7; if(k==='x') document.getElementById('menuBtn').focus({preventScroll:true}); if(k==='b') useReserve(); if(k==='y') yArrow=false; if((hold.l||hold.r)&&hold.y&&k!=='y') yArrow=true; unlockAudio(); } // Y premuto mentre si cammina: spara (al rilascio), senza bloccare il colpo
       } else if(!v&&gpPrev[i]){ // rilascio
         hold[k]=false;
         if(k==='y'){ if(!yArrow) fireReq=true; yArrow=false; }
