@@ -2091,7 +2091,7 @@ function drawPlayerInner(){
   // accovacciata: si vede solo la vista di fronte schiacciata (un solo disegno, niente frame sovrapposti)
   const showFront=onQuad ? (pl.turnT>0) : (still||!!pl.crouch);
   const front=showFront ? frontNow() : null;
-  if(pl.tshell){ if(front){ PAL.u=PAL.w; PAL.a=PAL.w; PAL.p=PAL.w; } else PAL.p='#ffd23f'; } // di fronte niente azzurro; di profilo il vestito diventa giallo come la pancia
+  if(pl.tshell){ PAL.p='#ffd23f'; if(front){ PAL.u=PAL.w; PAL.a=PAL.w; } } // con il guscio il vestito è giallo come la pancia; senza guscio resta rosa; di fronte niente azzurro
   const s=big?1.5:1; // stessa taglia del gattino maschio che aspetta alla fine
   if(pl.flipT>0){
     const cx=Math.round(pl.x+pl.w/2), cy=Math.round(pl.y+pl.h/2);
