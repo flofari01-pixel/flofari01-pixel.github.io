@@ -187,7 +187,7 @@ g.imageSmoothingEnabled=false;
 // lo sfondo si disegna a risoluzione tripla su un canvas nascosto e poi si riduce con l'interpolazione: scorrimento fluido
 const bgC=document.createElement('canvas'); bgC.width=W*3; bgC.height=H*3;
 const bgG=bgC.getContext('2d');
-const PAL={k:'#140a0c',w:'#ffffff',p:'#ff7fb0',r:'#d62828',y:'#ffd23f',B:'#8a4b22',b:'#c9854a',D:'#4a2412',u:'#3a6fd8',a:'#4cc9f0'};
+const PAL={k:'#140a0c',w:'#ffffff',p:'#ff7fb0',r:'#d62828',y:'#ffd23f',B:'#8a4b22',b:'#c9854a',D:'#4a2412',u:'#3a6fd8',a:'#4cc9f0',Z:'#8e3bd6'};
 const KITTY=[
 "..k........k..",
 ".kwk......kwk.",
@@ -284,16 +284,16 @@ function bikiniRows(rows){
   let lo=99; rows.forEach((r,y)=>{ if(r.includes('p')) lo=Math.min(lo,y); });
   return rows.map((r,y)=>r.split('').map(c=>{
     if(c!=='p') return c;
-    if(y<=lo+1) return 'r';          // reggiseno
+    if(y<=lo+1) return 'Z';          // reggiseno viola
     if(y===lo+2) return 'w';         // pelle tra i due pezzi
-    return 'r';                      // slip
+    return 'Z';                      // slip viola
   }).join(''));
 }
 const OUT_CACHE={};
 function outfitSet(o){
   const key=o.bikini?'bikini':o.top+'|'+(o.bottom||'');
   if(!OUT_CACHE[key]) OUT_CACHE[key]=o.bikini
-    ? {front:bikiniRows(KITTY), side:bikiniRows(PSIDE), arm:dressRows(PARM,'r','r'), leg:PLEG}
+    ? {front:bikiniRows(KITTY), side:bikiniRows(PSIDE), arm:dressRows(PARM,'Z','Z'), leg:PLEG}
     : {front:dressRows(KITTY,o.top,o.bottom), side:dressRows(PSIDE,o.top,o.bottom), arm:dressRows(PARM,o.top,o.bottom), leg:PLEG};
   return OUT_CACHE[key];
 }
@@ -752,7 +752,7 @@ function loadLevel(i){
     }
   }
   // pipistrelli (nella zucca) e gabbiani (nei livelli di mare): volano da destra a sinistra, su e giù
-  const fk=L.end==='pumpkin'?'bat':((TH[L.th]&&TH[L.th].deco==='sea')?'bird':null);
+  const fk=L.end==='pumpkin'?'bat':((TH[L.th]&&TH[L.th].deco==='sea')||L.snow?'bird':null);
   if(fk){
     const R2=mulberry32((L.seed||(lvlIdx+1)*97)+555), n=fk==='bat'?6:4;
     for(let k=0;k<n;k++){
@@ -1427,12 +1427,20 @@ function snowAction(){
   return false;
 }
 // il mostro congelato: sta sul terreno (cade se non c'è più), si scongela dopo 10 secondi se non viene preso
+// il colpo o il ghiaccio lanciato punta il volatile più vicino che ha davanti (entro 150 px)
+function aimAt(x,vx){
+  let best=null,bd=150;
+  for(const e of enemies){ if(!e.fly||e.dead) continue; const dx=(e.x+e.w/2)-x; if(dx*vx<=0) continue; if(Math.abs(dx)<bd){ bd=Math.abs(dx); best=e; } }
+  return best;
+}
 function iceStep(e){
   if(e.held){ e.x=pl.x+pl.w/2-e.w/2; e.y=pl.y-e.h-2; e.vy=0; return; }
   if(e.thrown){
     e.x+=e.vx;
     if(resolveX(e,e.vx)){ e.dead=true; sfx('impact'); return; } // contro un muro si rompe
-    e.vy=Math.min((e.vy||0)+G,MAXFALL); e.onG=false; e.y+=e.vy; resolveY(e);
+    const tg=aimAt(e.x+e.w/2,e.vx); // il ghiaccio lanciato sale verso il volatile davanti
+    if(tg){ e.vy=Math.max(-3,Math.min(3,(tg.y+tg.h/2-(e.y+e.h/2))*0.15)); e.onG=false; e.y+=e.vy; }
+    else { e.vy=Math.min((e.vy||0)+G,MAXFALL); e.onG=false; e.y+=e.vy; resolveY(e); }
     if(e.onG && e.bounce>0){ e.bounce--; e.vy=-2.2; e.onG=false; e.vx*=0.5; sfx('impact'); } // primo atterraggio: piccolo rimbalzo
     if(e.y>H){ e.dead=true; return; } // è caduto in un burrone
     for(const o of enemies){
@@ -1496,7 +1504,7 @@ function tick(){
   // al cambio di direzione la vista frontale compare per qualche istante (vedi drawPlayer)
   if(dir){ if(dir!==pl.face) pl.turnT=12; pl.face=dir; }
   const run=!!(hold.y||keys.KeyZ); // Y (o Z) tenuto: corsa veloce
-  pl.rolling=!!(pl.tshell&&run&&dir&&pl.onG); // guscio che corre (o scivola con GIÙ): uccide i mostri
+  pl.rolling=!!(pl.tshell&&run&&dir&&(pl.onG||pl.coyote>0)); // guscio che corre (o scivola con GIÙ): uccide i mostri
   const target=(pl.crouch&&!pl.rolling)?0:dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4); // accovacciata non cammina
   // Locorotondo: il ghiaccio fa scivolare un po' (la velocità arriva e si ferma piano)
   // scivola solo sul ghiaccio (il terreno 'g' di Locorotondo), non su mensole e caselle
@@ -1527,11 +1535,11 @@ function tick(){
 
   // GIÙ da fermi a terra: la gattina si accovaccia (più bassa, schiva i pipistrelli e gli uccelli)
   // (usa anche il 'coyote': il contatto col terreno a volte manca per un frame e non deve far alternare la posa)
-  const cw=(pl.onG||pl.coyote>0) && down && jumpBuf===0;
+  const cw=((pl.onG||pl.coyote>0) && down && jumpBuf===0) || pl.rolling; // guscio che corre: si chiude e scivola
   const headFree=()=>{ const tx0=Math.floor(pl.x/T), tx1=Math.floor((pl.x+pl.w-1)/T); for(let ty=Math.floor((pl.y-7)/T);ty<=Math.floor((pl.y-1)/T);ty++) for(let tx=tx0;tx<=tx1;tx++) if(tiles.has(tx+','+ty)) return false; return true; };
   if(cw && !pl.crouch){ pl.crouch=true; pl.y+=8; pl.h=8; } // si abbassa della metà
   else if(!cw && pl.crouch && headFree()){ pl.crouch=false; pl.y-=8; pl.h=16; }
-  pl.hidden=!!(pl.tshell&&pl.crouch&&!run); // guscio chiuso: la gattina sta dentro, ferma sul terreno
+  pl.hidden=!!(pl.tshell&&pl.crouch&&(!run||pl.rolling)); // guscio chiuso: la gattina sta dentro (ferma, oppure scivola di corsa)
   pl.vy=Math.min(pl.vy+G,MAXFALL);
   pl.onG=false;
   if(pl.wallT>0) pl.wallT--;
@@ -1586,9 +1594,9 @@ function tick(){
     if((pl.rainbowT>0||pl.rolling)&&overlap(pl,e)){ e.dead=true; sfx('kill'); continue; }
     // guscio chiuso: il mostro che lo tocca torna indietro senza far danni
     if(pl.hidden&&overlap(pl,e)){ if(!e.fly){ e.dir*=-1; e.x+=e.dir*2; } continue; }
-    if(e.fly ? (big && overlap({x:pl.x,y:pl.y-(pl.crouch?8:16),w:pl.w,h:pl.h+(pl.crouch?8:16)},e)) : overlap(pl,e)){
+    if(e.fly ? (overlap(pl,e) || (big && overlap({x:pl.x,y:pl.y-(pl.crouch?8:16),w:pl.w,h:pl.h+(pl.crouch?8:16)},e))) : overlap(pl,e)){
       if(pl.vy>0 && pl.pb<=e.y+6){ e.dead=true; pl.vy=-5.2; pl.onG=false; sfx('stomp'); }
-      else if(e.fly){ if(big && !pl.crouch && !pl.flipT) hurt(); } // i volatili raggiungono la faccia solo se sei grande e in piedi; durante la capriola non fanno male
+      else if(e.fly){ if(!pl.crouch && !pl.flipT) hurt(); } // piccola o grande: il volatile fa male se non sei in capriola // i volatili raggiungono la faccia solo se sei grande e in piedi; durante la capriola non fanno male
       else hurt();
     }
   }
@@ -1606,10 +1614,12 @@ function tick(){
     const nx=s.x+s.vx, wx=Math.floor((nx+(s.vx>0?8:-1))/T);
     if(tiles.has(wx+','+Math.floor((s.y+1)/T)) || tiles.has(wx+','+Math.floor((s.y+6)/T))) s.life=0;
     s.x=nx;
+    // se c'è un volatile davanti, il colpo sale o scende verso di lui
+    s.homing=false; const tg=aimAt(s.x+4,s.vx); if(tg){ s.homing=true; s.vy=Math.max(-3,Math.min(3,(tg.y+tg.h/2-(s.y+3.5))*0.15)); }
     // verticale: cade su una mensola o sul pavimento e poi continua a strisciare
     const cxT=Math.floor((s.x+4)/T);
     if(s.grounded && !tiles.has(cxT+','+Math.floor((s.y+7.5)/T))) s.grounded=false;
-    if(!s.grounded){
+    if(s.homing){ s.y+=s.vy; } else if(!s.grounded){
       s.vy=Math.min(s.vy+0.3,4);
       const ny=s.y+s.vy, row=Math.floor((ny+7)/T);
       if(s.vy>0 && s.y+7<=row*T && tiles.has(cxT+','+row)){ s.y=row*T-7; s.vy=0; s.grounded=true; }
@@ -2048,13 +2058,18 @@ function drawRideHands(front){
   }
 }
 // guscio verticale sul torso: la testa e le zampe bianche sbucano sopra e sotto
-function drawShellBody(cy){
-  // guscio sulla schiena, DIETRO al corpo: il verde si vede a sinistra (la schiena), la pancia gialla a destra
-  g.fillStyle='#140a0c'; g.beginPath(); g.ellipse(-2,cy,7.5,6.5,0,0,Math.PI*2); g.fill();
-  g.fillStyle='#2e8b57'; g.beginPath(); g.ellipse(-2,cy,6.5,5.5,0,0,Math.PI*2); g.fill();
-  g.fillStyle='#d9b54a'; g.fillRect(-5,cy-2,2,2); g.fillRect(-1,cy+1,2,2); g.fillRect(-3,cy+3,1,1);
-  g.fillStyle='#140a0c'; g.beginPath(); g.ellipse(4,cy+2,4.2,3.7,0,0,Math.PI*2); g.fill();
-  g.fillStyle='#ffd23f'; g.beginPath(); g.ellipse(4,cy+2,3.4,2.9,0,0,Math.PI*2); g.fill();
+function drawShellBack(cy,front){ // di profilo: lo stesso guscio di quando sei a terra, ma in verticale sulla schiena
+  if(front) return;
+  for(let j=0;j<SHELL_ROWS.length;j++) for(let i=0;i<SHELL_ROWS[j].length;i++){
+    const c=SHELL_ROWS[j][i]; if(c==='.') continue;
+    g.fillStyle=SHELL_COL[c]; g.fillRect(-9+j,cy-7+i,1,1);
+  }
+}
+function drawShellFront(cy,front){ // di fronte: una fascia gialla piccola sul torso, sotto la faccia
+  if(!front) return;
+  g.fillStyle='#140a0c'; g.beginPath(); g.ellipse(0,cy,4.8,3.9,0,0,Math.PI*2); g.fill();
+  g.fillStyle='#ffd23f'; g.beginPath(); g.ellipse(0,cy,4,3.1,0,0,Math.PI*2); g.fill();
+  g.fillStyle='#d9a21e'; g.fillRect(-2,cy-1,1,1); g.fillRect(1,cy+1,1,1);
 }
 function drawPlayer(){
   if(hitCool>0 && Math.floor(hitCool/4)%2) return;
@@ -2064,8 +2079,8 @@ function drawPlayer(){
   // arcobaleno: tutto il corpo cambia colore a rotazione, i contorni restano neri
   const saved=pl.rainbowT>0?Object.assign({},PAL):null;
   if(saved){ const c=RB[Math.floor(pl.rainbowT/4)%RB.length]; for(const k in PAL) if(k!=='k') PAL[k]=c; }
-  SP_PAD=big?0.35:0; // scala 1,5: ogni pixel si allarga un poco per non lasciare bordi grigi
-  try{ drawPlayerInner(); } finally { SP_PAD=0; if(saved) Object.assign(PAL,saved); }
+  const pSaved=[PAL.p,PAL.u,PAL.a]; SP_PAD=big?0.35:0; // scala 1,5: ogni pixel si allarga un poco per non lasciare bordi grigi
+  try{ drawPlayerInner(); } finally { SP_PAD=0; if(saved) Object.assign(PAL,saved); PAL.p=pSaved[0]; PAL.u=pSaved[1]; PAL.a=pSaved[2]; }
 }
 function drawPlayerInner(){
   // da ferma la gattina è di fronte; quando si muove (o è in aria) è di profilo
@@ -2076,22 +2091,24 @@ function drawPlayerInner(){
   // accovacciata: si vede solo la vista di fronte schiacciata (un solo disegno, niente frame sovrapposti)
   const showFront=onQuad ? (pl.turnT>0) : (still||!!pl.crouch);
   const front=showFront ? frontNow() : null;
+  if(pl.tshell){ if(front){ PAL.u=PAL.w; PAL.a=PAL.w; PAL.p=PAL.w; } else PAL.p='#ffd23f'; } // di fronte niente azzurro; di profilo il vestito diventa giallo come la pancia
   const s=big?1.5:1; // stessa taglia del gattino maschio che aspetta alla fine
   if(pl.flipT>0){
     const cx=Math.round(pl.x+pl.w/2), cy=Math.round(pl.y+pl.h/2);
     g.save(); g.translate(cx,cy); g.rotate(pl.face*(pl.flipT/32)*Math.PI*2); g.scale(s,s);
-    if(pl.tshell) drawShellBody(-7);
+    if(pl.tshell) drawShellBack(-6,false);
     if(front) drawSprite(front,-7,-8); else drawProfile(-7,-8);
     if(helmet) drawSprite(HELM_FULL,-7,-8);
     if(santaOn()) drawSprite(SANTA_HAT,-7,-14);
     drawPixelPoints(BOW,front?-7:-9,-8,PAL.r);
+    if(pl.tshell) drawShellFront(-6,false);
     g.restore();
     return;
   }
   const ox=Math.round(pl.x+pl.w/2), oy=Math.round(pl.y+pl.h);
   g.save();
   g.translate(ox,oy); g.scale(pl.face<0?-s:s,s);
-  if(pl.tshell) drawShellBody(pl.crouch?-3:-7); // il guscio sta dietro il corpo
+  if(pl.tshell) drawShellBack(pl.crouch?-3:-6,!!front);
   const quad=L.vehicle==='quad';
   if(quad){ drawSprite(front?QUAD_FRONT:QUAD_SPIN[Math.floor((pl.wheel||0)/6)%2],-14,-14); g.translate(0,-6); } // il quad sta sotto, la gattina è seduta sulla sella
   if(pl.crouch){ // accovacciata: la vista di fronte con una riga su due, pixel interi (niente sfumature)
@@ -2100,6 +2117,7 @@ function drawPlayerInner(){
   else if(front){ drawSprite(front,-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-7,-16,PAL.r); }
   else { drawProfile(-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-9,-16,PAL.r); }
   if(quad) drawRideHands(!!front);
+  if(pl.tshell){ drawShellFront(pl.crouch?-2:-3,!!front); if(front&&!pl.crouch){ g.save(); g.beginPath(); g.rect(-9,-18,18,11); g.clip(); drawSprite(front,-7,-16); g.restore(); } } // di fronte la faccia sta davanti al guscio
   g.restore();
 }
 
