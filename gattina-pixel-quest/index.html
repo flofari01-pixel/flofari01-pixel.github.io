@@ -2049,9 +2049,12 @@ function drawRideHands(front){
 }
 // guscio verticale sul torso: la testa e le zampe bianche sbucano sopra e sotto
 function drawShellBody(cy){
-  g.fillStyle='#140a0c'; g.beginPath(); g.ellipse(0,cy,6,5.5,0,0,Math.PI*2); g.fill();
-  g.fillStyle='#2e8b57'; g.beginPath(); g.ellipse(0,cy,5,4.5,0,0,Math.PI*2); g.fill();
-  g.fillStyle='#d9b54a'; g.fillRect(-2,cy-2,2,2); g.fillRect(1,cy+1,2,2); g.fillRect(-1,cy+2,1,1);
+  // guscio sulla schiena, DIETRO al corpo: il verde si vede a sinistra (la schiena), la pancia gialla a destra
+  g.fillStyle='#140a0c'; g.beginPath(); g.ellipse(-2,cy,7.5,6.5,0,0,Math.PI*2); g.fill();
+  g.fillStyle='#2e8b57'; g.beginPath(); g.ellipse(-2,cy,6.5,5.5,0,0,Math.PI*2); g.fill();
+  g.fillStyle='#d9b54a'; g.fillRect(-5,cy-2,2,2); g.fillRect(-1,cy+1,2,2); g.fillRect(-3,cy+3,1,1);
+  g.fillStyle='#140a0c'; g.beginPath(); g.ellipse(4,cy+2,4.2,3.7,0,0,Math.PI*2); g.fill();
+  g.fillStyle='#ffd23f'; g.beginPath(); g.ellipse(4,cy+2,3.4,2.9,0,0,Math.PI*2); g.fill();
 }
 function drawPlayer(){
   if(hitCool>0 && Math.floor(hitCool/4)%2) return;
@@ -2077,17 +2080,18 @@ function drawPlayerInner(){
   if(pl.flipT>0){
     const cx=Math.round(pl.x+pl.w/2), cy=Math.round(pl.y+pl.h/2);
     g.save(); g.translate(cx,cy); g.rotate(pl.face*(pl.flipT/32)*Math.PI*2); g.scale(s,s);
+    if(pl.tshell) drawShellBody(-7);
     if(front) drawSprite(front,-7,-8); else drawProfile(-7,-8);
     if(helmet) drawSprite(HELM_FULL,-7,-8);
     if(santaOn()) drawSprite(SANTA_HAT,-7,-14);
     drawPixelPoints(BOW,front?-7:-9,-8,PAL.r);
-    if(pl.tshell) drawShellBody(-6);
     g.restore();
     return;
   }
   const ox=Math.round(pl.x+pl.w/2), oy=Math.round(pl.y+pl.h);
   g.save();
   g.translate(ox,oy); g.scale(pl.face<0?-s:s,s);
+  if(pl.tshell) drawShellBody(pl.crouch?-3:-7); // il guscio sta dietro il corpo
   const quad=L.vehicle==='quad';
   if(quad){ drawSprite(front?QUAD_FRONT:QUAD_SPIN[Math.floor((pl.wheel||0)/6)%2],-14,-14); g.translate(0,-6); } // il quad sta sotto, la gattina è seduta sulla sella
   if(pl.crouch){ // accovacciata: la vista di fronte con una riga su due, pixel interi (niente sfumature)
@@ -2096,7 +2100,6 @@ function drawPlayerInner(){
   else if(front){ drawSprite(front,-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-7,-16,PAL.r); }
   else { drawProfile(-7,-16); if(helmet) drawSprite(HELM_FULL,-7,-16); if(santaOn()) drawSprite(SANTA_HAT,-7,-20); else drawPixelPoints(BOW,-9,-16,PAL.r); }
   if(quad) drawRideHands(!!front);
-  if(pl.tshell) drawShellBody(pl.crouch?-3:-6);
   g.restore();
 }
 
