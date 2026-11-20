@@ -2076,11 +2076,12 @@ function drawPlayer(){
   if(pl.hidden){ // guscio chiuso sul terreno: la gattina è dentro
     const s=big?1.5:1; g.save(); g.translate(Math.round(pl.x+pl.w/2),Math.round(pl.y+pl.h)); g.scale(s,s); drawShellSprite(-7,-9); g.restore(); return;
   }
-  // arcobaleno: tutto il corpo cambia colore a rotazione, i contorni restano neri
-  const saved=pl.rainbowT>0?Object.assign({},PAL):null;
-  if(saved){ const c=RB[Math.floor(pl.rainbowT/4)%RB.length]; for(const k in PAL) if(k!=='k') PAL[k]=c; }
-  const pSaved=[PAL.p,PAL.u,PAL.a]; SP_PAD=big?0.35:0; // scala 1,5: ogni pixel si allarga un poco per non lasciare bordi grigi
-  try{ drawPlayerInner(); } finally { SP_PAD=0; if(saved) Object.assign(PAL,saved); PAL.p=pSaved[0]; PAL.u=pSaved[1]; PAL.a=pSaved[2]; }
+  // i colori cambiati per questo disegno (arcobaleno, guscio) vengono ripristinati subito dopo: non restano per il gattino maschio né per il resto
+  const saved=Object.assign({},PAL);
+  if(pl.rainbowT>0){ const c=RB[Math.floor(pl.rainbowT/4)%RB.length]; for(const k in PAL) if(k!=='k') PAL[k]=c; } // arcobaleno: corpo a colori, contorni neri
+  else if(pl.tshell) PAL.p='#ffd23f'; // con il guscio il vestito è giallo come la pancia
+  SP_PAD=big?0.35:0; // scala 1,5: ogni pixel si allarga un poco per non lasciare bordi grigi
+  try{ drawPlayerInner(); } finally { SP_PAD=0; Object.assign(PAL,saved); }
 }
 function drawPlayerInner(){
   // da ferma la gattina è di fronte; quando si muove (o è in aria) è di profilo
@@ -2091,7 +2092,7 @@ function drawPlayerInner(){
   // accovacciata: si vede solo la vista di fronte schiacciata (un solo disegno, niente frame sovrapposti)
   const showFront=onQuad ? (pl.turnT>0) : (still||!!pl.crouch);
   const front=showFront ? frontNow() : null;
-  if(pl.tshell){ PAL.p='#ffd23f'; if(front){ PAL.u=PAL.w; PAL.a=PAL.w; } } // con il guscio il vestito è giallo come la pancia; senza guscio resta rosa; di fronte niente azzurro
+  if(pl.tshell && front){ PAL.u=PAL.w; PAL.a=PAL.w; } // di fronte niente azzurro (la tavolozza viene ripristinata da drawPlayer)
   const s=big?1.5:1; // stessa taglia del gattino maschio che aspetta alla fine
   if(pl.flipT>0){
     const cx=Math.round(pl.x+pl.w/2), cy=Math.round(pl.y+pl.h/2);
