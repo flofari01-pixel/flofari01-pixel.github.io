@@ -1707,6 +1707,12 @@ function drawTree(x,y){
 }
 function drawItem(it){
   const x=it.x|0, y=it.y|0, t=it.t;
+  if(t==='drop'){ // palla da biliardo (prima dello sprite a goccia)
+    g.fillStyle=COLL.drop.c; g.beginPath(); g.arc(x+5,y+5,4.5,0,Math.PI*2); g.fill();
+    g.fillStyle='#fff'; g.beginPath(); g.arc(x+5,y+5,2.2,0,Math.PI*2); g.fill();
+    g.fillStyle='#140a0c'; g.fillRect(x+4,y+4,2,2);
+    return;
+  }
   if(SPR[t]){ drawSprite(SPR[t],x,y); return; }
   if(t==='bear') drawSprite(TEDDY,x,y);
   else if(t==='umbrella') drawUmbrella(x,y);
@@ -1720,11 +1726,6 @@ function drawItem(it){
   else if(t==='vheart') drawHeart(x+5,y+4,1,'#2ec46d');
   else if(t==='turtle') drawShellSprite(x-2,y+1);
   else if(t==='rstar') drawRainbowStar(x,y);
-  else if(t==='drop'){ // palla da biliardo
-    g.fillStyle=COLL.drop.c; g.beginPath(); g.arc(x+5,y+5,4.5,0,Math.PI*2); g.fill();
-    g.fillStyle='#fff'; g.beginPath(); g.arc(x+5,y+5,2.2,0,Math.PI*2); g.fill();
-    g.fillStyle='#140a0c'; g.fillRect(x+4,y+4,2,2);
-  }
   else {
     g.fillStyle=COLL[t].c; g.beginPath(); g.arc(x+5,y+5,4,0,Math.PI*2); g.fill();
     g.fillStyle='#fff'; g.fillRect(x+3,y+3,1,1);
