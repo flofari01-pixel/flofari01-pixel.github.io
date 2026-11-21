@@ -378,7 +378,7 @@ const GEN=[
 {n:'Il Parco delle Cave',p:'Cave di pietra leccese',th:'cave',end:'gate',coll:[['heart',12],['cake',4]],pw:['grow','umbrella','bear','grow'],seed:3},
 {n:'Nardò',p:'Centro storico di Nardò',th:'nardo',end:'bench',coll:[['heart',10],['crepe',4]],pw:['grow','bear','tree','umbrella']},
 {n:'Santa Caterina',p:'Scogli e mare di notte',th:'seaN',end:'heart',coll:[['star',10],['heart',4]]},
-{n:'Il superbingo',p:'Primo mese insieme',th:'hillsN',end:'car',coll:[['star',10],['painting',4]]},
+{n:'Il superbingo',p:'Primo mese insieme',th:'hillsN',end:'carChurch',coll:[['star',10],['painting',4]]},
 {n:'La campagna notturna',p:'Campagna di notte',th:'hillsN',end:'car',coll:[['star',10],['guitar',4]]},
 {n:'San Valentino',p:'Lecce di giorno',th:'lecce',end:'building',sign:'ER POLPETTA',coll:[['meat',10],['letter',4]]},
 {n:'Giornata al mare',p:'Spiaggia',th:'beach',end:'tree',coll:[['shell',10],['pizza',4]]},
@@ -660,7 +660,7 @@ let findLeft=3; // oggetti da trovare ancora disponibili nel livello (3 in tutto
 let boyBig=false; // il fidanzatino è grande se la gattina arriva al traguardo grande
 let hitCool=0,jumpBuf=0,bannerT=0,wet=0,kissT=0,cam=0;
 let wing=null; // scatola con le ali: a caso a inizio livello; colpita di testa diventa una casella normale
-let wingMsg='', wingMsgT=0, carryShell=false; // messaggio di ciò che si è trovato; il guscio passa al livello dopo
+let wingMsg='', wingMsgT=0, carryShell=false, scrapeT=0; // messaggio di ciò che si è trovato; il guscio passa al livello dopo
 let introT=0,lvlT=0,lastSec=0; // schermata delle vite, tempo del livello (frame di gioco), ultimo secondo segnalato
 const LV_TIME=300*60, ALARM_LEFT=900, BONUS_LIMIT=1800; // 5 minuti; allarme e musica più veloce negli ultimi 15 s; vita extra entro 30 s
 // prima di ogni partita (anche dopo una morte): schermo nero con la gattina e le vite
@@ -1156,7 +1156,7 @@ const ENDMSG=[
  "Complimenti, sei giunta al \"Teatro Apollo\"! Hai finito \"Il Teatro\". Prossima tappa: Nardò. Tu e Lof vi siete dati il primo bacetto! congratulazioni!",
  "Complimenti, sei giunta alla \"Panchina di Nardò\"! Hai finito \"Nardò\". Prossima tappa: Santa Caterina. Lof è così fiero di te!",
  "Complimenti, sei giunta sotto l'“Insegna di Santa Caterina”! Hai finito \"Santa Caterina\". Prossima tappa: Il Superbingo. Il tuo fidanzatino è molto fiero di te!",
- "Complimenti, sei giunta alla \"Macchina\"! Hai finito \"Il Superbingo\". Prossima tappa: La campagna notturna. Il tuo fidanzatino è molto fiero di te!",
+ "Complimenti, sei arrivata a Pozzino! Hai finito \"Il Superbingo\". Prossima tappa: La campagna notturna. Il tuo fidanzatino è molto fiero di te!",
  "Complimenti, sei giunta a \"La Macchina nella Campagna\"! Hai finito \"La campagna notturna\". Prossima tappa: San Valentino. Il tuo fidanzatino è molto fiero di te!",
  "Complimenti, sei giunta a \"Er Polpetta\"! Hai finito \"San Valentino\". Prossima tappa: Giornata al mare. Il tuo fidanzatino è molto fiero di te!",
  "Complimenti, sei giunta alla “Passerella delle Dune”! Hai finito \"Giornata al mare\". Prossima tappa: Aria Caddhipulina. Il tuo fidanzatino è molto fiero di te!",
@@ -1172,6 +1172,18 @@ const ENDMSG=[
  "Complimenti, sei giunta al \"Palco\"! Hai finito \"Pizzica estiva\". Prossima tappa: Masseria Rauccio. Il tuo fidanzatino è molto fiero di te!"
 ];
 let sfxWait=false;
+// strisciamento: rumore filtrato breve, come il guscio che sfrega sul terreno
+function scrapeSfx(){
+  try{
+    unlockAudio(); if(!AC||AC.state!=='running') return;
+    const n=Math.floor(AC.sampleRate*0.09), buf=AC.createBuffer(1,n,AC.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+    const src=AC.createBufferSource(); src.buffer=buf;
+    const bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1400; bp.Q.value=1.2;
+    const gn=AC.createGain(); gn.gain.value=0.22;
+    src.connect(bp); bp.connect(gn); gn.connect(AC.destination); src.start();
+  }catch(e){}
+}
 function sfx(k){
   try{
     unlockAudio();
@@ -1505,6 +1517,7 @@ function tick(){
   if(dir){ if(dir!==pl.face) pl.turnT=12; pl.face=dir; }
   const run=!!(hold.y||keys.KeyZ); // Y (o Z) tenuto: corsa veloce
   pl.rolling=!!(pl.tshell&&run&&dir&&(pl.onG||pl.coyote>0)); // guscio che corre (o scivola con GIÙ): uccide i mostri
+  if(pl.rolling&&pl.onG&&--scrapeT<=0){ scrapeT=9; scrapeSfx(); } // guscio che scivola: strisciamento
   const target=(pl.crouch&&!pl.rolling)?0:dir*SPEED*(run?1.6:1)*(pl.onG?1:1.4); // accovacciata non cammina
   // Locorotondo: il ghiaccio fa scivolare un po' (la velocità arriva e si ferma piano)
   // scivola solo sul ghiaccio (il terreno 'g' di Locorotondo), non su mensole e caselle
@@ -1924,6 +1937,21 @@ function drawApollo(dx,bw,top,base){
   g.fillStyle='#fff3a0'; g.fillRect(dx+4,base-6,1,1); g.fillRect(dx+bw-5,base-6,1,1);
   g.textAlign='left';
 }
+// chiesa di Pozzino, accanto all'auto del Superbingo
+function drawChurch(x,base){
+  g.fillStyle='#f2ead8'; g.fillRect(x+3,base-22,22,22);
+  g.fillStyle='#b5443a'; g.beginPath(); g.moveTo(x+1,base-22); g.lineTo(x+14,base-38); g.lineTo(x+27,base-22); g.closePath(); g.fill();
+  g.fillStyle='#ffffff'; g.fillRect(x+13,base-50,2,9); g.fillRect(x+11,base-47,6,2);
+  g.fillStyle='#5a6b8a'; g.fillRect(x+6,base-16,4,6); g.fillRect(x+18,base-16,4,6);
+  g.fillStyle='#6b3e22'; g.fillRect(x+11,base-10,6,10); g.fillStyle='#3a2212'; g.fillRect(x+12,base-8,4,8);
+}
+function drawCarShape(dx,bw,base){
+  g.fillStyle='#f5f5f5'; g.fillRect(dx+4,base-14,bw-8,10);
+  g.fillRect(dx+18,base-22,bw-36,8);
+  g.fillStyle='#1a2030'; g.fillRect(dx+20,base-20,bw-40,5);
+  g.fillStyle='#111'; g.beginPath(); g.arc(dx+16,base-3,3,0,Math.PI*2); g.fill();
+  g.beginPath(); g.arc(dx+bw-16,base-3,3,0,Math.PI*2); g.fill();
+}
 function drawEnd(th){
   const dx=L.door*T, bw=5*T, base=10*T, top=3*T;
   const e=L.end;
@@ -1945,6 +1973,7 @@ function drawEnd(th){
     g.fillStyle='#55555f'; g.fillRect(dx+bw/2-1,base-12,2,12);
     return;
   }
+  if(e==='carChurch'){ drawChurch(dx+2,base); drawCarShape(dx+36,44,base); return; }
   if(e==='car'){
     g.fillStyle='#f5f5f5'; g.fillRect(dx+4,base-14,bw-8,10);
     g.fillRect(dx+18,base-22,bw-36,8);
