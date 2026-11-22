@@ -1673,7 +1673,7 @@ function tick(){
     if(!p.plant||p.plant.dead||p.plant.h<0.3||!overlap(pl,plantBox(p))) continue;
     if(pl.rainbowT>0||(!pl.onG&&pl.flipT>0)){ // arcobaleno o capriola dall'alto: la pianta muore
       p.plant.dead=true; sfx('kill'); if(pl.rainbowT<=0){ pl.vy=-5.2; pl.onG=false; }
-    } else if(!pl.hidden){ die(); return; }
+    } else if(!pl.hidden){ hurt(); } // come un mostro: perde i poteri, poi si rimpicciolisce, poi muore
   }
   // sparo: il cuoricino vola dritto e uccide il primo mostro che colpisce
   if(shotCool>0) shotCool--;
