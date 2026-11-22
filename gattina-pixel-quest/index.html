@@ -1540,7 +1540,14 @@ function tick(){
   if(pl.warpT>0){
     pl.warpT--; pl.vx=0; pl.vy=0; pl.onG=false;
     if(pl.warpT>0) pl.y+=0.6; // scende nel tubo
-    else { const ex=pl.warpTo; pl.h=16; pl.crouch=false; pl.x=ex.x*T+16-pl.w/2; pl.y=pipeTop(ex)-pl.h; pl.onG=true; pl.coyote=6; pl.flipT=0; pl.flipUsed=false; sfx('pipeOut'); }
+    else { const ex=pl.warpTo; pl.h=16; pl.crouch=false; pl.x=ex.x*T+16-pl.w/2; pl.y=pipeTop(ex)+5; pl.warpOut=35; sfx('pipeOut'); } // dentro il tubo d'uscita, da cui risale
+    cam=Math.max(0,Math.min(L.w*T-W,pl.x+pl.w/2-W/2));
+    return;
+  }
+  if(pl.warpOut>0){ // risale dal tubo d'uscita: il contrario della discesa
+    pl.warpOut--; pl.vx=0; pl.vy=0; pl.onG=false;
+    if(pl.warpOut>0) pl.y-=0.6;
+    else { pl.y=pipeTop(pl.warpTo)-pl.h; pl.onG=true; pl.coyote=6; pl.flipT=0; pl.flipUsed=false; }
     cam=Math.max(0,Math.min(L.w*T-W,pl.x+pl.w/2-W/2));
     return;
   }
