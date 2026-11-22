@@ -1173,7 +1173,6 @@ const SFX={
   checkpoint:[[784,0.1],[988,0.1],[1175,0.1],[1568,0.3]],          // bandierina raggiunta
   pipeIn:[[392,0.1,'square',196],[196,0.18,'square',98]],         // tubo: si scende
   pipeOut:[[98,0.1,'square',196],[392,0.18,'square',784]],         // tubo: si sale
-  chomp:[[220,0.05,'square',140]],                                 // pianta: la bocca scatta
   win:[[523,0.1],[659,0.1],[784,0.1],[1047,0.1],[784,0.08],[1047,0.3]], // livello completato
   oneup:[[659,0.07],[784,0.07],[1319,0.07],[1047,0.07],[1175,0.07],[1568,0.2]], // vita extra
   select:[[660,0.06],[880,0.1]],                                   // livello scelto
@@ -1215,21 +1214,17 @@ const ENDMSG=[
 ];
 let sfxWait=false;
 // strisciamento: rumore filtrato breve, come il guscio che sfrega sul terreno
-let scrapeBuf=null;
 function scrapeSfx(){
   try{
     unlockAudio(); if(!AC||AC.state!=='running') return;
-    if(!scrapeBuf){ const n=Math.floor(AC.sampleRate*0.09); scrapeBuf=AC.createBuffer(1,n,AC.sampleRate); const d=scrapeBuf.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n); }
-    const buf=scrapeBuf;
+    const n=Math.floor(AC.sampleRate*0.09), buf=AC.createBuffer(1,n,AC.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
     const src=AC.createBufferSource(); src.buffer=buf;
     const bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1400; bp.Q.value=1.2;
     const gn=AC.createGain(); gn.gain.value=0.22;
     src.connect(bp); bp.connect(gn); gn.connect(AC.destination); src.start();
   }catch(e){}
 }
-// suoni frequenti che non abbassano la musica (passi, corsa, bocca della pianta)
-const QUIET_SFX=new Set(['step','run','chomp']);
-let lastChomp=-99;
 function sfx(k){
   try{
     unlockAudio();
@@ -1237,7 +1232,7 @@ function sfx(k){
     // il contesto audio all'inizio del menu si sta ancora avviando: il primo "tic" veniva perso, ora aspetta e poi suona
     if(AC.state!=='running'){ if(!sfxWait){ sfxWait=true; AC.resume().then(()=>{ sfxWait=false; if(AC.state==='running') sfx(k); }).catch(()=>{ sfxWait=false; }); } return; }
     let t=AC.currentTime;
-    if(!QUIET_SFX.has(k)) musicDuck();
+    musicDuck();
     for(const [f,d,ty,f2] of SFX[k]){
       const o=AC.createOscillator(), gn=AC.createGain();
       o.type=ty||'square';
@@ -1803,13 +1798,27 @@ function drawItem(it){
 // grande o piccolo come la gattina quando arriva al traguardo (prima dell'arrivo segue la gattina)
 // tubi e piante carnivore
 function pipeTop(p){ return (10-p.h)*T; } // il tubo parte dal terreno (riga 10) e sale di p.h tratti
+// la pianta si sente da poco prima di vederla (schermo più un margine) fino a poco dopo esserci passati
+function plantNear(p){ const X=p.x*T+16; return X>cam-48&&X<cam+W+48; }
+let clapBuf=null, clapT=-99;
+// fauci: tre schiocchi di mani veloci in sequenza
+function clapSfx(){
+  try{
+    unlockAudio(); if(!AC||AC.state!=='running') return;
+    if(lvlT<clapT+12) return; clapT=lvlT; // le piante vicine non si sommano
+    if(!clapBuf){ const n=Math.floor(AC.sampleRate*0.012); clapBuf=AC.createBuffer(1,n,AC.sampleRate); const d=clapBuf.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3); }
+    const bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1800; bp.Q.value=0.9;
+    const gn=AC.createGain(); gn.gain.value=0.5; bp.connect(gn); gn.connect(AC.destination);
+    for(let i=0;i<3;i++){ const src=AC.createBufferSource(); src.buffer=clapBuf; src.connect(bp); src.start(AC.currentTime+i*0.05); }
+  }catch(e){}
+}
 function plantBox(p){ const hh=p.plant.h*26; return {x:p.x*T+8,y:pipeTop(p)-hh,w:16,h:hh}; }
 function plantStep(p){
   const P=p.plant; if(P.dead){ P.h=0; return; }
   P.t++; const ph=P.t%180; // ciclo di 3 secondi: sale, resta su, scende, resta nel tubo
   P.h=ph<20?0:ph<36?(ph-20)/16:ph<132?1:ph<148?1-(ph-132)/16:0;
-  const open=Math.floor(P.t/14)%2===0;
-  if(open&&!P.open&&P.h>0.5&&lvlT>=lastChomp+30){ lastChomp=lvlT; sfx('chomp'); } // la bocca scatta (al massimo un suono ogni mezzo secondo)
+  const open=Math.floor(P.t/22)%2===0;
+  if(open&&!P.open&&plantNear(p)) clapSfx(); // la bocca scatta: schiocchi veloci in sequenza
   P.open=open;
 }
 function drawPlant(p){
