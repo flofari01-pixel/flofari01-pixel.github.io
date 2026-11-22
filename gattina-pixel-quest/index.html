@@ -1535,12 +1535,12 @@ function tick(){
   if(!(pl.warpT>0) && pl.onG && (keys.ArrowDown||keys.KeyS||hold.d)){
     const cx=pl.x+pl.w/2;
     const pp=pipes.find(q=>q.warp==='in'&&q.to&&cx>q.x*T&&cx<q.x*T+2*T&&Math.abs(pl.y+pl.h-pipeTop(q))<=2);
-    if(pp){ pl.warpT=36; pl.warpTo=pp.to; sfx('pipeIn'); }
+    if(pp){ pl.warpT=36; pl.warpTo=pp.to; pl.warpY=pipeTop(pp); sfx('pipeIn'); }
   }
   if(pl.warpT>0){
     pl.warpT--; pl.vx=0; pl.vy=0; pl.onG=false;
     if(pl.warpT>0) pl.y+=0.6; // scende nel tubo
-    else { const ex=pl.warpTo; pl.h=16; pl.crouch=false; pl.x=ex.x*T+16-pl.w/2; pl.y=pipeTop(ex)+5; pl.warpOut=35; sfx('pipeOut'); } // dentro il tubo d'uscita, da cui risale
+    else { const ex=pl.warpTo; pl.h=16; pl.crouch=false; pl.x=ex.x*T+16-pl.w/2; pl.y=pipeTop(ex)+5; pl.warpY=pipeTop(ex); pl.warpOut=35; sfx('pipeOut'); } // dentro il tubo d'uscita, da cui risale
     cam=Math.max(0,Math.min(L.w*T-W,pl.x+pl.w/2-W/2));
     return;
   }
@@ -2309,7 +2309,9 @@ function draw(){
   for(const s of shots) drawShot(s);
   updateProgress();
   if(flag) drawFlag();
-  drawPlayer();
+  // dentro un tubo la gattina si vede solo sopra il suo bordo
+  if(pl.warpT>0||pl.warpOut>0){ g.save(); g.beginPath(); g.rect(Math.round(cam)-4,-10,W+8,pl.warpY+10); g.clip(); drawPlayer(); g.restore(); }
+  else drawPlayer();
   drawPipes();
   // l'oggetto della riserva cade sulla testa
   if(dropFx) drawItem({t:dropFx.t,x:pl.x+1,y:dropFx.y});
