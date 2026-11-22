@@ -505,16 +505,16 @@ function genLayout(seed,coll,pw,len=170,split=90,warp=false,off=0){
     const snap=w=>{ for(let d=0;d<=12;d++) for(const x of (d?[w+d,w-d]:[w])) if(pipeOK(x)) return x; return -1; };
     const xi=snap(Math.round(TT*0.25)-off);
     if(xi>=0){
-      pipes.push({x:xi,warp:'in',plant:null});
+      pipes.push({x:xi,warp:'in',plant:null,h:1+Math.floor(R()*3)});
       const xo=snap(Math.round(TT*0.75)-off);
-      if(xo>=0){ pipes.push({x:xo,warp:'out',plant:null}); pipes[0].toIdx=1; } else pipes.pop();
+      if(xo>=0){ pipes.push({x:xo,warp:'out',plant:null,h:1+Math.floor(R()*3)}); pipes[0].toIdx=1; } else pipes.pop();
     }
   }
   const nRand=Math.max(4,Math.round(len/60)); let placed=0;
   for(let tries=0;placed<nRand&&tries<600;tries++){
     const x=10+Math.floor(R()*Math.max(1,len-22));
     if(!pipeOK(x)) continue;
-    pipes.push({x,warp:null,plant:R()<0.4?{t:Math.floor(R()*180)}:null}); placed++;
+    pipes.push({x,warp:null,h:1+Math.floor(R()*3),plant:R()<0.4?{t:Math.floor(R()*180)}:null}); placed++;
   }
   return {ground,plats,boxes,items,enemies,pipes};
 }
@@ -720,8 +720,8 @@ function loadLevel(i){
   for(const [a,b] of lay.ground) for(let x=a;x<b;x++) for(let y=10;y<12;y++) tiles.set(x+','+y,'g');
   for(const [x,y,w] of lay.plats) for(let k=0;k<w;k++) tiles.set((x+k)+','+y,'p');
   // tubi: 2 colonne e 3 righe sopra il terreno, solidi come una mensola
-  pipes=(lay.pipes||[]).map(p=>({x:p.x,warp:p.warp,toIdx:p.toIdx,to:null,plant:p.plant?{t:p.plant.t,h:0,open:false,dead:false}:null}));
-  pipes.forEach(p=>{ if(p.toIdx!==undefined) p.to=pipes[p.toIdx]; for(let dx=0;dx<2;dx++) for(let ty=7;ty<=9;ty++) tiles.set((p.x+dx)+','+ty,'k'); });
+  pipes=(lay.pipes||[]).map(p=>({h:p.h,x:p.x,warp:p.warp,toIdx:p.toIdx,to:null,plant:p.plant?{t:p.plant.t,h:0,open:false,dead:false}:null}));
+  pipes.forEach(p=>{ if(p.toIdx!==undefined) p.to=pipes[p.toIdx]; for(let dx=0;dx<2;dx++) for(let ty=10-p.h;ty<=9;ty++) tiles.set((p.x+dx)+','+ty,'k'); });
   for(const [x,y,t,f] of lay.boxes){
     tiles.set(x+','+y,'b');
     // f=true: la casella fa uscire un oggetto da trovare; altrimenti uno da raccogliere
@@ -1215,17 +1215,21 @@ const ENDMSG=[
 ];
 let sfxWait=false;
 // strisciamento: rumore filtrato breve, come il guscio che sfrega sul terreno
+let scrapeBuf=null;
 function scrapeSfx(){
   try{
     unlockAudio(); if(!AC||AC.state!=='running') return;
-    const n=Math.floor(AC.sampleRate*0.09), buf=AC.createBuffer(1,n,AC.sampleRate), d=buf.getChannelData(0);
-    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+    if(!scrapeBuf){ const n=Math.floor(AC.sampleRate*0.09); scrapeBuf=AC.createBuffer(1,n,AC.sampleRate); const d=scrapeBuf.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n); }
+    const buf=scrapeBuf;
     const src=AC.createBufferSource(); src.buffer=buf;
     const bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1400; bp.Q.value=1.2;
     const gn=AC.createGain(); gn.gain.value=0.22;
     src.connect(bp); bp.connect(gn); gn.connect(AC.destination); src.start();
   }catch(e){}
 }
+// suoni frequenti che non abbassano la musica (passi, corsa, bocca della pianta)
+const QUIET_SFX=new Set(['step','run','chomp']);
+let lastChomp=-99;
 function sfx(k){
   try{
     unlockAudio();
@@ -1233,7 +1237,7 @@ function sfx(k){
     // il contesto audio all'inizio del menu si sta ancora avviando: il primo "tic" veniva perso, ora aspetta e poi suona
     if(AC.state!=='running'){ if(!sfxWait){ sfxWait=true; AC.resume().then(()=>{ sfxWait=false; if(AC.state==='running') sfx(k); }).catch(()=>{ sfxWait=false; }); } return; }
     let t=AC.currentTime;
-    musicDuck();
+    if(!QUIET_SFX.has(k)) musicDuck();
     for(const [f,d,ty,f2] of SFX[k]){
       const o=AC.createOscillator(), gn=AC.createGain();
       o.type=ty||'square';
@@ -1535,13 +1539,13 @@ function tick(){
   // tubi: GIÙ sul tubo d'ingresso (a 1/4) fa scendere la gattina, che sbuca dal tubo d'uscita (a 3/4)
   if(!(pl.warpT>0) && pl.onG && (keys.ArrowDown||keys.KeyS||hold.d)){
     const cx=pl.x+pl.w/2;
-    const pp=pipes.find(q=>q.warp==='in'&&q.to&&cx>q.x*T&&cx<q.x*T+2*T&&Math.abs(pl.y+pl.h-7*T)<=2);
+    const pp=pipes.find(q=>q.warp==='in'&&q.to&&cx>q.x*T&&cx<q.x*T+2*T&&Math.abs(pl.y+pl.h-pipeTop(q))<=2);
     if(pp){ pl.warpT=36; pl.warpTo=pp.to; sfx('pipeIn'); }
   }
   if(pl.warpT>0){
     pl.warpT--; pl.vx=0; pl.vy=0; pl.onG=false;
     if(pl.warpT>0) pl.y+=0.6; // scende nel tubo
-    else { const ex=pl.warpTo; pl.h=16; pl.crouch=false; pl.x=ex.x*T+16-pl.w/2; pl.y=7*T-pl.h; pl.onG=true; pl.coyote=6; pl.flipT=0; pl.flipUsed=false; sfx('pipeOut'); }
+    else { const ex=pl.warpTo; pl.h=16; pl.crouch=false; pl.x=ex.x*T+16-pl.w/2; pl.y=pipeTop(ex)-pl.h; pl.onG=true; pl.coyote=6; pl.flipT=0; pl.flipUsed=false; sfx('pipeOut'); }
     cam=Math.max(0,Math.min(L.w*T-W,pl.x+pl.w/2-W/2));
     return;
   }
@@ -1798,17 +1802,18 @@ function drawItem(it){
 // il gattino maschio aspetta sotto il traguardo, appena prima dell'ingresso
 // grande o piccolo come la gattina quando arriva al traguardo (prima dell'arrivo segue la gattina)
 // tubi e piante carnivore
-function plantBox(p){ const hh=p.plant.h*26; return {x:p.x*T+8,y:7*T-hh,w:16,h:hh}; }
+function pipeTop(p){ return (10-p.h)*T; } // il tubo parte dal terreno (riga 10) e sale di p.h tratti
+function plantBox(p){ const hh=p.plant.h*26; return {x:p.x*T+8,y:pipeTop(p)-hh,w:16,h:hh}; }
 function plantStep(p){
   const P=p.plant; if(P.dead){ P.h=0; return; }
   P.t++; const ph=P.t%180; // ciclo di 3 secondi: sale, resta su, scende, resta nel tubo
   P.h=ph<20?0:ph<36?(ph-20)/16:ph<132?1:ph<148?1-(ph-132)/16:0;
   const open=Math.floor(P.t/14)%2===0;
-  if(open&&!P.open&&P.h>0.5) sfx('chomp'); // la bocca si apre con uno scatto
+  if(open&&!P.open&&P.h>0.5&&lvlT>=lastChomp+30){ lastChomp=lvlT; sfx('chomp'); } // la bocca scatta (al massimo un suono ogni mezzo secondo)
   P.open=open;
 }
 function drawPlant(p){
-  const P=p.plant, cx=p.x*T+16, rim=7*T, hh=Math.round(P.h*26), hy=rim-hh;
+  const P=p.plant, cx=p.x*T+16, rim=pipeTop(p), hh=Math.round(P.h*26), hy=rim-hh;
   if(hh>12){ g.fillStyle='#2e7d32'; g.fillRect(cx-2,hy+12,4,rim-hy-12); }
   if(hh>16){ g.fillStyle='#3fae4a'; g.fillRect(cx-10,hy+16,4,2); g.fillRect(cx+6,hy+16,4,2); }
   g.fillStyle='#d62828'; g.fillRect(cx-8,hy,16,12);
@@ -1818,10 +1823,10 @@ function drawPlant(p){
   else { g.fillStyle='#5a0000'; g.fillRect(cx-6,hy+8,12,2); }
 }
 function drawPipe(p){
-  const X=p.x*T, top=7*T;
-  g.fillStyle='#2a5cb8'; g.fillRect(X+3,top+8,26,40);
-  g.fillStyle='#5f97e8'; g.fillRect(X+7,top+8,3,40); g.fillRect(X+20,top+8,2,40);
-  g.fillStyle='#14305e'; g.fillRect(X+3,top+8,1,40); g.fillRect(X+28,top+8,1,40);
+  const X=p.x*T, top=pipeTop(p), bh=p.h*T-8;
+  g.fillStyle='#2a5cb8'; g.fillRect(X+3,top+8,26,bh);
+  g.fillStyle='#5f97e8'; g.fillRect(X+7,top+8,3,bh); g.fillRect(X+20,top+8,2,bh);
+  g.fillStyle='#14305e'; g.fillRect(X+3,top+8,1,bh); g.fillRect(X+28,top+8,1,bh);
   g.fillStyle='#3d7bd9'; g.fillRect(X,top,32,8);
   g.fillStyle='#9cc8ff'; g.fillRect(X+2,top+1,28,2);
   g.fillStyle='#14305e'; g.fillRect(X,top+7,32,1); g.fillRect(X,top,1,8); g.fillRect(X+31,top,1,8); g.fillRect(X,top,32,1);
