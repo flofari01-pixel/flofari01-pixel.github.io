@@ -1713,7 +1713,8 @@ function tick(){
     }
   }
   // i colpi uccidono anche le piante carnivore
-  for(const s of shots){ for(const p of pipes){ if(s.life<=0||!p.plant||p.plant.dead||p.plant.h<0.3) continue; const b=plantBox(p); if(s.x<b.x+b.w&&s.x+8>b.x&&s.y<b.y+b.h&&s.y+7>b.y){ p.plant.dead=true; s.life=0; sfx('kill'); } } }
+  for(const s of shots){ for(const p of pipes){ if(s.life<=0||!p.plant||p.plant.dead||p.plant.h<0.3) continue; const b=plantBox(p); if(s.x<b.x+b.w&&s.x+8>b.x&&s.y<b.y+b.h&&s.y+7>b.y){ p.plant.dead=true; s.life=0; sfx('kill'); // la pianta colpita diventa l'oggetto da raccogliere del livello
+        const ct=(L.hud&&L.hud[0])||'pop'; items.push({t:ct,x:p.x*T+8,y:pipeTop(p)-12,got:false,c:items.length%5,find:false}); tot[ct]=(tot[ct]||0)+1; } } }
   shots=shots.filter(s=>s.life>0);
   enemies=enemies.filter(e=>!e.dead);
 
