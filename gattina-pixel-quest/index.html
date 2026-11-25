@@ -1568,7 +1568,7 @@ function tick(){
     if(shootOn){ if(tiles.has(k)) tiles.delete(k); }
     else if(!tiles.has(k)) tiles.set(k,'b');
   }
-  if(wing&&!wing.hit){ wing.t+=0.09; wing.y=wing.y0+Math.sin(wing.t)*3; wing.x-=0.6; if(wing.x<-24) wing=null; } // ali: su e giù, e scorre verso sinistra; uscita dallo schermo: se ne va
+  if(wing&&!wing.hit){ wing.t+=0.09; wing.y=wing.y0+Math.sin(wing.t)*6; wing.x-=0.9; if(wing.x<0) wing=null; } // ali: come i volatili, su e giù e verso sinistra; sparisce solo uscendo dal livello, così si può tornare a riprenderla
   if(jumpBuf>0) jumpBuf--;
   const down=!!(keys.ArrowDown||keys.KeyS||hold.d);
   const left=keys.ArrowLeft||keys.KeyA||hold.l;
